@@ -1,0 +1,780 @@
+// ─── Main Application ─────────────────────────────────────────────────────────
+// SQL Lab — Cambridge AS Computer Science 9618
+
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode } from './auth.js';
+import { ChallengeManager, runSandboxSQL } from './challenges.js';
+import { renderDashboard, refreshDashboard } from './dashboard.js';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js';
+import { EXERCISES, CATEGORIES } from './exercises.js';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js';
+
+const $ = id => document.getElementById(id);
+
+// ── State ─────────────────────────────────────────────────────────────────────
+
+let _SQL           = null;
+let _user          = null;
+let _profile       = null;
+let _challengeMgr  = null;
+let _activeDatabaseId = 'bookshop';  // currently selected built-in database
+let _sandboxDb     = null;           // persistent sandbox database instance
+let _queryHistory  = [];
+
+// ── DOM refs ───────────────────────────────────────────────────────────────────
+
+const loginPage     = $('login-page');
+const appEl         = $('app');
+const editor        = $('sql-editor');
+const btnRun        = $('btn-run');
+const btnClear      = $('btn-clear');
+const resultsTable  = $('results-table-wrap');
+const messagesPanel = $('messages-panel');
+const historyPanel  = $('history-panel');
+const schemaPanel   = $('schema-panel');
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════════════════════════
+
+onAuth(async (user, profile) => {
+  if (!user || !profile) {
+    showLogin(); return;
+  }
+  _user    = user;
+  _profile = profile;
+  await showApp();
+});
+
+function showLogin() {
+  loginPage?.classList.remove('hidden');
+  appEl?.classList.add('hidden');
+}
+
+async function showApp() {
+  loginPage?.classList.add('hidden');
+  appEl?.classList.remove('hidden');
+
+  $('user-name-display').textContent  = _profile.displayName || _user.email;
+  $('user-role-badge').textContent    = _profile.role === 'teacher' ? 'Teacher' : 'Student';
+  $('user-role-badge').className      = `role-badge role-${_profile.role}`;
+  $('status-class-code').textContent  = _profile.classCode || '—';
+
+  const isTeacher = ['teacher','superadmin'].includes(_profile.role);
+  document.querySelectorAll('.teacher-only').forEach(el => el.classList.toggle('hidden', !isTeacher));
+  document.querySelectorAll('.student-only').forEach(el => el.classList.toggle('hidden', isTeacher));
+
+  // Init SQL engine
+  _SQL = await initSQLEngine();
+
+  // Init challenge manager
+  _challengeMgr = new ChallengeManager({
+    onXpChange: (xp, level) => {
+      $('ch-xp-display').textContent    = `${xp} XP`;
+      $('ch-level-display').textContent = `Level ${level}`;
+    },
+    onMessage: (msgs, passed) => showMessages(msgs, passed),
+    onResults: (result) => renderResultTable(result.columns, result.rows),
+    onError:   (err)    => showError(err)
+  });
+  await _challengeMgr.init(_user.uid, _profile.classCode || '', _profile.displayName || '');
+
+  // Load initial database
+  setActiveDatabase('bookshop');
+
+  // Rebuild sandbox DB
+  rebuildSandboxDB();
+}
+
+// ── Login form handlers ────────────────────────────────────────────────────────
+
+$('signin-form')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('signin-email').value.trim();
+  const pw    = $('signin-password').value;
+  const btn   = $('signin-btn');
+  const err   = $('signin-error');
+  btn.disabled = true;
+  err.classList.add('hidden');
+  try {
+    await signIn(email, pw);
+  } catch (ex) {
+    err.textContent = ex.message;
+    err.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$('signup-form')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const name  = $('signup-name').value.trim();
+  const email = $('signup-email').value.trim();
+  const code  = $('signup-classcode').value.trim();
+  const pw    = $('signup-password').value;
+  const btn   = $('signup-btn');
+  const err   = $('signup-error');
+  btn.disabled = true;
+  err.classList.add('hidden');
+  try {
+    await registerUser(email, pw, name, code);
+  } catch (ex) {
+    err.textContent = ex.message;
+    err.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// Auth tabs
+document.querySelectorAll('.auth-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.auth-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.toggle('active', f.id === `${tab}-form`));
+  });
+});
+
+$('forgot-password-btn')?.addEventListener('click', () => {
+  $('reset-panel')?.classList.remove('hidden');
+});
+$('reset-cancel-btn')?.addEventListener('click', () => {
+  $('reset-panel')?.classList.add('hidden');
+});
+$('reset-submit-btn')?.addEventListener('click', async () => {
+  const email = $('reset-email').value.trim();
+  const err   = $('reset-error');
+  err.classList.add('hidden');
+  try {
+    await resetPassword(email);
+    $('reset-panel').classList.add('hidden');
+    alert('Password reset email sent. Check your inbox.');
+  } catch (ex) {
+    err.textContent = ex.message;
+    err.classList.remove('hidden');
+  }
+});
+
+// Password visibility toggle
+document.querySelectorAll('.pw-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const inp = $(btn.dataset.target);
+    if (!inp) return;
+    const show = inp.type === 'text';
+    inp.type = show ? 'text' : 'text'; // always text to preserve value
+    inp.classList.toggle('pw-masked', show);
+    btn.querySelector('.pw-eye')?.classList.toggle('hidden', !show);
+    btn.querySelector('.pw-eye-off')?.classList.toggle('hidden', show);
+  });
+});
+
+$('btn-logout')?.addEventListener('click', async () => {
+  await signOutUser();
+  showLogin();
+});
+
+// ── Class code modal ───────────────────────────────────────────────────────────
+
+$('btn-class-code')?.addEventListener('click', () => {
+  $('class-input').value = _profile.classCode || '';
+  $('class-modal')?.classList.remove('hidden');
+});
+$('class-cancel')?.addEventListener('click', () => $('class-modal')?.classList.add('hidden'));
+$('class-confirm')?.addEventListener('click', async () => {
+  const code = $('class-input').value.trim().toUpperCase();
+  await updateUserClassCode(_user.uid, code);
+  _profile.classCode = code;
+  $('status-class-code').textContent = code || '—';
+  $('class-modal')?.classList.add('hidden');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SQL EDITOR
+// ══════════════════════════════════════════════════════════════════════════════
+
+// SQL keyword syntax highlighting (simple overlay approach)
+function highlightSQL(code) {
+  const keywords = /\b(SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|DATABASE|ALTER|ADD|DROP|COLUMN|PRIMARY|KEY|FOREIGN|REFERENCES|INNER|JOIN|ON|ORDER|BY|GROUP|HAVING|DISTINCT|AS|AND|OR|NOT|NULL|IS|IN|BETWEEN|LIKE|COUNT|SUM|AVG|MAX|MIN|ASC|DESC|LIMIT|OFFSET|INTEGER|VARCHAR|CHARACTER|CHAR|BOOLEAN|REAL|DATE|TIME|INT|TEXT|NUMERIC)\b/gi;
+  const strings  = /'[^']*'/g;
+  const comments = /--[^\n]*/g;
+  const numbers  = /\b\d+(\.\d+)?\b/g;
+
+  return code
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(comments, m => `<span class="syn-cmt">${m}</span>`)
+    .replace(strings,  m => `<span class="syn-str">${m}</span>`)
+    .replace(keywords, m => `<span class="syn-kw">${m}</span>`)
+    .replace(numbers,  m => `<span class="syn-num">${m}</span>`);
+}
+
+editor?.addEventListener('input', () => {
+  updateHighlight();
+  updateLineNumbers();
+});
+editor?.addEventListener('scroll', () => {
+  const hl = $('editor-highlight');
+  const gutter = $('editor-gutter');
+  if (hl) { hl.scrollTop = editor.scrollTop; hl.scrollLeft = editor.scrollLeft; }
+  if (gutter) gutter.scrollTop = editor.scrollTop;
+});
+editor?.addEventListener('keydown', e => {
+  // Tab inserts 2 spaces
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = editor.selectionStart;
+    const end   = editor.selectionEnd;
+    editor.value = editor.value.slice(0, start) + '  ' + editor.value.slice(end);
+    editor.selectionStart = editor.selectionEnd = start + 2;
+    updateHighlight();
+    updateLineNumbers();
+  }
+  // Ctrl/Cmd + Enter = Run
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    executeQuery();
+  }
+  // Ctrl/Cmd + L = clear
+  if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+    e.preventDefault();
+    editor.value = '';
+    updateHighlight();
+    updateLineNumbers();
+  }
+});
+
+function updateHighlight() {
+  const hl = $('editor-highlight');
+  if (hl) hl.innerHTML = highlightSQL(editor.value) + '\n';
+}
+
+function updateLineNumbers() {
+  const gutter = $('editor-gutter');
+  if (!gutter) return;
+  const lines = (editor.value.match(/\n/g) || []).length + 1;
+  gutter.innerHTML = Array.from({length: lines}, (_, i) => `<div>${i+1}</div>`).join('');
+}
+
+// ── Run button ─────────────────────────────────────────────────────────────────
+
+btnRun?.addEventListener('click', executeQuery);
+btnClear?.addEventListener('click', () => {
+  clearResults();
+  messagesPanel.innerHTML = '';
+});
+$('btn-new-query')?.addEventListener('click', () => {
+  editor.value = '';
+  updateHighlight();
+  updateLineNumbers();
+  clearResults();
+});
+
+async function executeQuery() {
+  const sql = editor.value.trim();
+  if (!sql) return;
+
+  // If a challenge is active, run in challenge mode
+  if (_challengeMgr?.getCurrentExercise()) {
+    btnRun.disabled = true;
+    btnRun.textContent = 'Running…';
+    try {
+      await _challengeMgr.runChallenge(sql);
+    } finally {
+      btnRun.disabled = false;
+      btnRun.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run SQL';
+    }
+    addToHistory(sql, true);
+    return;
+  }
+
+  // Sandbox mode
+  btnRun.disabled = true;
+  btnRun.innerHTML = '<span>Running…</span>';
+  try {
+    const { results, error, rowsAffected } = await runSandboxSQL(
+      _SQL, _activeDatabaseId, null, sql
+    );
+    if (error) {
+      showError(error);
+    } else {
+      clearResults();
+      if (results.length) {
+        results.forEach(r => renderResultTable(r.columns, r.rows));
+      } else {
+        showMessages([`Query executed successfully. Rows affected: ${rowsAffected ?? 0}`], true);
+      }
+    }
+    addToHistory(sql, !error);
+  } finally {
+    btnRun.disabled = false;
+    btnRun.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run SQL';
+  }
+}
+
+// ── Results panel ──────────────────────────────────────────────────────────────
+
+function renderResultTable(columns, rows) {
+  const wrap = $('results-table-wrap');
+  if (!wrap) return;
+  wrap.classList.remove('hidden');
+
+  const thead = `<thead><tr>${columns.map(c => `<th>${esc(String(c))}</th>`).join('')}</tr></thead>`;
+  const tbody = `<tbody>${rows.map(row =>
+    `<tr>${row.map(cell => `<td>${esc(cell === null ? '<em>NULL</em>' : String(cell))}</td>`).join('')}</tr>`
+  ).join('')}</tbody>`;
+
+  const table = document.createElement('table');
+  table.className = 'result-table';
+  table.innerHTML = thead + tbody;
+
+  const info = document.createElement('div');
+  info.className = 'result-info';
+  info.textContent = `${rows.length} row${rows.length !== 1 ? 's' : ''}`;
+
+  wrap.innerHTML = '';
+  wrap.appendChild(info);
+  wrap.appendChild(table);
+
+  // Switch to results tab
+  switchOutputTab('results');
+}
+
+function showMessages(msgs, passed) {
+  const panel = $('messages-panel');
+  if (!panel) return;
+  const icon = passed ? '✓' : '✗';
+  const cls  = passed ? 'msg-pass' : 'msg-fail';
+  panel.innerHTML = `<div class="msg-block ${cls}">
+    <span class="msg-icon">${icon}</span>
+    <div>${msgs.map(m => `<div class="msg-line">${m}</div>`).join('')}</div>
+  </div>`;
+  switchOutputTab('messages');
+}
+
+function showError(err) {
+  const panel = $('messages-panel');
+  if (!panel) return;
+  panel.innerHTML = `<div class="msg-block msg-error">
+    <span class="msg-icon">!</span>
+    <div class="msg-line"><strong>SQL Error:</strong> ${esc(err)}</div>
+  </div>`;
+  switchOutputTab('messages');
+}
+
+function clearResults() {
+  const wrap = $('results-table-wrap');
+  if (wrap) { wrap.innerHTML = ''; wrap.classList.add('hidden'); }
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Output tabs ────────────────────────────────────────────────────────────────
+
+document.querySelectorAll('.output-tab').forEach(btn => {
+  btn.addEventListener('click', () => switchOutputTab(btn.dataset.tab));
+});
+
+function switchOutputTab(tab) {
+  document.querySelectorAll('.output-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.output-pane').forEach(p => p.classList.toggle('hidden', p.id !== `output-${tab}`));
+}
+
+// ── Query history ──────────────────────────────────────────────────────────────
+
+function addToHistory(sql, success) {
+  _queryHistory.unshift({ sql, success, time: new Date().toLocaleTimeString() });
+  if (_queryHistory.length > 50) _queryHistory.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const panel = $('history-panel');
+  if (!panel) return;
+  if (!_queryHistory.length) {
+    panel.innerHTML = '<p class="output-empty">No queries yet.</p>';
+    return;
+  }
+  panel.innerHTML = _queryHistory.map((h, i) => `
+    <div class="history-item ${h.success ? 'history-ok' : 'history-err'}" data-idx="${i}">
+      <span class="history-time">${h.time}</span>
+      <code class="history-sql">${esc(h.sql.slice(0, 80))}${h.sql.length > 80 ? '…' : ''}</code>
+    </div>`).join('');
+
+  panel.querySelectorAll('.history-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const h = _queryHistory[item.dataset.idx];
+      if (h) {
+        editor.value = h.sql;
+        updateHighlight();
+        updateLineNumbers();
+      }
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DATABASE SELECTOR & SCHEMA VIEWER
+// ══════════════════════════════════════════════════════════════════════════════
+
+function setActiveDatabase(id) {
+  _activeDatabaseId = id;
+  const db = getDatabaseById(id);
+  if (!db) return;
+  $('active-db-label').textContent = `${db.icon} ${db.label}`;
+  renderSchemaForDatabase(id);
+}
+
+function renderSchemaForDatabase(dbId) {
+  const panel = $('schema-panel');
+  if (!panel) return;
+  const dbDef = getDatabaseById(dbId);
+  if (!dbDef || !_SQL) return;
+
+  let dbInst;
+  try {
+    dbInst = createDatabase(_SQL, dbDef.setupSQL);
+  } catch { return; }
+
+  const schema = getSchema(dbInst);
+  dbInst.close();
+
+  panel.innerHTML = schema.map(t => `
+    <div class="schema-table">
+      <div class="schema-table-header">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        <strong>${t.name}</strong>
+        <span class="schema-row-count">(${countRows(dbId, t.name)} rows)</span>
+      </div>
+      <table class="schema-cols">
+        <thead><tr><th>Column</th><th>Type</th><th>Key</th></tr></thead>
+        <tbody>
+          ${t.columns.map(c => `<tr>
+            <td>${c.name}</td>
+            <td class="col-type">${c.type}</td>
+            <td>${c.primaryKey ? '<span class="key-badge key-pk">PK</span>' : ''}${t.foreignKeys.some(f=>f.fromColumn===c.name) ? '<span class="key-badge key-fk">FK</span>' : ''}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`).join('');
+}
+
+function countRows(dbId, tableName) {
+  if (!_SQL) return '?';
+  const dbDef = getDatabaseById(dbId);
+  if (!dbDef) return '?';
+  try {
+    const db = createDatabase(_SQL, dbDef.setupSQL);
+    const r  = db.exec(`SELECT COUNT(*) FROM "${tableName}"`);
+    db.close();
+    return r.length ? r[0].values[0][0] : 0;
+  } catch { return '?'; }
+}
+
+function rebuildSandboxDB() {
+  // Lazy — sandbox DB is rebuilt per-query in runSandboxSQL
+}
+
+// Database selector dropdown
+$('db-select')?.addEventListener('change', e => {
+  setActiveDatabase(e.target.value);
+});
+
+// Schema browser button
+$('btn-schema')?.addEventListener('click', () => switchOutputTab('schema'));
+
+// Database viewer modal
+$('btn-db-viewer')?.addEventListener('click', () => openDBViewer());
+$('btn-close-db-viewer')?.addEventListener('click', () => $('db-viewer-modal')?.classList.add('hidden'));
+
+function openDBViewer() {
+  const modal = $('db-viewer-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  renderDBViewer();
+}
+
+function renderDBViewer() {
+  const tabs  = $('db-viewer-tabs');
+  const body  = $('db-viewer-body');
+  if (!tabs || !body) return;
+
+  tabs.innerHTML = DATABASE_LIST.map(db =>
+    `<button class="db-viewer-tab" data-id="${db.id}">${db.icon} ${db.label}</button>`
+  ).join('');
+
+  const firstTab = tabs.querySelector('.db-viewer-tab');
+  if (firstTab) {
+    firstTab.classList.add('active');
+    renderDBViewerContent(firstTab.dataset.id, body);
+  }
+
+  tabs.querySelectorAll('.db-viewer-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.querySelectorAll('.db-viewer-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderDBViewerContent(btn.dataset.id, body);
+    });
+  });
+}
+
+function renderDBViewerContent(dbId, body) {
+  if (!_SQL) { body.innerHTML = '<p>SQL engine loading…</p>'; return; }
+  const dbDef = getDatabaseById(dbId);
+  if (!dbDef) return;
+
+  let dbInst;
+  try { dbInst = createDatabase(_SQL, dbDef.setupSQL); } catch { return; }
+  const schema = getSchema(dbInst);
+
+  // ER diagram (simple HTML table layout)
+  let erHtml = '<div class="er-diagram">';
+  schema.forEach(t => {
+    erHtml += `<div class="er-table">
+      <div class="er-table-name">${t.name}</div>
+      ${t.columns.map(c => {
+        const isPK = c.primaryKey;
+        const isFK = t.foreignKeys.some(f => f.fromColumn === c.name);
+        const ref  = isFK ? t.foreignKeys.find(f=>f.fromColumn===c.name) : null;
+        return `<div class="er-col ${isPK?'er-pk':''} ${isFK?'er-fk':''}">
+          ${isPK ? '<span class="er-key-icon">🔑</span>' : isFK ? '<span class="er-key-icon">🔗</span>' : '<span class="er-key-icon"> </span>'}
+          <span class="er-col-name">${c.name}</span>
+          <span class="er-col-type">${c.type}</span>
+          ${ref ? `<span class="er-fk-ref">→ ${ref.referencedTable}.${ref.toColumn}</span>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  erHtml += '</div>';
+
+  // Table previews
+  let previewHtml = '<div class="db-previews">';
+  schema.forEach(t => {
+    const preview = previewTable(dbInst, t.name, 5);
+    previewHtml += `<details class="db-preview-section">
+      <summary>${t.name} <span class="preview-count">(first ${Math.min(5, preview.rows.length)} rows)</span></summary>
+      <div class="preview-scroll">
+        <table class="preview-table">
+          <thead><tr>${preview.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
+          <tbody>${preview.rows.map(row=>`<tr>${row.map(v=>`<td>${esc(v===null?'NULL':String(v))}</td>`).join('')}</tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </details>`;
+  });
+  previewHtml += '</div>';
+
+  dbInst.close();
+
+  body.innerHTML = `
+    <div class="db-viewer-info">
+      <strong>${dbDef.icon} ${dbDef.label}</strong> — ${dbDef.description}
+    </div>
+    ${erHtml}
+    ${previewHtml}`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SIDEBAR TABS
+// ══════════════════════════════════════════════════════════════════════════════
+
+document.querySelectorAll('.sidebar-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const view = btn.dataset.view;
+    document.querySelectorAll('.sidebar-tab').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    $('sidebar-challenges-view')?.classList.toggle('hidden', view !== 'challenges');
+    $('sidebar-ref-view')?.classList.toggle('hidden', view !== 'reference');
+  });
+});
+
+// Explorer / Reference panel toggles
+$('btn-close-explorer')?.addEventListener('click', () => {
+  $('sidebar')?.classList.add('sidebar--collapsed');
+  $('btn-explorer')?.classList.remove('active');
+});
+$('btn-explorer')?.addEventListener('click', () => {
+  $('sidebar')?.classList.toggle('sidebar--collapsed');
+  $('btn-explorer')?.classList.toggle('active');
+});
+$('btn-ref-panel')?.addEventListener('click', () => {
+  $('ref-panel')?.classList.toggle('ref-panel--open');
+});
+$('btn-close-ref')?.addEventListener('click', () => {
+  $('ref-panel')?.classList.remove('ref-panel--open');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHALLENGE EVENTS
+// ══════════════════════════════════════════════════════════════════════════════
+
+document.addEventListener('challenge:open', e => {
+  const ex = e.detail;
+
+  // Load starter code
+  if (ex.starterCode) {
+    editor.value = ex.starterCode;
+    updateHighlight();
+    updateLineNumbers();
+  } else {
+    editor.value = '';
+    updateHighlight();
+    updateLineNumbers();
+  }
+
+  // Set database
+  const dbId = ex.database || null;
+  if (dbId) {
+    _activeDatabaseId = dbId;
+    const sel = $('db-select');
+    if (sel) sel.value = dbId;
+    $('active-db-label').textContent = `${getDatabaseById(dbId)?.icon || '🗄️'} ${getDatabaseById(dbId)?.label || dbId}`;
+    renderSchemaForDatabase(dbId);
+  }
+
+  clearResults();
+  showMessages(['Load complete. Write your SQL and click Run.'], true);
+
+  // Switch sidebar to challenges view
+  const chTab = document.querySelector('.sidebar-tab[data-view="challenges"]');
+  chTab?.click();
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEACHER DASHBOARD
+// ══════════════════════════════════════════════════════════════════════════════
+
+$('btn-dashboard')?.addEventListener('click', () => {
+  const overlay = $('teacher-dashboard');
+  overlay?.classList.remove('hidden');
+  renderDashboard($('dashboard-grid'));
+});
+
+$('btn-close-dashboard')?.addEventListener('click', () => {
+  $('teacher-dashboard')?.classList.add('hidden');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════════════════════════════════════════════
+
+$('btn-leaderboard')?.addEventListener('click', () => _challengeMgr?.showLeaderboard());
+$('btn-close-leaderboard')?.addEventListener('click', () => $('leaderboard-modal')?.classList.add('hidden'));
+
+// ══════════════════════════════════════════════════════════════════════════════
+// THEME + FONT
+// ══════════════════════════════════════════════════════════════════════════════
+
+$('btn-theme')?.addEventListener('click', () => {
+  const html  = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? 'light' : 'dark';
+  $('theme-label').textContent = isDark ? 'Dark' : 'Light';
+  $('theme-icon-dark')?.classList.toggle('hidden', isDark);
+  $('theme-icon-light')?.classList.toggle('hidden', !isDark);
+  localStorage.setItem('sql-theme', html.dataset.theme);
+});
+
+$('btn-font')?.addEventListener('click', () => {
+  document.body.classList.toggle('dyslexic-font');
+  localStorage.setItem('sql-dyslexic', document.body.classList.contains('dyslexic-font') ? '1' : '0');
+});
+
+// Restore preferences
+const savedTheme = localStorage.getItem('sql-theme');
+if (savedTheme) {
+  document.documentElement.dataset.theme = savedTheme;
+  $('theme-label').textContent = savedTheme === 'dark' ? 'Light' : 'Dark';
+  $('theme-icon-dark')?.classList.toggle('hidden', savedTheme === 'dark');
+  $('theme-icon-light')?.classList.toggle('hidden', savedTheme === 'light');
+}
+if (localStorage.getItem('sql-dyslexic') === '1') document.body.classList.add('dyslexic-font');
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FEEDBACK / SUGGESTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+$('btn-suggestions')?.addEventListener('click', () => {
+  $('sg-dropdown')?.classList.toggle('hidden');
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('#sg-wrap')) $('sg-dropdown')?.classList.add('hidden');
+});
+
+$('btn-sg-request')?.addEventListener('click', () => {
+  $('sg-dropdown')?.classList.add('hidden');
+  $('sg-modal-request')?.classList.remove('hidden');
+});
+$('btn-sg-error')?.addEventListener('click', () => {
+  $('sg-dropdown')?.classList.add('hidden');
+  $('sg-modal-error')?.classList.remove('hidden');
+});
+$('sg-req-cancel')?.addEventListener('click', () => $('sg-modal-request')?.classList.add('hidden'));
+$('sg-req-cancel-2')?.addEventListener('click', () => $('sg-modal-request')?.classList.add('hidden'));
+$('sg-err-cancel')?.addEventListener('click', () => $('sg-modal-error')?.classList.add('hidden'));
+$('sg-err-cancel-2')?.addEventListener('click', () => $('sg-modal-error')?.classList.add('hidden'));
+
+$('sg-req-submit')?.addEventListener('click', async () => {
+  const text = $('sg-req-text').value.trim();
+  if (!text) return;
+  await submitFeedback(_user.uid, _profile.displayName, _profile.classCode, 'request', text, null);
+  $('sg-req-text').value = '';
+  $('sg-modal-request')?.classList.add('hidden');
+});
+$('sg-err-submit')?.addEventListener('click', async () => {
+  const text = $('sg-err-text').value.trim();
+  if (!text) return;
+  const exId = $('sg-exercise-sel')?.value || null;
+  await submitFeedback(_user.uid, _profile.displayName, _profile.classCode, 'error', text, exId);
+  $('sg-err-text').value = '';
+  $('sg-modal-error')?.classList.add('hidden');
+});
+
+// Populate exercise dropdown in error report
+function populateFeedbackExercises() {
+  const sel = $('sg-exercise-sel');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Select challenge (optional) —</option>' +
+    EXERCISES.map(e => `<option value="${e.id}">[${e.id}] ${e.title}</option>`).join('');
+}
+populateFeedbackExercises();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RESIZE HANDLE (output panel)
+// ══════════════════════════════════════════════════════════════════════════════
+
+const resizeHandle = $('output-resize-handle');
+if (resizeHandle) {
+  let startY, startH;
+  resizeHandle.addEventListener('mousedown', e => {
+    startY = e.clientY;
+    startH = $('output-panel')?.offsetHeight || 220;
+    document.addEventListener('mousemove', onResizeMove);
+    document.addEventListener('mouseup', () => document.removeEventListener('mousemove', onResizeMove), { once: true });
+  });
+  function onResizeMove(e) {
+    const delta = startY - e.clientY;
+    const newH  = Math.max(80, Math.min(startH + delta, window.innerHeight * 0.6));
+    document.documentElement.style.setProperty('--output-h', newH + 'px');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STATUS BAR — cursor position
+// ══════════════════════════════════════════════════════════════════════════════
+
+editor?.addEventListener('keyup', updateCursorPos);
+editor?.addEventListener('click', updateCursorPos);
+
+function updateCursorPos() {
+  const text = editor.value.slice(0, editor.selectionStart);
+  const lines = text.split('\n');
+  const line  = lines.length;
+  const col   = lines[lines.length - 1].length + 1;
+  $('status-line-col').textContent = `Ln ${line}, Col ${col}`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INITIAL RENDER
+// ══════════════════════════════════════════════════════════════════════════════
+
+updateLineNumbers();
+updateHighlight();
