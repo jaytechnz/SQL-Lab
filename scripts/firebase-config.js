@@ -7,12 +7,12 @@ import { getAuth }        from 'https://www.gstatic.com/firebasejs/11.6.0/fireba
 import { getFirestore }   from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
 const firebaseConfig = {
-  apiKey:            "REPLACE_WITH_API_KEY",
-  authDomain:        "as-sqllab.firebaseapp.com",
-  projectId:         "as-sqllab",
-  storageBucket:     "as-sqllab.firebasestorage.app",
-  messagingSenderId: "REPLACE_WITH_SENDER_ID",
-  appId:             "REPLACE_WITH_APP_ID"
+  apiKey: "AIzaSyAnn0meKlewmobNmfeIKOrDUWa33eAl_IE",
+  authDomain: "sql-lab-5c290.firebaseapp.com",
+  projectId: "sql-lab-5c290",
+  storageBucket: "sql-lab-5c290.firebasestorage.app",
+  messagingSenderId: "988229287611",
+  appId: "1:988229287611:web:055570fe56e6654043f39e"
 };
 
 const app  = initializeApp(firebaseConfig);
