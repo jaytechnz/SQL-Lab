@@ -1,0 +1,11 @@
+/* ============================================================
+   challenges.css — Challenge panel (inline), sidebar sections,
+                    XP, badges
+   ============================================================ */
+
+/* Sidebar reference quick lookup */
+.ref-quick { padding: 8px 10px; }
+.ref-quick-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.ref-quick-row { display: flex; align-items: baseline; gap: 6px; padding: 3px 0; border-bottom: 1px solid var(--border-light); }
+.ref-quick-kw { font-family: var(--font-mono); font-size: 11px; color: var(--syn-kw); font-weight: 700; min-width: 80px; }
+.ref-quick-desc { font-size: 10px; color: var(--text-muted); }
