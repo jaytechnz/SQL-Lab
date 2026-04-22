@@ -22,7 +22,7 @@
 
 .btn-run {
   display: flex; align-items: center; gap: 5px;
-  background: var(--success, #166534); color: #fff;
+  background: #166534; color: #fff;
   border: none; border-radius: var(--radius);
   padding: 5px 14px; font-size: 12px; font-weight: 700;
   cursor: pointer; transition: opacity var(--transition);

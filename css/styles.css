@@ -142,6 +142,17 @@ html, body {
 }
 .btn-ghost:hover { background: var(--bg-surface); }
 
+/* Header sits on --bg-deep (always dark) in both themes,
+   so ghost buttons there always need light text. */
+.app-header .btn-ghost {
+  color: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.18);
+}
+.app-header .btn-ghost:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
 .btn-accent {
   background: var(--accent); color: var(--accent-text);
   border: none; border-radius: var(--radius);
