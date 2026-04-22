@@ -135,7 +135,7 @@ const ddl02 = ex('ddl-02','ddl','CREATE TABLE — INTEGER and VARCHAR','easy',
 - \`continent_id\` — INTEGER
 - \`continent_name\` — VARCHAR(50)`,
 ['Syntax: CREATE TABLE name (col1 TYPE, col2 TYPE);', 'VARCHAR(n) stores variable-length text up to n characters'],
-'CREATE TABLE Continents (\n  \n);',
+'',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'Continents'))
@@ -155,7 +155,7 @@ const ddl03 = ex('ddl-03','ddl','CREATE TABLE — CHARACTER Data Type','easy',
 
 CHARACTER (or CHAR) stores a single character, e.g. a grade letter 'A', 'B', 'C'.`,
 ['CHARACTER and CHAR are equivalent in SQL', 'A single character is different from a string'],
-'CREATE TABLE GradeRecords (\n  \n);',
+'',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'GradeRecords'))
@@ -178,7 +178,7 @@ const ddl04 = ex('ddl-04','ddl','CREATE TABLE — BOOLEAN Data Type','easy',
 
 BOOLEAN stores TRUE or FALSE values.`,
 ['BOOLEAN is used for true/false values', 'SQLite stores BOOLEAN as INTEGER (0/1) internally'],
-'CREATE TABLE SystemSettings (\n  \n);',
+'',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'SystemSettings'))
@@ -202,7 +202,7 @@ const ddl05 = ex('ddl-05','ddl','CREATE TABLE — REAL Data Type','easy',
 
 REAL stores decimal (floating-point) numbers, e.g. 3.14, -0.5, 273.15.`,
 ['REAL is used for decimal numbers', 'Examples: temperature, price, distance'],
-'CREATE TABLE SensorReadings (\n  \n);',
+'',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'SensorReadings'))
@@ -223,7 +223,7 @@ const ddl06 = ex('ddl-06','ddl','CREATE TABLE — DATE Data Type','easy',
 
 DATE stores calendar dates in YYYY-MM-DD format, e.g. '2026-12-25'.`,
 ['DATE is used for calendar dates', "Store dates as 'YYYY-MM-DD' strings in SQLite"],
-'CREATE TABLE PublicHolidays (\n  \n);',
+'',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'PublicHolidays'))
@@ -247,7 +247,7 @@ const ddl07 = ex('ddl-07','ddl','CREATE TABLE — TIME Data Type','easy',
 
 TIME stores a time of day in HH:MM:SS format, e.g. '09:00:00'.`,
 ['TIME is used for times of day', "Store times as 'HH:MM:SS' in SQLite"],
-'CREATE TABLE ClassSchedule (\n  \n);',
+'',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'ClassSchedule'))
@@ -273,7 +273,7 @@ const ddl08 = ex('ddl-08','ddl','PRIMARY KEY — Inline Syntax','easy',
 
 A primary key uniquely identifies each row in a table.`,
 ['Add PRIMARY KEY after the data type: country_id INTEGER PRIMARY KEY', 'A table should have exactly one primary key'],
-'CREATE TABLE Countries (\n  \n);',
+'',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'Countries'))
@@ -298,7 +298,7 @@ Add the primary key using the **constraint syntax** at the end of the column lis
 \`PRIMARY KEY (teacher_id)\``,
 ['Place PRIMARY KEY (field) as the last item in the column list, after a comma',
  'Both syntaxes (inline and constraint) are accepted SQL'],
-'CREATE TABLE Teachers (\n  teacher_id INTEGER,\n  name       VARCHAR(50),\n  subject    VARCHAR(30),\n  \n);',
+'',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'Teachers'))
@@ -322,7 +322,7 @@ const ddl10 = ex('ddl-10','ddl','All Cambridge Data Types','medium',
 This exercise covers every data type in the 9618 syllabus.`,
 ['Use all six types: INTEGER, VARCHAR, CHARACTER/CHAR, BOOLEAN, REAL, DATE',
  'Add PRIMARY KEY to product_id'],
-'CREATE TABLE Products (\n  \n);',
+'',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'Products'))
@@ -349,7 +349,7 @@ Use \`ALTER TABLE\` to **add** a new column:
 - \`email\` — VARCHAR(100)`,
 ['Syntax: ALTER TABLE table_name ADD COLUMN col_name TYPE;',
  'Or just: ALTER TABLE table_name ADD col_name TYPE;'],
-'ALTER TABLE Students\n  ADD ',
+'',
 null,
 `CREATE TABLE Students (
   student_id INTEGER PRIMARY KEY,
@@ -407,7 +407,7 @@ Departments has been created for you. Create the \`Staff\` table with:
 Syntax: \`FOREIGN KEY (field) REFERENCES Table (Field)\``,
 ['Add the foreign key as a table constraint: FOREIGN KEY (dept_id) REFERENCES Departments(dept_id)',
  'The foreign key column and referenced column must be compatible types'],
-'CREATE TABLE Staff (\n  staff_id INTEGER PRIMARY KEY,\n  name     VARCHAR(50),\n  dept_id  INTEGER,\n  \n);',
+'',
 null,
 `CREATE TABLE Departments (
   dept_id   INTEGER PRIMARY KEY,
@@ -463,7 +463,7 @@ const ddl15 = ex('ddl-15','ddl','Table with TIME Column','easy',
 - \`confirmed\` — BOOLEAN`,
 ['DATE and TIME are separate data types in SQL',
  'Use both in the same table for date-time information'],
-'CREATE TABLE Appointments (\n  \n);',
+'',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'Appointments'))
@@ -635,7 +635,7 @@ null, '',
 const dml01 = ex('dml-01','dml','SELECT — All Columns','easy',
 `Using the **Bookshop** database, write a query to retrieve **all columns and all rows** from the \`books\` table.`,
 ['Use SELECT * to retrieve all columns', 'SELECT * FROM table_name;'],
-'SELECT ',
+'',
 'bookshop', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -651,7 +651,7 @@ const dml02 = ex('dml-02','dml','SELECT — Specific Columns','easy',
 `From the **Bookshop** database, retrieve only the \`title\`, \`author\` and \`price\` columns from the \`books\` table.`,
 ['List column names separated by commas after SELECT',
  'SELECT col1, col2 FROM table_name;'],
-'SELECT ',
+'',
 'bookshop', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -671,12 +671,11 @@ const dml02 = ex('dml-02','dml','SELECT — Specific Columns','easy',
 const dml03 = ex('dml-03','dml','SELECT with WHERE','easy',
 `From the **Bookshop** database, retrieve all columns from \`books\` where the \`genre\` is \`'Fiction'\`.`,
 ['Use WHERE genre = \'Fiction\'', 'String values in SQL use single quotes'],
-"SELECT * FROM books\nWHERE ",
+'',
 'bookshop', '',
 (db, sql) => {
   const r = query(db, sql);
   if (!r) return { passed: false, messages: ['SQL error. Check your syntax.'] };
-  const expected = query(db, "SELECT * FROM books WHERE genre='Fiction' ORDER BY book_id");
   const actual = r.rows;
   if (actual.length !== 4)
     return { passed: false, messages: [`Expected 4 Fiction books but got ${actual.length}.`] };
@@ -687,7 +686,7 @@ const dml04 = ex('dml-04','dml','SELECT with ORDER BY ASC','easy',
 `From the **Employees** database, retrieve the \`name\` and \`salary\` columns from \`employees\`, **ordered by salary from lowest to highest**.`,
 ['Use ORDER BY column ASC (ASC is optional — it is the default)',
  'ORDER BY comes after FROM and WHERE clauses'],
-'SELECT name, salary\nFROM employees\nORDER BY ',
+'',
 'employees', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -705,7 +704,7 @@ const dml04 = ex('dml-04','dml','SELECT with ORDER BY ASC','easy',
 const dml05 = ex('dml-05','dml','SELECT with ORDER BY DESC','easy',
 `From the **Bookshop** database, retrieve \`title\` and \`price\` from \`books\`, **ordered by price highest first**.`,
 ['Use ORDER BY price DESC', 'DESC means descending (highest to lowest)'],
-'SELECT title, price\nFROM books\nORDER BY ',
+'',
 'bookshop', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -724,7 +723,7 @@ const dml06 = ex('dml-06','dml','SELECT with AND','medium',
 `From the **Employees** database, retrieve all columns where the \`department\` is \`'Engineering'\` **AND** the \`salary\` is greater than \`60000\`.`,
 ['Use WHERE condition1 AND condition2',
  'String comparison uses = and single quotes; numeric comparison uses >, <, etc.'],
-"SELECT *\nFROM employees\nWHERE ",
+'',
 'employees', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -738,7 +737,7 @@ const dml07 = ex('dml-07','dml','SELECT with OR','easy',
 `From the **Bookshop** database, retrieve all columns from books where the genre is \`'Fiction'\` **OR** \`'Sci-Fi'\`.`,
 ['Use WHERE genre = \'Fiction\' OR genre = \'Sci-Fi\'',
  'Each side of OR is a full condition'],
-"SELECT *\nFROM books\nWHERE ",
+'',
 'bookshop', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -754,7 +753,7 @@ const dml08 = ex('dml-08','dml','COUNT — Total Rows','easy',
 Give the result an alias: \`total_books\`.`,
 ['Use COUNT(*) to count all rows',
  'Use AS to give a column an alias: COUNT(*) AS total_books'],
-'SELECT COUNT(*) AS total_books\nFROM ',
+'',
 'bookshop', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -772,7 +771,7 @@ const dml09 = ex('dml-09','dml','SUM — Total Salary by Department','medium',
 Use \`SUM(salary)\` and give it the alias \`total_salary\`.`,
 ['Use SUM(column) to add up values',
  'Combine with WHERE to filter before aggregating'],
-"SELECT SUM(salary) AS total_salary\nFROM employees\nWHERE ",
+'',
 'employees', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -790,7 +789,7 @@ const dml10 = ex('dml-10','dml','AVG — Average Salary','easy',
 Give the result the alias \`avg_salary\`.`,
 ['AVG(column) calculates the mean of a numeric column',
  'No WHERE clause needed — average all rows'],
-'SELECT AVG(salary) AS avg_salary\nFROM ',
+'',
 'employees', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -811,7 +810,7 @@ Group the results by \`genre\`.`,
 ['GROUP BY groups rows with the same value together',
  'Use COUNT(*) AS num_books to count each group',
  'SELECT genre, COUNT(*) AS num_books FROM books GROUP BY genre'],
-'SELECT genre, COUNT(*) AS num_books\nFROM books\nGROUP BY ',
+'',
 'bookshop', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -833,7 +832,7 @@ Return: \`department\`, \`avg_salary\`.`,
 ['Combine GROUP BY with ORDER BY',
  'You can ORDER BY an alias: ORDER BY avg_salary DESC',
  'Or use the expression: ORDER BY AVG(salary) DESC'],
-'SELECT department, AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department\nORDER BY ',
+'',
 'employees', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -857,7 +856,7 @@ Use \`INNER JOIN students ON enrollments.student_id = students.student_id\`.`,
 ['INNER JOIN returns rows that have matching values in both tables',
  'Syntax: FROM table1 INNER JOIN table2 ON table1.id = table2.id',
  'Start FROM enrollments, then INNER JOIN students'],
-'SELECT students.name, enrollments.subject_id\nFROM enrollments\nINNER JOIN ',
+'',
 'school', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -878,7 +877,7 @@ Join \`loans\` with \`members\` to return: \`members.name\`, \`loans.loan_date\`
 Filter using \`WHERE loans.return_date IS NULL\`.`,
 ['IS NULL checks for missing values — not = NULL',
  'INNER JOIN members ON loans.member_id = members.member_id'],
-'SELECT members.name, loans.loan_date\nFROM loans\nINNER JOIN members ON loans.member_id = members.member_id\nWHERE ',
+'',
 'library', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -896,7 +895,7 @@ Group by customer. Order by \`order_count\` DESC.`,
 ['Join orders to customers on customer_id',
  'GROUP BY customers.customer_id (or customers.name)',
  'Use COUNT(orders.order_id) AS order_count'],
-'SELECT customers.name, COUNT(orders.order_id) AS order_count\nFROM customers\nINNER JOIN orders ON customers.customer_id = orders.customer_id\nGROUP BY customers.customer_id\nORDER BY order_count DESC',
+'',
 'store', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -921,7 +920,7 @@ const dml16 = ex('dml-16','dml','INSERT INTO','easy',
 - stock: \`6\``,
 ['INSERT INTO table (col1, col2, ...) VALUES (val1, val2, ...);',
  'String values use single quotes; numbers do not'],
-"INSERT INTO books (book_id, title, author, genre, price, stock)\nVALUES (",
+'',
 'bookshop', '',
 (db, sql) => {
   const r = query(db, "SELECT * FROM books WHERE book_id=11");
@@ -942,7 +941,7 @@ const dml17 = ex('dml-17','dml','UPDATE with WHERE','medium',
 Update \`salary = salary * 1.1\` where \`department = 'HR'\`.`,
 ["UPDATE table SET column = expression WHERE condition;",
  "Salary * 1.1 increases it by 10%"],
-"UPDATE employees\nSET salary = salary * 1.1\nWHERE ",
+'',
 'employees', '',
 (db, sql) => {
   const r = query(db, "SELECT name, salary FROM employees WHERE department='HR' ORDER BY employee_id");
@@ -959,7 +958,7 @@ const dml18 = ex('dml-18','dml','DELETE FROM with WHERE','medium',
 ["DELETE FROM table WHERE condition;",
  "Use < '2024-02-01' to find dates before February 2024",
  "SQLite compares date strings alphabetically in YYYY-MM-DD format"],
-"DELETE FROM loans\nWHERE return_date < '2024-02-01';",
+'',
 'library', '',
 (db, sql) => {
   const r = query(db, "SELECT COUNT(*) FROM loans");
@@ -980,7 +979,7 @@ const dml19 = ex('dml-19','dml','GROUP BY with Multiple Aggregates','hard',
 Order by \`num_books\` descending.`,
 ['You can use multiple aggregate functions in one SELECT',
  'SELECT genre, COUNT(*) AS num_books, AVG(price) AS avg_price, SUM(stock) AS total_stock'],
-'SELECT genre,\n  COUNT(*) AS num_books,\n  AVG(price) AS avg_price,\n  SUM(stock) AS total_stock\nFROM books\nGROUP BY genre\nORDER BY num_books DESC',
+'',
 'bookshop', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -1004,7 +1003,7 @@ Group by product. Order by total_qty DESC.`,
 ['JOIN order_items to products ON order_items.product_id = products.product_id',
  'SUM(order_items.quantity) AS total_qty',
  'GROUP BY products.product_id'],
-'SELECT products.name, SUM(order_items.quantity) AS total_qty\nFROM order_items\nINNER JOIN products ON order_items.product_id = products.product_id\nGROUP BY products.product_id\nORDER BY total_qty DESC',
+'',
 'store', '',
 (db, sql) => {
   const r = query(db, sql);
@@ -1063,7 +1062,7 @@ null, '',
   if (!r || r.rows.length < 4)
     return { passed: false, messages: [`Insert at least 4 animals (found ${r ? r.rows.length : 0}).`] };
   if (!hasKeyword(sql,'WHERE'))
-    return { passed: false, messages: ['Include a SELECT ... WHERE species = \'...\' query.'] };
+    return { passed: false, messages: ["Include a SELECT ... WHERE species = '...' query."] };
   return { passed: true, messages: ['Animals table created, populated and queried!'] };
 });
 
@@ -1194,7 +1193,7 @@ null,
   if (!r || r.rows.length < 5)
     return { passed: false, messages: [`Insert at least 5 staff members (found ${r ? r.rows.length : 0}).`] };
   if (!hasKeyword(sql,'WHERE'))
-    return { passed: false, messages: ['Include a SELECT ... WHERE department = \'...\' query.'] };
+    return { passed: false, messages: ["Include a SELECT ... WHERE department = '...' query."] };
   return { passed: true, messages: ['Staff table altered, populated and queried!'] };
 });
 
@@ -1239,13 +1238,13 @@ null, '',
 (db, sql) => {
   if (!tableExists(db, 'Genres')) return { passed: false, messages: ['Table Genres is missing.'] };
   if (!tableExists(db, 'Films'))  return { passed: false, messages: ['Table Films is missing.'] };
-  const g = query(db,'SELECT COUNT(*) FROM Genres');
-  const f = query(db,'SELECT COUNT(*) FROM Films');
+  const g = query(db, 'SELECT COUNT(*) FROM Genres');
+  const f = query(db, 'SELECT COUNT(*) FROM Films');
   if (!g || Number(g.rows[0][0]) < 3)
     return { passed: false, messages: ['Insert at least 3 genres.'] };
   if (!f || Number(f.rows[0][0]) < 6)
     return { passed: false, messages: ['Insert at least 6 films.'] };
-  if (!!hasAnyKeyword(sql,'INNER JOIN','JOIN'))
+  if (!hasAnyKeyword(sql,'INNER JOIN','JOIN'))
     return { passed: false, messages: ['Include an INNER JOIN between Films and Genres.'] };
   return { passed: true, messages: ['Two-table film database with INNER JOIN!'] };
 });
@@ -1264,7 +1263,7 @@ Insert 10 sales across at least 3 regions. Write a query to find the **total amo
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'Sales')) return { passed: false, messages: ['Table Sales is missing.'] };
-  const r = query(db,'SELECT * FROM Sales');
+  const r = query(db, 'SELECT * FROM Sales');
   if (!r || r.rows.length < 10)
     return { passed: false, messages: [`Insert at least 10 sales (found ${r ? r.rows.length : 0}).`] };
   if (!hasKeyword(sql,'GROUP BY'))
@@ -1289,8 +1288,8 @@ null, '',
 (db, sql) => {
   if (!tableExists(db, 'Pupils'))  return { passed: false, messages: ['Table Pupils is missing.'] };
   if (!tableExists(db, 'Reports')) return { passed: false, messages: ['Table Reports is missing.'] };
-  const p = query(db,'SELECT COUNT(*) FROM Pupils');
-  const r = query(db,'SELECT COUNT(*) FROM Reports');
+  const p = query(db, 'SELECT COUNT(*) FROM Pupils');
+  const r = query(db, 'SELECT COUNT(*) FROM Reports');
   if (!p || Number(p.rows[0][0]) < 4) return { passed: false, messages: ['Insert at least 4 pupils.'] };
   if (!r || Number(r.rows[0][0]) < 8) return { passed: false, messages: ['Insert at least 8 reports.'] };
   if (!hasAnyKeyword(sql,'INNER JOIN','JOIN'))
@@ -1316,7 +1315,7 @@ null, '',
   if (!tableExists(db, 'Contacts')) return { passed: false, messages: ['Table Contacts is missing.'] };
   if (!hasKeyword(sql,'UPDATE'))    return { passed: false, messages: ['Include an UPDATE statement.'] };
   if (!hasKeyword(sql,'DELETE'))    return { passed: false, messages: ['Include a DELETE statement.'] };
-  const r = query(db,'SELECT * FROM Contacts');
+  const r = query(db, 'SELECT * FROM Contacts');
   if (!r) return { passed: false, messages: ['SQL error reading Contacts.'] };
   if (r.rows.length !== 4)
     return { passed: false, messages: [`After INSERT 5 + DELETE 1, expect 4 contacts (found ${r.rows.length}).`] };
@@ -1338,7 +1337,7 @@ null, '',
 (db, sql) => {
   if (!tableExists(db, 'Airlines')) return { passed: false, messages: ['Table Airlines is missing.'] };
   if (!tableExists(db, 'Flights'))  return { passed: false, messages: ['Table Flights is missing.'] };
-  const f = query(db,'SELECT COUNT(*) FROM Flights');
+  const f = query(db, 'SELECT COUNT(*) FROM Flights');
   if (!f || Number(f.rows[0][0]) < 8) return { passed: false, messages: ['Insert at least 8 flights.'] };
   if (!hasKeyword(sql,'JOIN'))
     return { passed: false, messages: ['Use INNER JOIN to connect Flights and Airlines.'] };
@@ -1353,12 +1352,7 @@ const combo14 = ex('combo-14','combined','Exam Results Tracker','hard',
 1. Create \`Subjects\` — subject_id PK, subject_name VARCHAR(40), max_marks INTEGER
 2. Create \`Results\` — result_id PK, student_name VARCHAR(50), subject_id FK, marks INTEGER, exam_date DATE
 
-Insert 3 subjects and 9 results. Write a query that shows each subject name and:
-- \`highest_mark\` (MAX of marks)
-- \`lowest_mark\` (MIN of marks)
-- \`pass_rate\` (COUNT of rows where marks >= 50 — use a CASE or just COUNT)
-
-Actually for this challenge: show subject_name, COUNT(*) AS num_results, AVG(marks) AS avg_marks, ordered by avg_marks DESC.`,
+Insert 3 subjects and 9 results. Write a query that shows subject_name, COUNT(*) AS num_results, AVG(marks) AS avg_marks, ordered by avg_marks DESC.`,
 ['Join Results to Subjects',
  'SELECT Subjects.subject_name, COUNT(*) AS num_results, AVG(Results.marks) AS avg_marks',
  'GROUP BY Subjects.subject_id ORDER BY avg_marks DESC'],
@@ -1367,7 +1361,7 @@ null, '',
 (db, sql) => {
   if (!tableExists(db, 'Subjects')) return { passed: false, messages: ['Table Subjects is missing.'] };
   if (!tableExists(db, 'Results'))  return { passed: false, messages: ['Table Results is missing.'] };
-  const r = query(db,'SELECT COUNT(*) FROM Results');
+  const r = query(db, 'SELECT COUNT(*) FROM Results');
   if (!r || Number(r.rows[0][0]) < 9) return { passed: false, messages: ['Insert at least 9 results.'] };
   if (!hasKeyword(sql,'JOIN'))  return { passed: false, messages: ['Use INNER JOIN between Results and Subjects.'] };
   if (!hasKeyword(sql,'AVG'))   return { passed: false, messages: ['Use AVG(marks) in your query.'] };
@@ -1392,7 +1386,7 @@ null, '',
 (db, sql) => {
   if (!tableExists(db, 'LibAuthors'))    return { passed: false, messages: ['Table LibAuthors is missing.'] };
   if (!tableExists(db, 'LibCatalogue'))  return { passed: false, messages: ['Table LibCatalogue is missing.'] };
-  const b = query(db,'SELECT COUNT(*) FROM LibCatalogue');
+  const b = query(db, 'SELECT COUNT(*) FROM LibCatalogue');
   if (!b || Number(b.rows[0][0]) < 8) return { passed: false, messages: ['Insert at least 8 books.'] };
   if (!hasKeyword(sql,'JOIN')) return { passed: false, messages: ['Use INNER JOIN to connect books with authors.'] };
   if (!hasKeyword(sql,'WHERE')) return { passed: false, messages: ['Filter using WHERE copies_available > 0.'] };
@@ -1413,7 +1407,7 @@ null, '',
 (db, sql) => {
   if (!tableExists(db, 'Classes'))     return { passed: false, messages: ['Table Classes is missing.'] };
   if (!tableExists(db, 'Attendance'))  return { passed: false, messages: ['Table Attendance is missing.'] };
-  const a = query(db,'SELECT COUNT(*) FROM Attendance');
+  const a = query(db, 'SELECT COUNT(*) FROM Attendance');
   if (!a || Number(a.rows[0][0]) < 12) return { passed: false, messages: ['Insert at least 12 attendance records.'] };
   if (!hasKeyword(sql,'JOIN'))       return { passed: false, messages: ['JOIN Attendance to Classes.'] };
   if (!hasKeyword(sql,'GROUP BY'))   return { passed: false, messages: ['GROUP BY class to count attendance.'] };
@@ -1439,7 +1433,7 @@ Insert 10 tracks. Then:
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'Playlist')) return { passed: false, messages: ['Table Playlist is missing.'] };
-  const r = query(db,'SELECT COUNT(*) FROM Playlist');
+  const r = query(db, 'SELECT COUNT(*) FROM Playlist');
   if (!r || Number(r.rows[0][0]) < 10) return { passed: false, messages: ['Insert at least 10 tracks.'] };
   if (!hasKeyword(sql,'SUM') && !hasKeyword(sql,'COUNT'))
     return { passed: false, messages: ['Use SUM or COUNT in your query.'] };
@@ -1462,7 +1456,7 @@ null, '',
 (db, sql) => {
   if (!tableExists(db, 'Teams'))   return { passed: false, messages: ['Table Teams is missing.'] };
   if (!tableExists(db, 'Matches')) return { passed: false, messages: ['Table Matches is missing.'] };
-  const m = query(db,'SELECT COUNT(*) FROM Matches');
+  const m = query(db, 'SELECT COUNT(*) FROM Matches');
   if (!m || Number(m.rows[0][0]) < 6) return { passed: false, messages: ['Insert at least 6 matches.'] };
   const fks = foreignKeys(db,'Matches');
   if (fks.length < 2)
@@ -1489,7 +1483,7 @@ null, '',
 (db, sql) => {
   if (!tableExists(db, 'Rooms'))    return { passed: false, messages: ['Table Rooms is missing.'] };
   if (!tableExists(db, 'Bookings')) return { passed: false, messages: ['Table Bookings is missing.'] };
-  const b = query(db,'SELECT COUNT(*) FROM Bookings');
+  const b = query(db, 'SELECT COUNT(*) FROM Bookings');
   if (!b || Number(b.rows[0][0]) < 8) return { passed: false, messages: ['Insert at least 8 bookings.'] };
   if (!hasKeyword(sql,'JOIN'))     return { passed: false, messages: ['JOIN Bookings to Rooms.'] };
   if (!hasKeyword(sql,'AVG'))      return { passed: false, messages: ['Use AVG(total_cost).'] };
@@ -1522,12 +1516,10 @@ null, '',
   tableNames.forEach(t => { totalFKs += foreignKeys(db, t).length; });
   if (totalFKs < 2)
     return { passed: false, messages: ['Need at least 2 FOREIGN KEY relationships.'] };
-  let totalRows = 0;
   let anyTableUnder5 = false;
   tableNames.forEach(t => {
     const r = query(db, `SELECT COUNT(*) FROM "${t}"`);
     const count = r ? Number(r.rows[0][0]) : 0;
-    totalRows += count;
     if (count < 5) anyTableUnder5 = true;
   });
   if (anyTableUnder5)
@@ -1538,7 +1530,7 @@ null, '',
     return { passed: false, messages: ['Include at least one SELECT with GROUP BY.'] };
   if (!hasKeyword(sql,'JOIN'))
     return { passed: false, messages: ['Include at least one INNER JOIN query.'] };
-  return { passed: true, messages: [`Complete database design — ${tableNames.length} tables, ${totalFKs} foreign keys, ${totalRows} total rows!`] };
+  return { passed: true, messages: [`Complete database design — ${tableNames.length} tables, ${totalFKs} foreign keys!`] };
 });
 
 // ══════════════════════════════════════════════════════════════════════════════

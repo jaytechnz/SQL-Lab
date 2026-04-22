@@ -200,12 +200,9 @@ export class ChallengeManager {
     }
 
     // Run student SQL and capture results for display
+    // Don't bail on execution error — some exercises (e.g. CREATE DATABASE) validate
+    // by regex only and can't be executed in SQLite.
     const { results, error } = executeSQL(db, studentSQL);
-    if (error) {
-      db.close();
-      this.onError?.(error);
-      return;
-    }
 
     // Show any SELECT results in the results panel
     const lastResult = [...results].reverse().find(r => r.columns.length) ?? null;
@@ -213,7 +210,7 @@ export class ChallengeManager {
       this.onResults?.(lastResult);
     }
 
-    // Validate
+    // Validate — always run, even if execution errored
     let validation;
     try {
       validation = ex.validate(db, studentSQL);
@@ -231,6 +228,12 @@ export class ChallengeManager {
     db.close();
 
     const { passed, messages } = validation;
+
+    // If execution errored and validation also failed, surface the SQL error
+    if (error && !passed) {
+      this.onError?.(error);
+      return;
+    }
 
     // Show in panel
     this._showTestResults(passed, messages);
