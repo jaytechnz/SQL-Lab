@@ -135,6 +135,17 @@
 .result-table tr:nth-child(even) td { background: var(--result-stripe); }
 .result-table td em { color: var(--text-muted); font-style: italic; }
 
+/* ── Schema in Results (DDL feedback) ── */
+.schema-result-section { margin-bottom: 16px; }
+.schema-result-header {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 4px; padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-light);
+}
+.schema-result-header strong { color: var(--text-primary); font-family: var(--font-mono); }
+
 /* ── Messages ── */
 .msg-block {
   display: flex; gap: 10px; padding: 10px 12px;
