@@ -47,6 +47,7 @@ export class ChallengeManager {
     this.progress     = { completed: {}, totalXP: 0, badges: [], submissions: {} };
     this.currentEx    = null;
     this._SQL         = null;
+    this._lastSQL     = new Map(); // remembers last-run SQL per exercise this session
 
     this.challengeList  = $('challenge-list');
     this.challengePanel = $('challenge-panel');
@@ -156,8 +157,10 @@ export class ChallengeManager {
     this.testResults.innerHTML = '';
     this.challengePanel.classList.remove('hidden');
 
-    // Notify app to load starter code and set active database
-    document.dispatchEvent(new CustomEvent('challenge:open', { detail: ex }));
+    // Notify app to load code (last run, or starter) and set active database
+    document.dispatchEvent(new CustomEvent('challenge:open', {
+      detail: { ...ex, savedSQL: this._lastSQL.get(ex.id) || '' }
+    }));
   }
 
   _closePanel() {
@@ -176,6 +179,9 @@ export class ChallengeManager {
   async runChallenge(studentSQL) {
     const ex = this.currentEx;
     if (!ex) return;
+
+    // Remember what the student typed so we can restore it if they navigate away
+    this._lastSQL.set(ex.id, studentSQL);
 
     const SQL = this._SQL;
     if (!SQL) {

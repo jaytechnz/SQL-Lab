@@ -698,8 +698,8 @@ $('btn-close-ref')?.addEventListener('click', () => {
 document.addEventListener('challenge:open', e => {
   const ex = e.detail;
 
-  // Load starter code
-  editor.value = ex.starterCode || '';
+  // Load last-run SQL if available, otherwise starter code
+  editor.value = ex.savedSQL || ex.starterCode || '';
   updateHighlight();
   updateLineNumbers();
 
