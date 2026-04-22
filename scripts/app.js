@@ -191,9 +191,23 @@ $('class-confirm')?.addEventListener('click', async () => {
 // SQL EDITOR
 // ══════════════════════════════════════════════════════════════════════════════
 
+// SQL keywords — shared between auto-uppercase and syntax highlighting
+const SQL_KEYWORDS_RE = /\b(SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|DATABASE|ALTER|ADD|DROP|COLUMN|PRIMARY|KEY|FOREIGN|REFERENCES|INNER|LEFT|RIGHT|OUTER|FULL|CROSS|JOIN|ON|ORDER|BY|GROUP|HAVING|DISTINCT|AS|AND|OR|NOT|NULL|IS|IN|BETWEEN|LIKE|COUNT|SUM|AVG|MAX|MIN|ASC|DESC|LIMIT|OFFSET|UNION|ALL|EXCEPT|INTERSECT|CASE|WHEN|THEN|ELSE|END|IF|EXISTS|UNIQUE|CHECK|DEFAULT|CONSTRAINT|INTEGER|VARCHAR|CHARACTER|CHAR|BOOLEAN|REAL|DATE|TIME|INT|TEXT|NUMERIC)\b/gi;
+
+function autoUppercaseKeywords() {
+  if (!editor) return;
+  const start  = editor.selectionStart;
+  const end    = editor.selectionEnd;
+  const newVal = editor.value.replace(SQL_KEYWORDS_RE, m => m.toUpperCase());
+  if (newVal !== editor.value) {
+    editor.value = newVal;
+    editor.setSelectionRange(start, end);
+  }
+}
+
 // SQL keyword syntax highlighting (simple overlay approach)
 function highlightSQL(code) {
-  const keywords = /\b(SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|DATABASE|ALTER|ADD|DROP|COLUMN|PRIMARY|KEY|FOREIGN|REFERENCES|INNER|JOIN|ON|ORDER|BY|GROUP|HAVING|DISTINCT|AS|AND|OR|NOT|NULL|IS|IN|BETWEEN|LIKE|COUNT|SUM|AVG|MAX|MIN|ASC|DESC|LIMIT|OFFSET|INTEGER|VARCHAR|CHARACTER|CHAR|BOOLEAN|REAL|DATE|TIME|INT|TEXT|NUMERIC)\b/gi;
+  const keywords = SQL_KEYWORDS_RE;
   const strings  = /'[^']*'/g;
   const comments = /--[^\n]*/g;
   const numbers  = /\b\d+(\.\d+)?\b/g;
@@ -207,6 +221,7 @@ function highlightSQL(code) {
 }
 
 editor?.addEventListener('input', () => {
+  autoUppercaseKeywords();
   updateHighlight();
   updateLineNumbers();
 });
