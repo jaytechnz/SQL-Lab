@@ -56,7 +56,7 @@ async function showApp() {
   appEl?.classList.remove('hidden');
 
   $('user-name-display').textContent  = _profile.displayName || _user.email;
-  $('user-role-badge').textContent    = _profile.role === 'teacher' ? 'Teacher' : 'Student';
+  $('user-role-badge').textContent    = { superadmin: 'Admin', teacher: 'Teacher', student: 'Student' }[_profile.role] ?? 'Student';
   $('user-role-badge').className      = `role-badge role-${_profile.role}`;
   $('status-class-code').textContent  = _profile.classCode || '—';
 
