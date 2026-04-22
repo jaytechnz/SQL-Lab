@@ -3,7 +3,7 @@
 
 import { EXERCISES, CATEGORIES } from './exercises.js';
 import { DATABASES, getDatabaseById } from './databases.js';
-import { initSQLEngine, createDatabase, executeSQL } from './sql-engine.js';
+import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js';
 import {
   getChallengeProgress,
   saveChallengeProgress,
@@ -34,10 +34,11 @@ const BADGES = [
 // ══════════════════════════════════════════════════════════════════════════════
 
 export class ChallengeManager {
-  constructor({ onXpChange, onMessage, onResults, onError }) {
+  constructor({ onXpChange, onMessage, onResults, onSchema, onError }) {
     this.onXpChange  = onXpChange;  // (totalXP, level) => void
     this.onMessage   = onMessage;   // (msgs, passed) => void
     this.onResults   = onResults;   // ({columns, rows}) => void
+    this.onSchema    = onSchema;    // (schema[]) => void — called for DDL with no SELECT output
     this.onError     = onError;     // (errMsg) => void
 
     this.uid          = null;
@@ -163,6 +164,7 @@ export class ChallengeManager {
     this.challengePanel?.classList.add('hidden');
     this.currentEx = null;
     document.querySelectorAll('.ch-item').forEach(el => el.classList.remove('ch-item--active'));
+    document.dispatchEvent(new CustomEvent('challenge:close'));
   }
 
   getCurrentExercise() { return this.currentEx; }
@@ -206,8 +208,8 @@ export class ChallengeManager {
     }
 
     // Show any SELECT results in the results panel
-    const lastResult = [...results].reverse().find(r => r.columns.length) ?? results[results.length - 1];
-    if (lastResult && lastResult.columns.length) {
+    const lastResult = [...results].reverse().find(r => r.columns.length) ?? null;
+    if (lastResult) {
       this.onResults?.(lastResult);
     }
 
@@ -220,10 +222,15 @@ export class ChallengeManager {
       this.onError?.('Validation error: ' + e.message);
       return;
     }
+
+    // If no SELECT results (DDL/combined), show the schema the student created
+    if (!lastResult) {
+      this.onSchema?.(getSchema(db));
+    }
+
     db.close();
 
     const { passed, messages } = validation;
-    this.onMessage?.(messages, passed);
 
     // Show in panel
     this._showTestResults(passed, messages);

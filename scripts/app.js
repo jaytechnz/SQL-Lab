@@ -2,7 +2,7 @@
 // SQL Lab — Cambridge AS Computer Science 9618
 
 import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode } from './auth.js';
-import { ChallengeManager, runSandboxSQL } from './challenges.js';
+import { ChallengeManager } from './challenges.js';
 import { renderDashboard, refreshDashboard } from './dashboard.js';
 import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js';
 import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js';
@@ -75,15 +75,14 @@ async function showApp() {
     },
     onMessage: (msgs, passed) => showMessages(msgs, passed),
     onResults: (result) => renderResultTable(result.columns, result.rows),
+    onSchema:  (schema) => renderSchemaResult(schema),
     onError:   (err)    => showError(err)
   });
   await _challengeMgr.init(_user.uid, _profile.classCode || '', _profile.displayName || '');
 
-  // Load initial database
+  // Load initial database and create persistent sandbox
   setActiveDatabase('bookshop');
-
-  // Rebuild sandbox DB
-  rebuildSandboxDB();
+  resetSandboxDB();
 }
 
 // ── Login form handlers ────────────────────────────────────────────────────────
@@ -286,21 +285,23 @@ async function executeQuery() {
     return;
   }
 
-  // Sandbox mode
+  // Sandbox mode — runs against the persistent _sandboxDb so CREATE TABLE persists
   btnRun.disabled = true;
   btnRun.innerHTML = '<span>Running…</span>';
   try {
-    const { results, error, rowsAffected } = await runSandboxSQL(
-      _SQL, _activeDatabaseId, null, sql
-    );
+    if (!_sandboxDb) resetSandboxDB();
+    if (!_sandboxDb) { showError('SQL engine not ready — please wait a moment and try again.'); return; }
+
+    const { results, error, rowsAffected } = executeSQL(_sandboxDb, sql);
     if (error) {
       showError(error);
     } else {
       clearResults();
-      if (results.length) {
-        results.forEach(r => renderResultTable(r.columns, r.rows));
+      const selectResults = results.filter(r => r.columns.length);
+      if (selectResults.length) {
+        selectResults.forEach(r => renderResultTable(r.columns, r.rows));
       } else {
-        showMessages([`Query executed successfully. Rows affected: ${rowsAffected ?? 0}`], true);
+        showMessages([`OK — ${rowsAffected ?? 0} row${rowsAffected === 1 ? '' : 's'} affected.`], true);
       }
     }
     addToHistory(sql, !error);
@@ -316,6 +317,7 @@ function renderResultTable(columns, rows) {
   const wrap = $('results-table-wrap');
   if (!wrap) return;
   wrap.classList.remove('hidden');
+  $('results-placeholder')?.classList.add('hidden');
 
   const thead = `<thead><tr>${columns.map(c => `<th>${esc(String(c))}</th>`).join('')}</tr></thead>`;
   const tbody = `<tbody>${rows.map(row =>
@@ -363,6 +365,70 @@ function showError(err) {
 function clearResults() {
   const wrap = $('results-table-wrap');
   if (wrap) { wrap.innerHTML = ''; wrap.classList.add('hidden'); }
+  $('results-placeholder')?.classList.remove('hidden');
+}
+
+function renderSchemaResult(schema) {
+  const wrap = $('results-table-wrap');
+  if (!wrap) return;
+  $('results-placeholder')?.classList.add('hidden');
+  wrap.classList.remove('hidden');
+
+  if (!schema || !schema.length) {
+    wrap.innerHTML = '<p class="output-empty">No tables found — check your CREATE TABLE statement for errors.</p>';
+    switchOutputTab('results');
+    return;
+  }
+
+  wrap.innerHTML = schema.map(t => `
+    <div class="schema-result-section">
+      <div class="schema-result-header">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        <strong>TABLE: ${esc(t.name)}</strong>
+      </div>
+      <table class="result-table">
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead>
+        <tbody>
+          ${t.columns.map(c => {
+            const fk = t.foreignKeys.find(f => f.fromColumn === c.name);
+            const badges = [
+              c.primaryKey ? '<span class="key-badge key-pk">PRIMARY KEY</span>' : '',
+              c.notNull && !c.primaryKey ? 'NOT NULL' : '',
+              fk ? `<span class="key-badge key-fk">FK → ${esc(fk.referencedTable)}.${esc(fk.toColumn)}</span>` : ''
+            ].filter(Boolean).join(' ');
+            return `<tr>
+              <td>${esc(c.name)}</td>
+              <td class="col-type">${esc(c.type)}</td>
+              <td>${badges || '—'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`).join('');
+
+  // Mirror into schema tab so the student can reference it while editing
+  const schemaPanel = $('schema-panel');
+  if (schemaPanel) {
+    schemaPanel.innerHTML = schema.map(t => `
+      <div class="schema-table">
+        <div class="schema-table-header">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <strong>${esc(t.name)}</strong>
+        </div>
+        <table class="schema-cols">
+          <thead><tr><th>Column</th><th>Type</th><th>Key</th></tr></thead>
+          <tbody>
+            ${t.columns.map(c => `<tr>
+              <td>${esc(c.name)}</td>
+              <td class="col-type">${esc(c.type)}</td>
+              <td>${c.primaryKey ? '<span class="key-badge key-pk">PK</span>' : ''}${t.foreignKeys.some(f => f.fromColumn === c.name) ? '<span class="key-badge key-fk">FK</span>' : ''}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`).join('');
+  }
+
+  switchOutputTab('results');
 }
 
 function esc(s) {
@@ -471,13 +537,21 @@ function countRows(dbId, tableName) {
   } catch { return '?'; }
 }
 
-function rebuildSandboxDB() {
-  // Lazy — sandbox DB is rebuilt per-query in runSandboxSQL
+function resetSandboxDB() {
+  if (_sandboxDb) { try { _sandboxDb.close(); } catch {} _sandboxDb = null; }
+  if (!_SQL) return;
+  const dbDef = getDatabaseById(_activeDatabaseId);
+  try {
+    _sandboxDb = createDatabase(_SQL, dbDef ? dbDef.setupSQL : '');
+  } catch (e) {
+    console.error('Sandbox DB init failed:', e.message);
+  }
 }
 
 // Database selector dropdown
 $('db-select')?.addEventListener('change', e => {
   setActiveDatabase(e.target.value);
+  resetSandboxDB();
 });
 
 // Schema browser button
@@ -610,32 +684,44 @@ document.addEventListener('challenge:open', e => {
   const ex = e.detail;
 
   // Load starter code
-  if (ex.starterCode) {
-    editor.value = ex.starterCode;
-    updateHighlight();
-    updateLineNumbers();
-  } else {
-    editor.value = '';
-    updateHighlight();
-    updateLineNumbers();
-  }
+  editor.value = ex.starterCode || '';
+  updateHighlight();
+  updateLineNumbers();
 
-  // Set database
-  const dbId = ex.database || null;
-  if (dbId) {
-    _activeDatabaseId = dbId;
-    const sel = $('db-select');
-    if (sel) sel.value = dbId;
-    $('active-db-label').textContent = `${getDatabaseById(dbId)?.icon || '🗄️'} ${getDatabaseById(dbId)?.label || dbId}`;
-    renderSchemaForDatabase(dbId);
+  const dbSelect = $('db-select');
+  const dbLabel  = $('active-db-label');
+
+  if (ex.database) {
+    // DML challenge — lock selector to the pre-built database
+    _activeDatabaseId = ex.database;
+    if (dbSelect) { dbSelect.value = ex.database; dbSelect.disabled = true; }
+    const dbDef = getDatabaseById(ex.database);
+    if (dbLabel) dbLabel.textContent = `${dbDef?.icon || '🗄️'} ${dbDef?.label || ex.database}`;
+    renderSchemaForDatabase(ex.database);
+  } else {
+    // DDL / combined — student creates their own schema; disable selector
+    if (dbSelect) dbSelect.disabled = true;
+    if (dbLabel) dbLabel.textContent = '🗄️ Empty Sandbox';
+    const schemaPanel = $('schema-panel');
+    if (schemaPanel) schemaPanel.innerHTML = '<p class="output-empty">Run your SQL to see the schema you create.</p>';
   }
 
   clearResults();
-  showMessages(['Load complete. Write your SQL and click Run.'], true);
+  $('messages-panel').innerHTML = '';
 
   // Switch sidebar to challenges view
   const chTab = document.querySelector('.sidebar-tab[data-view="challenges"]');
   chTab?.click();
+});
+
+document.addEventListener('challenge:close', () => {
+  const dbSelect = $('db-select');
+  if (dbSelect) { dbSelect.disabled = false; dbSelect.value = _activeDatabaseId; }
+  const dbDef = getDatabaseById(_activeDatabaseId);
+  const dbLabel = $('active-db-label');
+  if (dbLabel) dbLabel.textContent = `${dbDef?.icon || '🗄️'} ${dbDef?.label || _activeDatabaseId}`;
+  renderSchemaForDatabase(_activeDatabaseId);
+  resetSandboxDB();
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
