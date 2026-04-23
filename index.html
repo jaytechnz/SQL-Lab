@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CGA SQL Lab — AS Computer Science 9618</title>
+  <title>CGA IGCSE Pseudocode Simulator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Audiowide&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&family=Audiowide&display=swap" rel="stylesheet">
   <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/editor.css">
   <link rel="stylesheet" href="css/challenges.css">
   <link rel="stylesheet" href="css/dashboard.css">
-  <!-- sql.js WebAssembly SQLite -->
-  <script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js"></script>
+  <link rel="stylesheet" href="css/suggestions.css">
+  <link rel="stylesheet" href="css/extended.css">
 </head>
 <body>
 
 <!-- ═══════════════════ LOGIN PAGE ═══════════════════ -->
 <div id="login-page">
   <div class="login-card">
-    <h1 class="login-title">SQL Lab</h1>
-    <div class="login-logo">
-      <span class="login-logo-img"><img src="assets/winston-thumbs-up.png" alt="CGA mascot" onerror="this.style.display='none'"></span>
+    <h1 class="login-title">PseudoLab</h1>
+     <div class="login-logo">
+      <span class="login-logo-img"><img src="assets/winston-thumbs-up.png" alt="CGA Winston mascot"/></span>
     </div>
 
     <div class="auth-tabs">
@@ -29,6 +29,7 @@
       <button class="auth-tab" data-tab="signup">Register</button>
     </div>
 
+    <!-- Sign In Form -->
     <form id="signin-form" class="auth-form active">
       <div class="form-group">
         <label for="signin-email">School Email</label>
@@ -45,10 +46,14 @@
         </div>
       </div>
       <div id="signin-error" class="auth-error hidden"></div>
-      <button type="submit" class="btn-primary btn-full" id="signin-btn">Sign In</button>
+      <button type="submit" class="btn-primary btn-full" id="signin-btn">
+        <span class="btn-label">Sign In</span>
+        <span class="btn-spinner hidden">●</span>
+      </button>
       <button type="button" class="forgot-password-link" id="forgot-password-btn">Forgot password?</button>
     </form>
 
+    <!-- Register Form -->
     <form id="signup-form" class="auth-form">
       <div class="form-group">
         <label for="signup-name">Full Name</label>
@@ -62,7 +67,7 @@
       <div class="form-group">
         <label for="signup-classcode">Class Code</label>
         <input type="text" id="signup-classcode" placeholder="e.g. CS9A-2025" autocomplete="off">
-        <small class="form-hint">Ask your teacher for the class code.</small>
+        <small class="form-hint">Ask your teacher for the class code. You can change it later.</small>
       </div>
       <div class="form-group">
         <label for="signup-password">Password</label>
@@ -75,12 +80,15 @@
         </div>
       </div>
       <div id="signup-error" class="auth-error hidden"></div>
-      <button type="submit" class="btn-primary btn-full" id="signup-btn">Create Account</button>
+      <button type="submit" class="btn-primary btn-full" id="signup-btn">
+        <span class="btn-label">Create Account</span>
+        <span class="btn-spinner hidden">●</span>
+      </button>
     </form>
 
     <p class="login-footer">
       &copy; Crimson Global Academy 2026<br>
-      Cambridge AS Level Computer Science (9618)
+      Cambridge IGCSE Computer Science (0478)
     </p>
   </div>
 </div>
@@ -88,32 +96,16 @@
 <!-- ═══════════════════ MAIN APP ═══════════════════ -->
 <div id="app" class="hidden">
 
-  <!-- ── Title Bar ── -->
+  <!-- Title Bar -->
   <header class="app-header">
     <div class="header-left">
-      <span class="logo-text">SQL Lab</span>
-      <span class="logo-sub">AS Level</span>
+      <span class="logo-text">PseudoLab - IGCSE</span>
     </div>
+    <div class="header-center"></div>
     <div class="header-right">
-      <button id="btn-db-viewer" class="btn-ghost btn-sm" title="View databases and schemas">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-        Databases
+      <button id="btn-dashboard" class="btn-icon teacher-only hidden" title="Teacher Dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       </button>
-      <button id="btn-dashboard" class="btn-ghost btn-sm teacher-only hidden" title="Teacher Dashboard">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        Dashboard
-      </button>
-      <div class="sg-wrap" id="sg-wrap">
-        <button id="btn-suggestions" class="btn-ghost btn-sm" title="Suggestions">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          Feedback
-        </button>
-        <div id="sg-dropdown" class="sg-dropdown hidden">
-          <button class="sg-dropdown-item" id="btn-sg-request">✨ Feature Request</button>
-          <button class="sg-dropdown-item" id="btn-sg-error">🐛 Report an Error</button>
-          <button class="sg-dropdown-item" id="btn-sg-mine">📨 My Submissions</button>
-        </div>
-      </div>
       <div class="user-info">
         <span id="user-role-badge" class="role-badge"></span>
         <span id="user-name-display" class="user-name"></span>
@@ -122,28 +114,48 @@
     </div>
   </header>
 
-  <!-- ── App Body ── -->
+  <!-- Body: activity bar + sidebar + editor -->
   <div class="app-body">
 
-    <!-- ══════════════ LEFT SIDEBAR ══════════════ -->
+    <!-- ── Sidebar (Explorer) ── -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <span class="sidebar-title">Explorer</span>
         <div class="sidebar-header-actions">
-          <button id="btn-new-query" class="btn-accent btn-sm" title="New query">+ New</button>
-          <button id="btn-close-explorer" class="ref-collapse-btn" title="Hide">
+          <button id="btn-new-program" class="btn-accent btn-sm" title="New program">+ New</button>
+          <button id="btn-close-explorer" class="ref-collapse-btn" title="Hide Explorer">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
         </div>
       </div>
 
+      <!-- Sidebar mode tabs: Programs | Challenges -->
       <div class="sidebar-tabs">
-        <button class="sidebar-tab active" data-view="challenges">Challenges</button>
-        <button class="sidebar-tab" data-view="reference">Reference</button>
+        <button class="sidebar-tab active" id="tab-programs" data-view="programs">Programs</button>
+        <button class="sidebar-tab" id="tab-challenges" data-view="challenges">Challenges</button>
       </div>
 
-      <!-- Challenges view -->
-      <div id="sidebar-challenges-view">
+      <!-- ── Programs view ── -->
+      <div id="sidebar-programs-view">
+        <div class="sidebar-search">
+          <input type="text" id="program-search" placeholder="Search programs…">
+        </div>
+        <div id="program-list" class="program-list">
+          <div class="program-list-empty">No saved programs yet.<br>Click <strong>+ New</strong> to start.</div>
+        </div>
+
+        <!-- Extended Programming section -->
+        <div class="ext-sidebar-section" id="ext-sidebar-section">
+          <div class="ext-sidebar-hdr" id="ext-sidebar-hdr">
+            <span class="ext-sidebar-hdr-label">Extended Programming</span>
+            <span class="ext-sidebar-chevron">▾</span>
+          </div>
+          <div id="ext-task-list"></div>
+        </div>
+      </div>
+
+      <!-- ── Challenges view ── -->
+      <div id="sidebar-challenges-view" class="hidden">
         <div class="ch-xp-block">
           <div class="ch-xp-row">
             <span id="ch-level-display" class="ch-level">Level 1</span>
@@ -155,361 +167,591 @@
         <div id="challenge-list" class="challenge-list"></div>
       </div>
 
-      <!-- Quick Reference view -->
-      <div id="sidebar-ref-view" class="hidden">
-        <div class="ref-quick">
-          <div class="ref-quick-title">DDL — Data Definition</div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">CREATE DATABASE</span><span class="ref-quick-desc">Create a new database</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">CREATE TABLE</span><span class="ref-quick-desc">Define a new table</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">ALTER TABLE</span><span class="ref-quick-desc">Modify table structure</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">PRIMARY KEY</span><span class="ref-quick-desc">Uniquely identifies rows</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">FOREIGN KEY</span><span class="ref-quick-desc">Links to another table</span></div>
-        </div>
-        <div class="ref-quick">
-          <div class="ref-quick-title">DML — Data Manipulation</div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">SELECT</span><span class="ref-quick-desc">Retrieve data</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">INSERT INTO</span><span class="ref-quick-desc">Add new rows</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">UPDATE</span><span class="ref-quick-desc">Modify existing rows</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">DELETE FROM</span><span class="ref-quick-desc">Remove rows</span></div>
-        </div>
-        <div class="ref-quick">
-          <div class="ref-quick-title">Data Types</div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">INTEGER</span><span class="ref-quick-desc">Whole numbers</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">REAL</span><span class="ref-quick-desc">Decimal numbers</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">VARCHAR(n)</span><span class="ref-quick-desc">Text up to n chars</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">CHARACTER</span><span class="ref-quick-desc">Single character</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">BOOLEAN</span><span class="ref-quick-desc">TRUE / FALSE</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">DATE</span><span class="ref-quick-desc">YYYY-MM-DD</span></div>
-          <div class="ref-quick-row"><span class="ref-quick-kw">TIME</span><span class="ref-quick-desc">HH:MM:SS</span></div>
-        </div>
+      <div class="sidebar-footer">
+        <button id="btn-import-txt" class="btn-ghost btn-sm sidebar-btn" title="Import .txt file">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Import .txt
+        </button>
+        <button id="btn-export-txt" class="btn-ghost btn-sm sidebar-btn" title="Export as .txt">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export .txt
+        </button>
+        <input type="file" id="file-input-txt" accept=".txt,.pseudo" class="hidden">
       </div>
-
     </aside>
 
-    <!-- ══════════════ EDITOR MAIN ══════════════ -->
+    <!-- ── Editor Area ── -->
     <main class="editor-main">
 
-      <!-- Toolbar -->
+      <!-- Editor Tab Bar -->
+      <div class="editor-tabbar">
+        <div class="editor-tab active" id="active-tab">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+          <span id="tab-filename">untitled.pseudo</span>
+          <span id="tab-dirty" class="tab-dirty hidden">●</span>
+        </div>
+        <div class="tabbar-actions">
+          <span id="save-status" class="save-status"></span>
+          <div class="sg-wrap" id="sg-wrap">
+            <button id="btn-suggestions" class="btn-ghost btn-sm sg-toggle-btn" title="Suggestions &amp; feedback">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Suggestions
+              <span id="sg-badge" class="sg-badge hidden">0</span>
+            </button>
+            <div id="sg-dropdown" class="sg-dropdown hidden">
+              <button class="sg-dropdown-item" id="btn-sg-request">✨ Feature Request</button>
+              <button class="sg-dropdown-item" id="btn-sg-error">🐛 Report an Error</button>
+              <button class="sg-dropdown-item" id="btn-sg-mine">📨 My Submissions</button>
+              <div class="sg-dropdown-sep hidden" id="sg-admin-sep"></div>
+              <button class="sg-dropdown-item sg-admin-item hidden" id="btn-sg-inbox">📥 All Submissions</button>
+            </div>
+          </div>
+          <button id="btn-save" class="btn-ghost btn-sm" title="Save (Ctrl+S)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save
+          </button>
+        </div>
+      </div>
+
+      <!-- Run Toolbar -->
       <div class="editor-toolbar">
         <div class="toolbar-left">
-          <button id="btn-run" class="btn-run" title="Run SQL (Ctrl+Enter)">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Run SQL
+          <button id="btn-run" class="btn-run" title="Run (F5)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Run
           </button>
-          <button id="btn-clear" class="btn-ghost btn-sm" title="Clear output">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-            Clear
+          <button id="btn-debug" class="btn-debug" title="Debug (F6)">
+            <!-- Bug icon -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M8 2l1.5 1.5"/>
+              <path d="M14.5 3.5L16 2"/>
+              <path d="M9 7.5A3 3 0 0 1 15 7.5"/>
+              <path d="M12 10.5v6"/>
+              <path d="M9 10.5H6a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2h3"/>
+              <path d="M15 10.5h3a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-3"/>
+              <path d="M7 7.5l-3-2"/>
+              <path d="M17 7.5l3-2"/>
+              <path d="M7 19.5l-2 2"/>
+              <path d="M17 19.5l2 2"/>
+              <rect x="9" y="7" width="6" height="14" rx="3"/>
+            </svg>
+            Debug
           </button>
           <div class="toolbar-sep"></div>
-          <span class="db-selector-label">Database:</span>
-          <select id="db-select" title="Select database">
-            <option value="bookshop">📚 Bookshop</option>
-            <option value="employees">👥 Employees</option>
-            <option value="school">🏫 School</option>
-            <option value="library">🏛️ Library</option>
-            <option value="store">🛒 Online Store</option>
-          </select>
-          <div class="toolbar-sep"></div>
-          <button id="btn-schema" class="btn-ghost btn-sm" title="View schema">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-            Schema
+          <button id="btn-step" class="btn-debug-ctrl hidden" title="Step (F10)" disabled>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5 12 19 12"/><polyline points="12 5 19 12 12 19"/></svg>
+            Step
           </button>
-        </div>
-        <div class="toolbar-right">
-          <span id="active-db-label" class="active-db-chip">📚 Bookshop</span>
+          <button id="btn-continue" class="btn-debug-ctrl hidden" title="Continue (F5)" disabled>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Continue
+          </button>
+          <button id="btn-stop" class="btn-stop hidden" title="Stop (Esc)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18"/></svg>
+            Stop
+          </button>
+          <div class="toolbar-sep"></div>
+          <button id="btn-clear-breakpoints" class="btn-ghost btn-sm" title="Clear all breakpoints">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+            Breakpoints
+          </button>
         </div>
       </div>
 
-      <!-- Challenge panel (inline, shown when a challenge is open) -->
-      <div id="challenge-panel" class="challenge-panel hidden">
-        <div class="ch-panel-header">
-          <div class="ch-panel-title-row">
-            <span id="ch-panel-title" class="ch-panel-title">Challenge</span>
-            <span id="ch-panel-badge" class="ch-difficulty-badge badge-easy">Easy</span>
+      <!-- Challenge / Extended panel row -->
+      <div class="ch-row">
+        <div id="ext-panel" class="ext-panel hidden"></div>
+        <div id="challenge-panel" class="challenge-panel hidden">
+          <div class="ch-panel-header">
+            <div class="ch-panel-title-row">
+              <span id="ch-panel-title" class="ch-panel-title">Challenge</span>
+              <span id="ch-panel-badge" class="ch-difficulty-badge badge-easy">Easy</span>
+            </div>
+            <div class="ch-panel-actions">
+              <button id="btn-close-challenge" class="btn-ghost btn-sm" title="Close challenge">✕</button>
+            </div>
           </div>
-          <div class="ch-panel-actions">
-            <button id="btn-close-challenge" class="btn-ghost btn-sm">✕ Close</button>
-          </div>
+          <div id="ch-panel-body" class="ch-panel-body"></div>
+          <div id="ch-test-results" class="ch-test-results"></div>
         </div>
-        <div id="ch-panel-body" class="ch-panel-body"></div>
-        <div id="ch-test-results" class="ch-test-results"></div>
       </div>
 
-      <!-- Editor + Output split -->
-      <div class="editor-output-split">
+      <!-- Resize handle between task description and code editor (extended tasks only) -->
+      <div id="ext-task-resize-handle" class="panel-resize-handle hidden"></div>
 
-        <!-- SQL Editor -->
-        <div class="sql-editor-wrap">
-          <div class="editor-gutter" id="editor-gutter"><div>1</div></div>
-          <div class="editor-inner">
-            <div class="editor-highlight" id="editor-highlight" aria-hidden="true"></div>
-            <textarea
-              id="sql-editor"
-              class="editor-textarea"
-              spellcheck="false"
-              autocorrect="off"
-              autocapitalize="off"
-              placeholder="-- Write your SQL here, then click Run SQL (or press Ctrl+Enter)
-SELECT * FROM books;"
-            ></textarea>
+      <!-- Editor + Debug side panel -->
+      <div class="editor-debug-row">
+
+        <!-- Code Editor -->
+        <div class="code-editor-wrap" id="code-editor-wrap">
+          <div class="editor-container">
+            <div class="editor-gutter" id="editor-gutter"></div>
+            <div class="editor-inner">
+              <div class="editor-highlight" id="editor-highlight" aria-hidden="true"></div>
+              <textarea
+                id="code-editor"
+                class="editor-textarea"
+                spellcheck="false"
+                autocorrect="off"
+                autocapitalize="off"
+              ></textarea>
+            </div>
           </div>
         </div>
 
-        <!-- Resize handle -->
-        <div class="output-resize-handle" id="output-resize-handle"></div>
-
-        <!-- Output panel -->
-        <div class="output-panel" id="output-panel">
-          <div class="output-tabs">
-            <button class="output-tab active" data-tab="results">Results</button>
-            <button class="output-tab" data-tab="messages">Messages</button>
-            <button class="output-tab" data-tab="schema">Schema</button>
-            <button class="output-tab" data-tab="history">History</button>
+        <!-- Debug Panel (variable watch) -->
+        <div class="debug-side-panel hidden" id="debug-side-panel">
+          <div class="debug-section">
+            <div class="debug-section-title">Variables</div>
+            <div id="variable-watch" class="variable-watch">
+              <div class="watch-empty">No variables yet.<br>Run in debug mode.</div>
+            </div>
           </div>
-          <div class="output-pane" id="output-results">
-            <div id="results-table-wrap" class="hidden"></div>
-            <p class="output-empty" id="results-placeholder">Results will appear here after running a SELECT query.</p>
+          <div class="debug-section">
+            <div class="debug-section-title">Execution</div>
+            <div class="exec-info">
+              <div class="exec-row"><span>Line:</span><span id="debug-current-line">—</span></div>
+              <div class="exec-row"><span>Status:</span><span id="debug-status">Idle</span></div>
+              <div class="exec-row"><span>Steps:</span><span id="debug-steps">0</span></div>
+            </div>
           </div>
-          <div class="output-pane hidden" id="output-messages">
-            <div id="messages-panel"></div>
-          </div>
-          <div class="output-pane hidden" id="output-schema">
-            <div id="schema-panel"></div>
-          </div>
-          <div class="output-pane hidden" id="output-history">
-            <div id="history-panel"><p class="output-empty">No queries yet.</p></div>
+          <div class="debug-section">
+            <div class="debug-section-title">Virtual Files</div>
+            <div id="virtual-files" class="virtual-files">
+              <div class="watch-empty">No open files.</div>
+            </div>
           </div>
         </div>
 
-      </div><!-- end editor-output-split -->
+      </div><!-- end editor-debug-row -->
+
+      <!-- Panel Resize Handle -->
+      <div class="panel-resize-handle" id="panel-resize-handle" title="Drag to resize panel"></div>
+
+      <!-- Output Panel -->
+      <div class="output-panel" id="output-panel">
+        <img src="assets/winston.png" class="console-robot" alt="CGA Winston" aria-hidden="true">
+        <div class="output-tabs">
+          <button class="output-tab active" data-panel="console">Console</button>
+          <button class="output-tab" data-panel="errors">Problems <span id="error-badge" class="badge hidden">0</span></button>
+          <button class="output-tab" data-panel="files">Files</button>
+          <button id="btn-clear-output" class="btn-ghost btn-sm output-clear">Clear</button>
+        </div>
+        <div class="output-content" id="output-console">
+          <div class="output-placeholder">Program output will appear here…</div>
+        </div>
+        <div class="output-content hidden" id="output-errors">
+          <div class="output-placeholder">No problems.</div>
+        </div>
+        <div class="output-content hidden" id="output-files">
+          <div class="output-placeholder">Virtual file system contents will appear here after WRITEFILE operations.</div>
+        </div>
+      </div>
 
     </main><!-- end editor-main -->
 
-    <!-- ══════════════ SQL REFERENCE PANEL (right) ══════════════ -->
+    <!-- ── Pseudocode Reference Panel ── -->
     <aside id="ref-panel" class="ref-panel ref-panel--open">
       <div class="ref-panel-header">
         <span class="ref-panel-title">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-          SQL Reference
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Pseudocode Reference
         </span>
-        <button id="btn-close-ref" class="ref-collapse-btn" title="Hide reference">
+        <button id="btn-close-ref" class="ref-collapse-btn" title="Hide reference panel">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
-      <div class="ref-panel-body">
-        <p class="ref-intro">Cambridge AS &amp; A Level Computer Science 9618 — SQL (DDL &amp; DML)</p>
+      <!-- Tab bar: shown only when an extended task is open -->
+      <div class="ext-ref-tabs hidden" id="ext-ref-tabs">
+        <button class="ext-ref-tab active" data-tab="reference">Reference</button>
+        <button class="ext-ref-tab" data-tab="planning">Planning</button>
+      </div>
 
-        <!-- CREATE DATABASE -->
+      <div class="ref-panel-body" id="ref-panel-body">
+        <p class="ref-intro">Cambridge IGCSE Computer Science 0478 pseudocode conventions.</p>
+
+        <!-- Comments -->
         <details class="ref-section" open>
-          <summary class="ref-section-title">CREATE DATABASE</summary>
+          <summary class="ref-section-title">Comments</summary>
           <div class="ref-section-body">
-            <pre class="ref-code">CREATE DATABASE database_name;</pre>
-            <p class="ref-note">Creates a new database. Use a descriptive name.</p>
+            <pre class="ref-code">// This is a comment</pre>
+            <p class="ref-note">Comments are ignored by the interpreter. Use them to explain your code.</p>
           </div>
         </details>
 
-        <!-- CREATE TABLE -->
+        <!-- Data Types -->
         <details class="ref-section">
-          <summary class="ref-section-title">CREATE TABLE</summary>
+          <summary class="ref-section-title">Data Types</summary>
           <div class="ref-section-body">
-            <pre class="ref-code">CREATE TABLE TableName (
-  col1  INTEGER PRIMARY KEY,
-  col2  VARCHAR(50),
-  col3  REAL,
-  col4  BOOLEAN,
-  col5  DATE,
-  col6  TIME,
-  col7  CHARACTER,
-  FOREIGN KEY (col2) REFERENCES Other(col2)
-);</pre>
-            <p class="ref-label">Data types:</p>
             <table class="ref-table">
-              <tr><td><code>INTEGER</code></td><td>Whole numbers, e.g. 42</td></tr>
-              <tr><td><code>REAL</code></td><td>Decimals, e.g. 3.14</td></tr>
-              <tr><td><code>VARCHAR(n)</code></td><td>Variable text, max n chars</td></tr>
-              <tr><td><code>CHARACTER</code></td><td>Single character, e.g. 'A'</td></tr>
-              <tr><td><code>BOOLEAN</code></td><td>TRUE or FALSE</td></tr>
-              <tr><td><code>DATE</code></td><td>e.g. '2026-04-22'</td></tr>
-              <tr><td><code>TIME</code></td><td>e.g. '09:30:00'</td></tr>
+              <tr><td><code>INTEGER</code></td><td>Whole numbers, e.g. <code>42</code>, <code>-7</code></td></tr>
+              <tr><td><code>REAL</code></td><td>Decimals, e.g. <code>3.14</code></td></tr>
+              <tr><td><code>CHAR</code></td><td>Single character, e.g. <code>'A'</code></td></tr>
+              <tr><td><code>STRING</code></td><td>Text, e.g. <code>"Hello"</code></td></tr>
+              <tr><td><code>BOOLEAN</code></td><td><code>TRUE</code> or <code>FALSE</code></td></tr>
+              <tr><td><code>DATE</code></td><td>e.g. <code>28/03/26</code></td></tr>
             </table>
           </div>
         </details>
 
-        <!-- ALTER TABLE -->
+        <!-- Variables & Constants -->
         <details class="ref-section">
-          <summary class="ref-section-title">ALTER TABLE</summary>
+          <summary class="ref-section-title">Variables &amp; Constants</summary>
           <div class="ref-section-body">
-            <pre class="ref-code">-- Add a column:
-ALTER TABLE TableName
-  ADD column_name TYPE;
-
--- Example:
-ALTER TABLE Students
-  ADD email VARCHAR(100);</pre>
-            <p class="ref-note">Used to change an existing table definition without recreating it.</p>
+            <p class="ref-label">Declare a variable:</p>
+            <pre class="ref-code">DECLARE Count : INTEGER
+DECLARE Score : REAL
+DECLARE UserName : STRING
+DECLARE IsValid : BOOLEAN</pre>
+            <p class="ref-label">Declare a constant:</p>
+            <pre class="ref-code">CONSTANT PI = 3.14159
+CONSTANT MAX_SIZE = 100</pre>
+            <p class="ref-label">Assignment (use the ← arrow):</p>
+            <pre class="ref-code">Count ← 0
+Score ← Score + 1</pre>
+            <p class="ref-note">Variable, array, procedure and function names begin with a capital letter. Constants are full caps with SNAKE_CASE.</p>
           </div>
         </details>
 
-        <!-- PRIMARY KEY -->
+        <!-- Input & Output -->
         <details class="ref-section">
-          <summary class="ref-section-title">PRIMARY KEY</summary>
+          <summary class="ref-section-title">Input &amp; Output</summary>
           <div class="ref-section-body">
-            <p class="ref-label">Inline syntax:</p>
-            <pre class="ref-code">id INTEGER PRIMARY KEY</pre>
-            <p class="ref-label">Constraint syntax (end of column list):</p>
-            <pre class="ref-code">PRIMARY KEY (id)</pre>
-            <p class="ref-note">Uniquely identifies each row. Cannot be NULL. Each table has at most one primary key.</p>
+            <pre class="ref-code">INPUT UserName
+
+OUTPUT "Text"
+OUTPUT Score
+OUTPUT "Score = ", Score
+OUTPUT "Sum = ", NumA + NumB</pre>
+            <p class="ref-note">OUTPUT can combine multiple values separated by commas.</p>
           </div>
         </details>
 
-        <!-- FOREIGN KEY -->
+        <!-- Operators -->
         <details class="ref-section">
-          <summary class="ref-section-title">FOREIGN KEY</summary>
+          <summary class="ref-section-title">Operators</summary>
           <div class="ref-section-body">
-            <pre class="ref-code">FOREIGN KEY (field)
-  REFERENCES Table (Field)</pre>
+            <p class="ref-label">Arithmetic:</p>
+            <table class="ref-table">
+              <tr><td><code>+</code></td><td>Addition</td></tr>
+              <tr><td><code>-</code></td><td>Subtraction</td></tr>
+              <tr><td><code>*</code></td><td>Multiplication</td></tr>
+              <tr><td><code>/</code></td><td>Division (real result)</td></tr>
+              <tr><td><code>DIV</code></td><td>Integer division</td></tr>
+              <tr><td><code>MOD</code></td><td>Remainder</td></tr>
+              <tr><td><code>^</code></td><td>Power / exponent</td></tr>
+            </table>
+            <p class="ref-label">Comparison:</p>
+            <table class="ref-table">
+              <tr><td><code>=</code></td><td>Equal to</td></tr>
+              <tr><td><code>&lt;&gt;</code></td><td>Not equal to</td></tr>
+              <tr><td><code>&lt;</code></td><td>Less than</td></tr>
+              <tr><td><code>&gt;</code></td><td>Greater than</td></tr>
+              <tr><td><code>&lt;=</code></td><td>Less than or equal</td></tr>
+              <tr><td><code>&gt;=</code></td><td>Greater than or equal</td></tr>
+            </table>
+            <p class="ref-label">Logical:</p>
+            <table class="ref-table">
+              <tr><td><code>AND</code></td><td>Both conditions true</td></tr>
+              <tr><td><code>OR</code></td><td>Either condition true</td></tr>
+              <tr><td><code>NOT</code></td><td>Negates a condition</td></tr>
+            </table>
+            <p class="ref-label">String:</p>
+            <table class="ref-table">
+              <tr><td><code>&amp;</code></td><td>Concatenation: <code>"Hi" &amp; UserName</code></td></tr>
+            </table>
+          </div>
+        </details>
+
+        <!-- Selection: IF -->
+        <details class="ref-section">
+          <summary class="ref-section-title">Selection — IF</summary>
+          <div class="ref-section-body">
+            <pre class="ref-code">IF condition
+   THEN
+      statements
+ENDIF
+
+IF condition
+   THEN
+      statements
+   ELSE
+      statements
+ENDIF</pre>
             <p class="ref-label">Example:</p>
-            <pre class="ref-code">CREATE TABLE Loans (
-  loan_id   INTEGER PRIMARY KEY,
-  member_id INTEGER,
-  FOREIGN KEY (member_id)
-    REFERENCES Members(member_id)
-);</pre>
-            <p class="ref-note">Links a column in one table to the primary key in another. The referenced table must exist first.</p>
+            <pre class="ref-code">IF Score >= 50
+   THEN
+      OUTPUT "Pass"
+   ELSE
+      OUTPUT "Fail"
+ENDIF</pre>
+            <p class="ref-note">Nested IF statements are allowed. Always close with ENDIF.</p>
           </div>
         </details>
 
-        <!-- SELECT -->
+        <!-- Selection: CASE -->
         <details class="ref-section">
-          <summary class="ref-section-title">SELECT</summary>
+          <summary class="ref-section-title">Selection — CASE</summary>
           <div class="ref-section-body">
-            <pre class="ref-code">-- All columns:
-SELECT * FROM table;
-
--- Specific columns:
-SELECT col1, col2 FROM table;
-
--- With alias:
-SELECT col1 AS alias FROM table;
-
--- With WHERE:
-SELECT * FROM table
-WHERE col = 'value';
-
--- Multiple conditions:
-SELECT * FROM table
-WHERE col1 = 'x' AND col2 > 10;
-
-SELECT * FROM table
-WHERE col1 = 'x' OR col1 = 'y';
-
--- ORDER BY:
-SELECT * FROM table
-ORDER BY col ASC;   -- or DESC
-
--- INNER JOIN:
-SELECT a.col, b.col
-FROM tableA AS a
-INNER JOIN tableB AS b
-  ON a.id = b.a_id;
-
--- GROUP BY:
-SELECT col, COUNT(*) AS n
-FROM table
-GROUP BY col;</pre>
+            <pre class="ref-code">CASE OF Variable
+   value1 : statement
+   value2 : statement
+   OTHERWISE : statement
+ENDCASE</pre>
+            <p class="ref-label">Example:</p>
+            <pre class="ref-code">CASE OF Grade
+   "A" : OUTPUT "Excellent"
+   "B" : OUTPUT "Good"
+   "C" : OUTPUT "Average"
+   OTHERWISE : OUTPUT "Below average"
+ENDCASE</pre>
+            <p class="ref-note">OTHERWISE is optional but good practice. Use for simple value matching.</p>
           </div>
         </details>
 
-        <!-- Aggregate functions -->
+        <!-- Iteration: FOR -->
         <details class="ref-section">
-          <summary class="ref-section-title">Aggregate Functions</summary>
+          <summary class="ref-section-title">Iteration — FOR</summary>
+          <div class="ref-section-body">
+            <pre class="ref-code">FOR Counter ← start TO finish
+   statements
+NEXT Counter
+
+FOR Counter ← start TO finish STEP n
+   statements
+NEXT Counter</pre>
+            <p class="ref-label">Example — count up:</p>
+            <pre class="ref-code">FOR Counter ← 1 TO 5
+   OUTPUT Counter
+NEXT Counter</pre>
+            <p class="ref-label">Example — count down in twos:</p>
+            <pre class="ref-code">FOR Counter ← 10 TO 0 STEP -2
+   OUTPUT Counter
+NEXT Counter</pre>
+            <p class="ref-note">Use FOR when the number of iterations is known in advance.</p>
+          </div>
+        </details>
+
+        <!-- Iteration: WHILE -->
+        <details class="ref-section">
+          <summary class="ref-section-title">Iteration — WHILE</summary>
+          <div class="ref-section-body">
+            <pre class="ref-code">WHILE condition DO
+   statements
+ENDWHILE</pre>
+            <p class="ref-label">Example:</p>
+            <pre class="ref-code">DECLARE Count : INTEGER
+Count ← 1
+WHILE Count <= 10 DO
+   OUTPUT Count
+   Count ← Count + 1
+ENDWHILE</pre>
+            <p class="ref-note">The condition is checked <strong>before</strong> each iteration. The loop body may never execute if the condition starts false.</p>
+          </div>
+        </details>
+
+        <!-- Iteration: REPEAT -->
+        <details class="ref-section">
+          <summary class="ref-section-title">Iteration — REPEAT</summary>
+          <div class="ref-section-body">
+            <pre class="ref-code">REPEAT
+   statements
+UNTIL condition</pre>
+            <p class="ref-label">Example — input validation:</p>
+            <pre class="ref-code">REPEAT
+   INPUT Age
+UNTIL Age >= 0 AND Age <= 120</pre>
+            <p class="ref-note">The condition is checked <strong>after</strong> each iteration. The loop body always runs at least once.</p>
+          </div>
+        </details>
+
+        <!-- Arrays -->
+        <details class="ref-section">
+          <summary class="ref-section-title">Arrays</summary>
+          <div class="ref-section-body">
+            <p class="ref-label">1D array — declare and use:</p>
+            <pre class="ref-code">DECLARE Scores : ARRAY[1:10] OF INTEGER
+Scores[1] ← 85
+Scores[2] ← 92
+OUTPUT Scores[1]</pre>
+            <p class="ref-label">2D array — declare and use:</p>
+            <pre class="ref-code">DECLARE Grid : ARRAY[1:3, 1:3] OF INTEGER
+Grid[1,1] ← 0
+Grid[2,3] ← 7
+OUTPUT Grid[2,3]</pre>
+            <p class="ref-label">Loop through an array:</p>
+            <pre class="ref-code">DECLARE Total : INTEGER
+Total ← 0
+FOR Counter ← 1 TO 10
+   Total ← Total + Scores[Counter]
+NEXT Counter</pre>
+            <p class="ref-note">Array indices start at the lower bound you declare (often 1, sometimes 0).</p>
+          </div>
+        </details>
+
+        <!-- Procedures -->
+        <details class="ref-section">
+          <summary class="ref-section-title">Procedures</summary>
+          <div class="ref-section-body">
+            <p class="ref-label">Define:</p>
+            <pre class="ref-code">PROCEDURE Greet(Name : STRING)
+   OUTPUT "Hello, ", Name
+ENDPROCEDURE</pre>
+            <p class="ref-label">Call:</p>
+            <pre class="ref-code">CALL Greet("Alice")</pre>
+            <p class="ref-label">Pass by reference (modifies original):</p>
+            <pre class="ref-code">PROCEDURE Double(BYREF Num : INTEGER)
+   Num ← Num * 2
+ENDPROCEDURE
+
+DECLARE Total : INTEGER
+Total ← 5
+CALL Double(Total)
+OUTPUT Total  // outputs 10</pre>
+            <p class="ref-note">Parameters are BYVALUE by default (a copy is passed). Use BYREF to let the procedure change the original variable.</p>
+          </div>
+        </details>
+
+        <!-- Functions -->
+        <details class="ref-section">
+          <summary class="ref-section-title">Functions</summary>
+          <div class="ref-section-body">
+            <p class="ref-label">Define:</p>
+            <pre class="ref-code">FUNCTION Square(Num : INTEGER) RETURNS INTEGER
+   RETURN Num * Num
+ENDFUNCTION</pre>
+            <p class="ref-label">Call (assign the result):</p>
+            <pre class="ref-code">DECLARE Result : INTEGER
+Result ← Square(4)
+OUTPUT Result  // outputs 16</pre>
+            <p class="ref-label">Or use directly in an expression:</p>
+            <pre class="ref-code">OUTPUT Square(5) + Square(3)</pre>
+            <p class="ref-note">A FUNCTION must return a value using RETURN. A PROCEDURE does not return a value.</p>
+          </div>
+        </details>
+
+        <!-- String Operations -->
+        <details class="ref-section">
+          <summary class="ref-section-title">String Operations</summary>
           <div class="ref-section-body">
             <table class="ref-table">
-              <tr><td><code>COUNT(*)</code></td><td>Count all rows</td></tr>
-              <tr><td><code>COUNT(col)</code></td><td>Count non-NULL values</td></tr>
-              <tr><td><code>SUM(col)</code></td><td>Total of numeric column</td></tr>
-              <tr><td><code>AVG(col)</code></td><td>Mean of numeric column</td></tr>
-              <tr><td><code>MAX(col)</code></td><td>Largest value</td></tr>
-              <tr><td><code>MIN(col)</code></td><td>Smallest value</td></tr>
+              <tr><td><code>LENGTH(s)</code></td><td>Number of characters in <code>s</code></td></tr>
+              <tr><td><code>LCASE(s)</code></td><td>Convert to lower case</td></tr>
+              <tr><td><code>UCASE(s)</code></td><td>Convert to upper case</td></tr>
+              <tr><td><code>SUBSTRING(s, start, len)</code></td><td>Extract <code>len</code> chars starting at <code>start</code> (1-indexed)</td></tr>
             </table>
-            <p class="ref-label">Example:</p>
-            <pre class="ref-code">SELECT department,
-  COUNT(*) AS num_staff,
-  AVG(salary) AS avg_sal
-FROM employees
-GROUP BY department
-ORDER BY avg_sal DESC;</pre>
+            <p class="ref-label">Examples:</p>
+            <pre class="ref-code">DECLARE Word : STRING
+Word ← "Cambridge"
+OUTPUT LENGTH(Word)          // 9
+OUTPUT LCASE(Word)           // cambridge
+OUTPUT UCASE(Word)           // CAMBRIDGE
+OUTPUT SUBSTRING(Word, 1, 3) // Cam</pre>
+            <p class="ref-label">Concatenation with &amp;:</p>
+            <pre class="ref-code">DECLARE FullName : STRING
+FullName ← "Hello" & " " & "World"
+OUTPUT FullName  // Hello World</pre>
           </div>
         </details>
 
-        <!-- INSERT INTO -->
+        <!-- Numeric Functions -->
         <details class="ref-section">
-          <summary class="ref-section-title">INSERT INTO</summary>
+          <summary class="ref-section-title">Numeric Functions</summary>
           <div class="ref-section-body">
-            <pre class="ref-code">-- Specify columns:
-INSERT INTO Table (col1, col2, col3)
-VALUES (val1, 'text', 3.14);
-
--- All columns (order matters):
-INSERT INTO Table
-VALUES (1, 'Alice', 25);</pre>
-            <p class="ref-note">String values use single quotes. Numeric values do not.</p>
+            <table class="ref-table">
+              <tr><td><code>ROUND(x, n)</code></td><td>Round <code>x</code> to <code>n</code> decimal places</td></tr>
+              <tr><td><code>RANDOM()</code></td><td>Returns a REAL between 0 (inclusive) and 1 (exclusive)</td></tr>
+              <tr><td><code>DIV(x, y)</code></td><td>Integer division — whole number part only</td></tr>
+              <tr><td><code>MOD(x, y)</code></td><td>Remainder after integer division</td></tr>
+            </table>
+            <p class="ref-label">Examples:</p>
+            <pre class="ref-code">OUTPUT ROUND(3.14159, 2)  // 3.14
+OUTPUT ROUND(7.5, 0)      // 8
+OUTPUT DIV(17, 5)         // 3
+OUTPUT MOD(17, 5)         // 2
+OUTPUT RANDOM()           // e.g. 0.427</pre>
           </div>
         </details>
 
-        <!-- UPDATE -->
+        <!-- File Handling -->
         <details class="ref-section">
-          <summary class="ref-section-title">UPDATE</summary>
+          <summary class="ref-section-title">File Handling</summary>
           <div class="ref-section-body">
-            <pre class="ref-code">UPDATE Table
-SET col1 = new_value,
-    col2 = col2 * 1.1
-WHERE condition;</pre>
-            <p class="ref-note">Always use WHERE — without it, every row is updated.</p>
+            <table class="ref-table">
+              <tr><td><code>OPENFILE f FOR READ</code></td><td>Open for reading</td></tr>
+              <tr><td><code>OPENFILE f FOR WRITE</code></td><td>Open for writing (overwrites)</td></tr>
+              <tr><td><code>OPENFILE f FOR APPEND</code></td><td>Open and add to end</td></tr>
+              <tr><td><code>READFILE f, v</code></td><td>Read next line into variable <code>v</code></td></tr>
+              <tr><td><code>WRITEFILE f, data</code></td><td>Write <code>data</code> to file</td></tr>
+              <tr><td><code>CLOSEFILE f</code></td><td>Close the file</td></tr>
+              <tr><td><code>EOF(f)</code></td><td>Returns TRUE if at end of file</td></tr>
+            </table>
+            <p class="ref-label">Write to a file:</p>
+            <pre class="ref-code">OPENFILE "data.txt" FOR WRITE
+WRITEFILE "data.txt", "Hello"
+WRITEFILE "data.txt", "World"
+CLOSEFILE "data.txt"</pre>
+            <p class="ref-label">Read from a file:</p>
+            <pre class="ref-code">DECLARE Line : STRING
+OPENFILE "data.txt" FOR READ
+WHILE NOT EOF("data.txt") DO
+   READFILE "data.txt", Line
+   OUTPUT Line
+ENDWHILE
+CLOSEFILE "data.txt"</pre>
           </div>
         </details>
 
-        <!-- DELETE FROM -->
-        <details class="ref-section">
-          <summary class="ref-section-title">DELETE FROM</summary>
-          <div class="ref-section-body">
-            <pre class="ref-code">DELETE FROM Table
-WHERE condition;</pre>
-            <p class="ref-note">Always use WHERE — without it, every row is deleted.</p>
-          </div>
-        </details>
 
-        <!-- NULL -->
-        <details class="ref-section">
-          <summary class="ref-section-title">NULL Values</summary>
-          <div class="ref-section-body">
-            <pre class="ref-code">-- Check for NULL:
-WHERE col IS NULL
-WHERE col IS NOT NULL
-
--- NULL ≠ empty string ≠ 0</pre>
-            <p class="ref-note">NULL means "unknown" or "missing". You cannot use = NULL — always use IS NULL.</p>
-          </div>
-        </details>
-
-        <!-- Quick-check -->
+        <!-- Quick Syntax Checklist -->
         <details class="ref-section">
           <summary class="ref-section-title">Quick Syntax Checklist</summary>
           <div class="ref-section-body">
-            <ul class="ref-checklist" style="padding-left:16px;font-size:11px;color:var(--text-muted);line-height:2">
-              <li>String values use single quotes <code>'text'</code></li>
-              <li>Create parent tables before child tables</li>
-              <li>FOREIGN KEY references must match the parent's PRIMARY KEY type</li>
-              <li>GROUP BY must include all non-aggregated SELECT columns</li>
-              <li>Use IS NULL / IS NOT NULL (never = NULL)</li>
-              <li>ORDER BY comes after GROUP BY</li>
-              <li>Always use WHERE with UPDATE and DELETE</li>
+            <ul class="ref-checklist">
+              <li>Every <code>IF</code> needs <code>ENDIF</code></li>
+              <li>Every <code>WHILE</code> needs <code>ENDWHILE</code></li>
+              <li>Every <code>FOR</code> needs <code>NEXT</code></li>
+              <li>Every <code>REPEAT</code> needs <code>UNTIL</code></li>
+              <li>Every <code>CASE OF</code> needs <code>ENDCASE</code></li>
+              <li>Every <code>PROCEDURE</code> needs <code>ENDPROCEDURE</code></li>
+              <li>Every <code>FUNCTION</code> needs <code>ENDFUNCTION</code></li>
+              <li>Use <code>←</code> for assignment, not <code>=</code></li>
+              <li>Use <code>=</code> only for comparison (in conditions)</li>
+              <li>Declare variables before using them</li>
+              <li>Strings use double quotes <code>"text"</code></li>
+              <li>Characters use single quotes <code>'A'</code></li>
             </ul>
           </div>
         </details>
 
       </div><!-- end ref-panel-body -->
-    </aside><!-- end ref-panel -->
+
+      <!-- Planning panel: shown when extended task is open and Planning tab selected -->
+      <div class="ext-ref-planning" id="ext-ref-planning">
+        <p class="ext-plan-error hidden" id="ext-plan-error">Complete all four planning sections before submitting.</p>
+        <div class="ext-plan-section">
+          <label class="ext-plan-lbl" for="ext-plan-declarations">Declarations <span class="ext-plan-req">*</span></label>
+          <p class="ext-plan-hint">Variables and constants your program will use.</p>
+          <textarea id="ext-plan-declarations" class="ext-plan-ta" rows="4"></textarea>
+        </div>
+        <div class="ext-plan-section">
+          <label class="ext-plan-lbl" for="ext-plan-inputs">Inputs <span class="ext-plan-req">*</span></label>
+          <p class="ext-plan-hint">What data will your program receive?</p>
+          <textarea id="ext-plan-inputs" class="ext-plan-ta" rows="4"></textarea>
+        </div>
+        <div class="ext-plan-section">
+          <label class="ext-plan-lbl" for="ext-plan-processing">Processing <span class="ext-plan-req">*</span></label>
+          <p class="ext-plan-hint">Steps your program will carry out.</p>
+          <textarea id="ext-plan-processing" class="ext-plan-ta" rows="4"></textarea>
+        </div>
+        <div class="ext-plan-section">
+          <label class="ext-plan-lbl" for="ext-plan-outputs">Outputs <span class="ext-plan-req">*</span></label>
+          <p class="ext-plan-hint">What will your program display or write?</p>
+          <textarea id="ext-plan-outputs" class="ext-plan-ta" rows="4"></textarea>
+        </div>
+      </div><!-- end ext-ref-planning -->
+
+    </aside>
 
   </div><!-- end app-body -->
 
@@ -517,15 +759,17 @@ WHERE col IS NOT NULL
   <div class="status-bar">
     <div class="status-left">
       <span class="status-item" id="status-line-col">Ln 1, Col 1</span>
+      <span class="status-sep"></span>
+      <span class="status-item" id="status-exec-state"></span>
     </div>
-    <span class="status-cga">Crimson Global Academy — Cambridge AS Level Computer Science 9618</span>
+    <span class="status-cga">Crimson Global Academy - Cambridge IGCSE Computer Science 0478</span>
     <div class="status-right">
-      <button id="btn-explorer" class="status-btn" title="Toggle sidebar">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <button id="btn-explorer" class="status-btn" title="Toggle Explorer panel">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         Explorer
       </button>
       <span class="status-sep"></span>
-      <button id="btn-ref-panel" class="status-btn" title="Toggle reference panel">
+      <button id="btn-ref-panel" class="status-btn" title="Toggle pseudocode reference">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
         Reference
       </button>
@@ -539,7 +783,7 @@ WHERE col IS NOT NULL
       </button>
       <span class="status-sep"></span>
       <button id="btn-class-code" class="status-btn student-only hidden" title="Change class code">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Class: <span id="status-class-code">—</span>
       </button>
     </div>
@@ -547,13 +791,11 @@ WHERE col IS NOT NULL
 
 </div><!-- end #app -->
 
-<!-- ═══════════════════ MODALS ═══════════════════ -->
-
-<!-- Change Class Code -->
+<!-- ═══════════════════ CHANGE CLASS CODE MODAL ═══════════════════ -->
 <div id="class-modal" class="modal-overlay hidden">
   <div class="modal-card">
     <div class="modal-title">Change Class Code</div>
-    <p class="modal-text">Enter the class code your teacher gave you.</p>
+    <p class="modal-text">Enter the class code your teacher gave you. This lets your teacher see your progress in their dashboard.</p>
     <input type="text" id="class-input" class="modal-input" placeholder="e.g. CS9A-2025">
     <div class="modal-actions">
       <button id="class-cancel" class="btn-ghost">Cancel</button>
@@ -562,53 +804,21 @@ WHERE col IS NOT NULL
   </div>
 </div>
 
-<!-- Leaderboard -->
-<div id="leaderboard-modal" class="modal-overlay hidden">
-  <div class="modal-card lb-modal-card">
-    <div class="lb-modal-header">
-      <span class="lb-modal-title">🏆 Class Leaderboard</span>
-      <button id="btn-close-leaderboard" class="lb-close-btn" title="Close">✕</button>
-    </div>
-    <div id="leaderboard-body" class="lb-body"></div>
-  </div>
-</div>
-
-<!-- XP + Badge toasts -->
-<div id="xp-toast"    class="toast xp-toast hidden"></div>
-<div id="badge-toast" class="toast badge-toast hidden"></div>
-
-<!-- Password Reset -->
-<div id="reset-panel" class="reset-modal-overlay hidden">
-  <div class="reset-modal-box">
-    <h3 class="reset-panel-title">Reset Password</h3>
-    <p class="reset-panel-hint">Enter your school email and we'll send a reset link.</p>
-    <div class="form-group">
-      <input type="email" id="reset-email" placeholder="name@cga.school" autocomplete="email">
-    </div>
-    <div id="reset-error" class="auth-error hidden"></div>
-    <div class="reset-panel-actions">
-      <button type="button" class="btn-primary" id="reset-submit-btn">Send Reset Email</button>
-      <button type="button" class="btn-ghost" id="reset-cancel-btn">Cancel</button>
+<!-- ═══════════════════ RENAME MODAL ═══════════════════ -->
+<div id="rename-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-title">Rename Program</div>
+    <input type="text" id="rename-input" class="modal-input" placeholder="Program name…">
+    <div class="modal-actions">
+      <button id="rename-cancel" class="btn-ghost">Cancel</button>
+      <button id="rename-confirm" class="btn-primary">Rename</button>
     </div>
   </div>
 </div>
 
-<!-- Database Viewer -->
-<div id="db-viewer-modal" class="db-viewer-overlay modal-overlay hidden">
-  <div class="db-viewer-card">
-    <div class="db-viewer-header">
-      <span class="db-viewer-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-        Database Viewer
-      </span>
-      <button id="btn-close-db-viewer" class="db-viewer-close">✕</button>
-    </div>
-    <div id="db-viewer-tabs" class="db-viewer-tabs"></div>
-    <div id="db-viewer-body" class="db-viewer-body"></div>
-  </div>
-</div>
+<!-- ═══════════════════ SUGGESTIONS MODALS ═══════════════════ -->
 
-<!-- Suggestions modals -->
+<!-- Feature Request -->
 <div id="sg-modal-request" class="sg-modal hidden">
   <div class="sg-card sg-card--form">
     <div class="sg-card-header">
@@ -620,12 +830,14 @@ WHERE col IS NOT NULL
       <textarea id="sg-req-text" class="sg-textarea" rows="5" placeholder="I would like to see…"></textarea>
     </div>
     <div class="sg-card-footer">
+      <span id="sg-req-status" class="sg-status hidden"></span>
       <button class="btn-ghost btn-sm" id="sg-req-cancel-2">Cancel</button>
       <button class="btn-accent btn-sm" id="sg-req-submit">Submit</button>
     </div>
   </div>
 </div>
 
+<!-- Error Report -->
 <div id="sg-modal-error" class="sg-modal hidden">
   <div class="sg-card sg-card--form">
     <div class="sg-card-header">
@@ -639,27 +851,131 @@ WHERE col IS NOT NULL
       </div>
       <div>
         <label class="sg-label" for="sg-err-text">Describe the error</label>
-        <textarea id="sg-err-text" class="sg-textarea" rows="4" placeholder="When I ran… the output was… but I expected…"></textarea>
+        <textarea id="sg-err-text" class="sg-textarea" rows="5" placeholder="When I run… the output was… but I expected…"></textarea>
       </div>
     </div>
     <div class="sg-card-footer">
+      <span id="sg-err-status" class="sg-status hidden"></span>
       <button class="btn-ghost btn-sm" id="sg-err-cancel-2">Cancel</button>
       <button class="btn-accent btn-sm" id="sg-err-submit">Submit</button>
     </div>
   </div>
 </div>
 
-<!-- Teacher Dashboard -->
+<!-- Inbox (admin) / My Submissions (regular user) -->
+<div id="sg-modal-inbox" class="sg-modal hidden">
+  <div class="sg-card sg-card--inbox">
+    <div class="sg-card-header">
+      <span class="sg-card-title" id="sg-inbox-title">Submissions</span>
+      <button class="sg-close-btn" id="sg-inbox-close">✕</button>
+    </div>
+    <div class="sg-filters hidden" id="sg-filters">
+      <button class="sg-filter-btn active" data-f="all">All</button>
+      <button class="sg-filter-btn" data-f="new">New</button>
+      <button class="sg-filter-btn" data-f="request">Requests</button>
+      <button class="sg-filter-btn" data-f="error">Errors</button>
+      <button class="sg-filter-btn" data-f="replied">Replied</button>
+    </div>
+    <div class="sg-inbox-body" id="sg-inbox-list">
+      <div class="sg-loading">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TEACHER DASHBOARD ═══════════════════ -->
 <div id="teacher-dashboard" class="dashboard-overlay hidden">
   <div class="dashboard-container">
     <div class="dashboard-header">
-      <h2 class="dashboard-title">Teacher Dashboard — SQL Lab</h2>
-      <button id="btn-close-dashboard" class="btn-ghost btn-sm btn-close-dashboard-x">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <h2 class="dashboard-title">Teacher Dashboard</h2>
+      <button id="btn-revalidate" class="dash-theme-btn" title="Re-run all students' saved code against the current test cases and remove any completions that no longer pass">&#10003; Re-validate submissions</button>
+      <span id="revalidate-status" style="font-size:12px;color:var(--db-text2);"></span>
+      <button id="btn-dash-theme" class="dash-theme-btn">&#9788; Light</button>
+      <button id="btn-close-dashboard" class="btn-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
+
     <div class="dashboard-grid" id="dashboard-grid">
-      <p class="dash-loading" style="color:#6B8FB8">Loading…</p>
+
+      <!-- Class Overview -->
+      <div class="dash-card span-2">
+        <div class="dash-card-title">Class Overview</div>
+        <div class="dash-stats-row">
+          <div class="dash-stat"><div class="dash-stat-val" id="stat-students">—</div><div class="dash-stat-label">Students</div></div>
+          <div class="dash-stat"><div class="dash-stat-val" id="stat-programs">—</div><div class="dash-stat-label">Programs</div></div>
+          <div class="dash-stat"><div class="dash-stat-val" id="stat-runs">—</div><div class="dash-stat-label">Total Runs</div></div>
+          <div class="dash-stat"><div class="dash-stat-val" id="stat-success-rate">—</div><div class="dash-stat-label">Success Rate</div></div>
+        </div>
+      </div>
+
+      <!-- Student List -->
+      <div class="dash-card span-2">
+        <div class="dash-card-title">Students</div>
+        <div class="dash-table-wrap">
+          <table class="dash-table" id="student-table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Programs</th><th>Runs</th><th>Errors</th><th>Success %</th><th>Last Active</th><th>Skills</th>
+              </tr>
+            </thead>
+            <tbody id="student-table-body">
+              <tr><td colspan="7" class="table-empty">Loading students…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Feature Usage -->
+      <div class="dash-card">
+        <div class="dash-card-title">Feature Adoption</div>
+        <canvas id="chart-features" width="340" height="220"></canvas>
+      </div>
+
+      <!-- Error Distribution -->
+      <div class="dash-card">
+        <div class="dash-card-title">Common Error Types</div>
+        <canvas id="chart-errors" width="340" height="220"></canvas>
+      </div>
+
+      <!-- Computational Thinking Skills -->
+      <div class="dash-card span-2">
+        <div class="dash-card-title">Computational Thinking Indicators</div>
+        <div id="skills-matrix" class="skills-matrix"></div>
+      </div>
+
+    </div><!-- end dashboard-grid -->
+  </div>
+</div>
+
+<!-- Leaderboard modal -->
+<div id="leaderboard-modal" class="modal-overlay hidden">
+  <div class="modal-card lb-modal-card">
+    <div class="lb-modal-header">
+      <span class="lb-modal-title">🏆 Class Leaderboard</span>
+      <button id="btn-close-leaderboard" class="lb-close-btn" title="Close">✕</button>
+    </div>
+    <div id="leaderboard-body" class="lb-body"></div>
+  </div>
+</div>
+
+<!-- XP toast (bottom-right) -->
+<div id="xp-toast" class="toast xp-toast hidden"></div>
+
+<!-- Badge toast (bottom-right, above XP toast) -->
+<div id="badge-toast" class="toast badge-toast hidden"></div>
+
+<!-- ═══════════════════ PASSWORD RESET MODAL ═══════════════════ -->
+<div id="reset-panel" class="reset-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="reset-panel-title">
+  <div class="reset-modal-box">
+    <h3 class="reset-panel-title" id="reset-panel-title">Reset Password</h3>
+    <p class="reset-panel-hint">Enter your school email and we'll send you a reset link.</p>
+    <div class="form-group">
+      <input type="email" id="reset-email" placeholder="name@cga.school" autocomplete="email">
+    </div>
+    <div id="reset-error" class="auth-error hidden"></div>
+    <div class="reset-panel-actions">
+      <button type="button" class="btn-primary" id="reset-submit-btn">Send Reset Email</button>
+      <button type="button" class="btn-ghost" id="reset-cancel-btn">Cancel</button>
     </div>
   </div>
 </div>
