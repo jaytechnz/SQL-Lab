@@ -1096,8 +1096,12 @@ if (resizeHandle) {
     document.addEventListener('mouseup', () => document.removeEventListener('mousemove', onResizeMove), { once: true });
   });
   function onResizeMove(e) {
+    const split = document.querySelector('.editor-output-split');
+    const handleHeight = resizeHandle.offsetHeight || 5;
+    const minEditorHeight = 48;
+    const availableHeight = split?.clientHeight || window.innerHeight;
+    const maxPanelHeight = Math.max(140, availableHeight - minEditorHeight - handleHeight);
     const delta = startY - e.clientY;
-    const maxPanelHeight = window.innerHeight >= 900 ? window.innerHeight * 0.76 : window.innerHeight * 0.68;
     const newH  = Math.max(80, Math.min(startH + delta, maxPanelHeight));
     document.documentElement.style.setProperty('--output-h', newH + 'px');
   }
