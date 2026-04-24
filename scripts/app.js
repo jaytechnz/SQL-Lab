@@ -620,7 +620,7 @@ function buildERVisualDiagramSVG(schema) {
           const elbowY = startY + Math.max(34, (sideY - startY) / 2);
 
           return `
-            <path class="er-link" d="M ${startX} ${startY} V ${elbowY} H ${crowTipX}" />
+            <path class="er-link" d="M ${startX} ${startY} V ${elbowY} H ${crowTipX} V ${sideY}" />
             <path class="er-crow" d="M ${crowTipX} ${sideY} L ${edgeX} ${sideY - 16} M ${crowTipX} ${sideY} L ${edgeX} ${sideY} M ${crowTipX} ${sideY} L ${edgeX} ${sideY + 16}" />`;
         }
       }
