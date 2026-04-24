@@ -97,7 +97,7 @@
   --tabbar-h:     34px;
   --toolbar-h:    36px;
   --sidebar-w:    240px;
-  --output-h:     220px;
+  --output-h:     clamp(220px, 34vh, 460px);
   --statusbar-h:  22px;
   --radius:       4px;
   --radius-sm:    3px;
