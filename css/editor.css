@@ -201,27 +201,27 @@
 .er-visual {
   display: block;
   width: 100%;
-  min-width: 720px;
-  max-width: 1120px;
+  min-width: 520px;
+  max-width: 820px;
   height: auto;
   flex: 0 0 auto;
 }
 .er-link {
   fill: none;
   stroke: #111;
-  stroke-width: 2.2;
+  stroke-width: 1.8;
   stroke-linecap: square;
   stroke-linejoin: miter;
 }
-.er-crow { fill: none; stroke: #111; stroke-width: 2.2; stroke-linecap: square; }
+.er-crow { fill: none; stroke: #111; stroke-width: 1.8; stroke-linecap: square; }
 .er-node-box {
   fill: #fff;
   stroke: #111;
-  stroke-width: 2.2;
+  stroke-width: 1.8;
 }
 .er-node-title {
   fill: #111;
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 400;
   font-family: var(--font-mono);
   letter-spacing: 0.08em;
@@ -242,7 +242,7 @@
 
 @media (max-width: 1100px) {
   .er-visual {
-    min-width: 680px;
+    min-width: 500px;
   }
 }
 
@@ -253,7 +253,7 @@
   }
 
   .er-visual {
-    min-width: 620px;
+    min-width: 460px;
   }
 }
 .er-relationship strong {
