@@ -177,7 +177,7 @@ const ddl04 = ex('ddl-04','ddl','CREATE TABLE — BOOLEAN Data Type','easy',
 - \`is_enabled\` — BOOLEAN
 
 BOOLEAN stores TRUE or FALSE values.`,
-['BOOLEAN is used for true/false values', 'SQLite stores BOOLEAN as INTEGER (0/1) internally'],
+['BOOLEAN is used for true/false values', 'Use TRUE or FALSE for boolean values'],
 '',
 null, '',
 (db, sql) => {
@@ -222,7 +222,7 @@ const ddl06 = ex('ddl-06','ddl','CREATE TABLE — DATE Data Type','easy',
 - \`holiday_date\` — DATE
 
 DATE stores calendar dates in dd/mm/yyyy format, e.g. '25/12/2026'.`,
-['DATE is used for calendar dates', "Store dates as 'dd/mm/yyyy' strings in SQLite"],
+['DATE is used for calendar dates', "Use the format 'dd/mm/yyyy'"],
 '',
 null, '',
 (db, sql) => {
@@ -246,7 +246,7 @@ const ddl07 = ex('ddl-07','ddl','CREATE TABLE — TIME Data Type','easy',
 - \`end_time\` — TIME
 
 TIME stores a time of day in HH:MM:SS format, e.g. '09:00:00'.`,
-['TIME is used for times of day', "Store times as 'HH:MM:SS' in SQLite"],
+['TIME is used for times of day', "Use the format 'HH:MM:SS'"],
 '',
 null, '',
 (db, sql) => {
@@ -461,7 +461,7 @@ const ddl15 = ex('ddl-15','ddl','Table with TIME Column','easy',
 - \`appt_date\` — DATE
 - \`appt_time\` — TIME
 - \`confirmed\` — BOOLEAN`,
-['DATE and TIME are separate data types in SQL',
+['DATE and TIME are separate data types',
  'Use both in the same table for date-time information'],
 '',
 null, '',
@@ -1153,7 +1153,7 @@ const combo06 = ex('combo-06','combined','COUNT by Category','medium',
 
 Insert 8 tasks (at least 3 different categories). Then write a query to count tasks per category using \`GROUP BY category\`.`,
 ['Use COUNT(*) AS task_count with GROUP BY category',
- 'BOOLEAN stores 1 (TRUE) or 0 (FALSE)'],
+ 'BOOLEAN is used for true/false values'],
 '',
 null, '',
 (db, sql) => {
@@ -1399,9 +1399,9 @@ const combo16 = ex('combo-16','combined','Student Attendance','hard',
 1. \`Classes\` — class_id PK, class_name VARCHAR(30), teacher VARCHAR(50)
 2. \`Attendance\` — att_id PK, class_id FK, student_name VARCHAR(50), att_date DATE, present BOOLEAN
 
-Insert 3 classes and 12 attendance records. Then find the **attendance count per class** (count of records where present = 1), showing class_name and present_count. Order by present_count DESC.`,
-['WHERE present = 1 (BOOLEAN true is stored as 1)',
- 'GROUP BY class_id with COUNT(*) or COUNT(CASE WHEN present=1 THEN 1 END)'],
+Insert 3 classes and 12 attendance records. Then find the **attendance count per class** for records where present is true, showing class_name and present_count. Order by present_count DESC.`,
+['Use a condition that keeps only rows where present is true',
+ 'GROUP BY class_id with COUNT(*) or COUNT(CASE WHEN present = TRUE THEN 1 END)'],
 '',
 null, '',
 (db, sql) => {
