@@ -452,7 +452,7 @@ function renderSchemaResult(schema) {
   wrap.classList.remove('hidden');
 
   if (!schema || !schema.length) {
-    wrap.innerHTML = '<p class="output-empty">No tables found — check your CREATE TABLE statement for errors.</p>';
+    wrap.innerHTML = '<p class="output-empty">No tables found yet. Check your table-building work for errors.</p>';
     switchOutputTab('results');
     return;
   }
@@ -780,7 +780,7 @@ document.addEventListener('challenge:open', e => {
     if (dbSelect) dbSelect.disabled = true;
     if (dbLabel) dbLabel.textContent = '🗄️ Empty Sandbox';
     const schemaPanel = $('schema-panel');
-    if (schemaPanel) schemaPanel.innerHTML = '<p class="output-empty">Run your SQL to see the schema you create.</p>';
+    if (schemaPanel) schemaPanel.innerHTML = '<p class="output-empty">Run your work to see the structure you create.</p>';
   }
 
   clearResults();

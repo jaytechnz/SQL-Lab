@@ -31,6 +31,16 @@ const BADGES = [
   { id: 'xp_1000',      label: 'XP 1000',           desc: 'Earn 1000 XP',                   threshold:1000, type: 'xp' },
 ];
 
+const SQL_TERMS = new Set([
+  'add','alter','and','as','asc','avg','between','boolean','by','case','char','character',
+  'check','column','constraint','count','create','cross','database','date','ddl','delete',
+  'desc','distinct','dml','drop','else','end','exists','false','foreign','from','full',
+  'group','having','if','in','inner','insert','int','integer','intersect','into','is',
+  'join','key','left','like','limit','max','min','not','null','numeric','offset','on',
+  'or','order','outer','pk','primary','real','references','right','select','set','sum',
+  'table','text','then','time','true','union','unique','update','values','varchar','where'
+]);
+
 // ══════════════════════════════════════════════════════════════════════════════
 // CHALLENGE MANAGER
 // ══════════════════════════════════════════════════════════════════════════════
@@ -168,8 +178,8 @@ export class ChallengeManager {
     // Description
     const doneOnce = !!this.progress.completed?.[ex.id];
     this.panelBody.innerHTML = `
-      <div class="ch-desc">${ex.description}</div>
-      ${ex.hints.length ? `<details class="ch-hints"><summary>Hints (${ex.hints.length})</summary><ul>${ex.hints.map(h=>`<li>${h}</li>`).join('')}</ul></details>` : ''}
+      <div class="ch-desc">${formatInstructionText(ex.description)}</div>
+      ${ex.hints.length ? `<details class="ch-hints"><summary>Hints (${ex.hints.length})</summary><ul>${ex.hints.map(h=>`<li>${formatInlineText(h)}</li>`).join('')}</ul></details>` : ''}
       ${doneOnce ? '<div class="ch-done-badge">✓ Completed</div>' : ''}
       <div class="ch-xp-reward">+${ex.xp} XP on completion</div>`;
 
@@ -244,6 +254,14 @@ export class ChallengeManager {
       db.close();
       this.onError?.('Validation error: ' + e.message);
       return;
+    }
+
+    const keyRules = validateCreatedTables(studentSQL, db);
+    if (keyRules.messages.length) {
+      validation = {
+        passed: false,
+        messages: [...keyRules.messages, ...(validation?.messages || [])]
+      };
     }
 
     // If no SELECT results (DDL/combined), show the schema the student created
@@ -382,6 +400,146 @@ export class ChallengeManager {
     }
     modal.classList.remove('hidden');
   }
+}
+
+function formatInstructionText(text) {
+  const lines = String(text || '').trim().split('\n');
+  const blocks = [];
+  let paragraph = [];
+  let listType = '';
+  let listItems = [];
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    blocks.push(`<p>${formatInlineText(paragraph.join(' '))}</p>`);
+    paragraph = [];
+  };
+
+  const flushList = () => {
+    if (!listItems.length) return;
+    blocks.push(`<${listType}>${listItems.map(item => `<li>${formatInlineText(item)}</li>`).join('')}</${listType}>`);
+    listItems = [];
+    listType = '';
+  };
+
+  lines.forEach(rawLine => {
+    const line = rawLine.trim();
+    if (!line) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+
+    const bullet = line.match(/^-\s+(.+)$/);
+    const numbered = line.match(/^\d+\.\s+(.+)$/);
+
+    if (bullet) {
+      flushParagraph();
+      if (listType && listType !== 'ul') flushList();
+      listType = 'ul';
+      listItems.push(bullet[1]);
+      return;
+    }
+
+    if (numbered) {
+      flushParagraph();
+      if (listType && listType !== 'ol') flushList();
+      listType = 'ol';
+      listItems.push(numbered[1]);
+      return;
+    }
+
+    flushList();
+    paragraph.push(line);
+  });
+
+  flushParagraph();
+  flushList();
+
+  return blocks.join('');
+}
+
+function validateCreatedTables(sql, db) {
+  const statements = [...String(sql || '').matchAll(/create\s+table\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([\s\S]*?)\)\s*;?/gi)];
+  const messages = [];
+
+  statements.forEach(([, tableName, body]) => {
+    const info = tableInfoForValidation(db, tableName);
+    const pkCols = info.filter(col => col.pk);
+
+    if (!pkCols.length) {
+      messages.push(`${tableName} must include at least one primary key field.`);
+      return;
+    }
+
+    pkCols.forEach(col => {
+      if (!columnIsDeclaredNotNull(body, col.name, hasTableLevelPrimaryKey(body, col.name))) {
+        messages.push(`${tableName}.${col.name} must be marked NOT NULL as well as PRIMARY KEY.`);
+      }
+    });
+  });
+
+  return { messages };
+}
+
+function tableInfoForValidation(db, tableName) {
+  try {
+    const rows = db.exec(`PRAGMA table_info("${tableName}")`);
+    if (!rows.length) return [];
+    return rows[0].values.map(row => ({
+      name: row[1],
+      pk: !!row[5]
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function hasTableLevelPrimaryKey(body, columnName) {
+  const escaped = escapeRegExp(columnName);
+  return new RegExp(`primary\\s+key\\s*\\(\\s*${escaped}\\s*\\)`, 'i').test(body);
+}
+
+function columnIsDeclaredNotNull(body, columnName) {
+  const escaped = escapeRegExp(columnName);
+  const lines = body.split(',');
+  const columnDef = lines.find(line => new RegExp(`^\\s*${escaped}\\b`, 'i').test(line.trim()));
+  return columnDef ? /\bnot\s+null\b/i.test(columnDef) : false;
+}
+
+function formatInlineText(text) {
+  let html = esc(text);
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/&lt;em&gt;(.*?)&lt;\/em&gt;/g, '<em>$1</em>');
+  html = html.replace(/`([^`]+)`/g, (_match, content) => formatCodeLikeText(content));
+  return html;
+}
+
+function formatCodeLikeText(content) {
+  const tokens = String(content).match(/[A-Za-z_][A-Za-z0-9_.]*|\d+|[^\s]/g) || [];
+  const formatted = tokens.map(token => {
+    if (/^[A-Za-z_][A-Za-z0-9_.]*$/.test(token) && !SQL_TERMS.has(token.toLowerCase())) {
+      return `<span class="ch-ident">${token}</span>`;
+    }
+    if (/^[A-Za-z]+$/.test(token) && SQL_TERMS.has(token.toLowerCase())) {
+      return token.toLowerCase();
+    }
+    return esc(token);
+  }).join(' ')
+    .replace(/\s+([,.;:)])/g, '$1')
+    .replace(/([(/])\s+/g, '$1');
+  return `<span class="ch-inline-note">${formatted}</span>`;
+}
+
+function esc(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // ── Sandbox execution (free-play, not challenge) ───────────────────────────────
