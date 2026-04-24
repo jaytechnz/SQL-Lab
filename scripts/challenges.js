@@ -2,7 +2,7 @@
 // Manages challenge execution, progress, XP, badges and the sidebar UI.
 
 import { EXERCISES, CATEGORIES } from './exercises.js';
-import { DATABASES, getDatabaseById } from './databases.js';
+import { getDatabaseById } from './databases.js';
 import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js';
 import {
   getChallengeProgress,
@@ -294,8 +294,14 @@ export class ChallengeManager {
     this._updateXpDisplay();
     this._renderSidebar();
 
-    await saveChallengeProgress(this.uid, this.progress);
-    await updateLeaderboard(this.uid, this.classCode, this._displayName, this.progress.totalXP);
+    try {
+      await saveChallengeProgress(this.uid, this.progress);
+      await updateLeaderboard(this.uid, this.classCode, this._displayName, this.progress.totalXP);
+    } catch (e) {
+      console.error('Progress save failed:', e);
+      this.onError?.('Progress could not be saved: ' + e.message + ' — check your Firestore rules.');
+      return;
+    }
 
     this._showXpToast(ex.xp);
   }
