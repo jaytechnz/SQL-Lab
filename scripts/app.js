@@ -170,7 +170,7 @@ document.querySelectorAll('.pw-toggle').forEach(btn => {
 
 $('btn-logout')?.addEventListener('click', async () => {
   await signOutUser();
-  showLogin();
+  window.location.reload();
 });
 
 // ── Class code modal ───────────────────────────────────────────────────────────
