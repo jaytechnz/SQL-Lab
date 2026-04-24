@@ -263,6 +263,7 @@
             <button class="output-tab active" data-tab="results">Results</button>
             <button class="output-tab" data-tab="messages">Messages</button>
             <button class="output-tab" data-tab="schema">Schema</button>
+            <button class="output-tab" data-tab="er">E-R Diagram</button>
             <button class="output-tab" data-tab="history">History</button>
           </div>
           <div class="output-pane" id="output-results">
@@ -274,6 +275,9 @@
           </div>
           <div class="output-pane hidden" id="output-schema">
             <div id="schema-panel"></div>
+          </div>
+          <div class="output-pane hidden" id="output-er">
+            <div id="er-panel"></div>
           </div>
           <div class="output-pane hidden" id="output-history">
             <div id="history-panel"><p class="output-empty">No queries yet.</p></div>
@@ -338,9 +342,9 @@
         <details class="ref-section">
           <summary class="ref-section-title">ALTER TABLE</summary>
           <div class="ref-section-body">
-            <pre class="ref-code">-- Add a column:
+            <pre class="ref-code">-- Add a field:
 ALTER TABLE TableName
-  ADD column_name TYPE;
+  ADD field_name TYPE;
 
 -- Example:
 ALTER TABLE Students
@@ -355,7 +359,7 @@ ALTER TABLE Students
           <div class="ref-section-body">
             <p class="ref-label">Inline syntax:</p>
             <pre class="ref-code">id INTEGER PRIMARY KEY</pre>
-            <p class="ref-label">Constraint syntax (end of column list):</p>
+            <p class="ref-label">Constraint syntax (end of field list):</p>
             <pre class="ref-code">PRIMARY KEY (id)</pre>
             <p class="ref-note">Uniquely identifies each row. Cannot be NULL. Each table has at most one primary key.</p>
           </div>
@@ -374,7 +378,7 @@ ALTER TABLE Students
   FOREIGN KEY (member_id)
     REFERENCES Members(member_id)
 );</pre>
-            <p class="ref-note">Links a column in one table to the primary key in another. The referenced table must exist first.</p>
+            <p class="ref-note">Links a field in one table to the primary key in another. The referenced table must exist first.</p>
           </div>
         </details>
 
@@ -382,10 +386,10 @@ ALTER TABLE Students
         <details class="ref-section">
           <summary class="ref-section-title">SELECT</summary>
           <div class="ref-section-body">
-            <pre class="ref-code">-- All columns:
+            <pre class="ref-code">-- All fields:
 SELECT * FROM table;
 
--- Specific columns:
+-- Specific fields:
 SELECT col1, col2 FROM table;
 
 -- With alias:
@@ -426,8 +430,8 @@ GROUP BY col;</pre>
             <table class="ref-table">
               <tr><td><code>COUNT(*)</code></td><td>Count all rows</td></tr>
               <tr><td><code>COUNT(col)</code></td><td>Count non-NULL values</td></tr>
-              <tr><td><code>SUM(col)</code></td><td>Total of numeric column</td></tr>
-              <tr><td><code>AVG(col)</code></td><td>Mean of numeric column</td></tr>
+              <tr><td><code>SUM(col)</code></td><td>Total of numeric field</td></tr>
+              <tr><td><code>AVG(col)</code></td><td>Mean of numeric field</td></tr>
               <tr><td><code>MAX(col)</code></td><td>Largest value</td></tr>
               <tr><td><code>MIN(col)</code></td><td>Smallest value</td></tr>
             </table>
@@ -445,11 +449,11 @@ ORDER BY avg_sal DESC;</pre>
         <details class="ref-section">
           <summary class="ref-section-title">INSERT INTO</summary>
           <div class="ref-section-body">
-            <pre class="ref-code">-- Specify columns:
+            <pre class="ref-code">-- Specify fields:
 INSERT INTO Table (col1, col2, col3)
 VALUES (val1, 'text', 3.14);
 
--- All columns (order matters):
+-- All fields (order matters):
 INSERT INTO Table
 VALUES (1, 'Alice', 25);</pre>
             <p class="ref-note">String values use single quotes. Numeric values do not.</p>
@@ -499,7 +503,7 @@ WHERE col IS NOT NULL
               <li>String values use single quotes <code>'text'</code></li>
               <li>Create parent tables before child tables</li>
               <li>FOREIGN KEY references must match the parent's PRIMARY KEY type</li>
-              <li>GROUP BY must include all non-aggregated SELECT columns</li>
+              <li>GROUP BY must include all non-aggregated SELECT fields</li>
               <li>Use IS NULL / IS NOT NULL (never = NULL)</li>
               <li>ORDER BY comes after GROUP BY</li>
               <li>Always use WHERE with UPDATE and DELETE</li>
