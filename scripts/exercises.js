@@ -36,6 +36,11 @@ function tableExists(db, name) {
   return r && r.rows.length > 0;
 }
 
+function actualTableName(db, name) {
+  const r = query(db, `SELECT name FROM sqlite_master WHERE type='table' AND LOWER(name)='${name.toLowerCase()}'`);
+  return r && r.rows.length ? String(r.rows[0][0]) : null;
+}
+
 // Get column info array for a table: [{name, type, pk}]
 function tableInfo(db, name) {
   const r = query(db, `PRAGMA table_info("${name}")`);
@@ -65,6 +70,10 @@ function hasColumn(cols, colName, expectedType) {
   if (!col) return false;
   if (expectedType) return normType(col.type) === normType(expectedType);
   return true;
+}
+
+function exactColumnName(cols, colName) {
+  return cols.find(c => c.name === colName) || null;
 }
 
 // Normalise a value for comparison.
@@ -309,15 +318,19 @@ null, '',
 (db, sql) => {
   if (!tableExists(db, 'Teachers'))
     return { passed: false, messages: ['Table Teachers was not created.'] };
+  const actualName = actualTableName(db, 'Teachers');
+  if (actualName !== 'Teachers')
+    return { passed: false, messages: ['The table name must be written exactly as Teachers, with the correct capital letter.'] };
   const cols = tableInfo(db, 'Teachers');
-  const pkCol = cols.find(c => c.name.toLowerCase() === 'teacher_code');
+  const pkCol = exactColumnName(cols, 'teacher_code');
   if (!pkCol) return { passed: false, messages: ['Column teacher_code is missing.'] };
   if (!hasColumn(cols,'teacher_code','VARCHAR(10)')) return { passed: false, messages: ['teacher_code should have type VARCHAR(10).'] };
   if (!pkCol.pk) return { passed: false, messages: ['teacher_code must be set as PRIMARY KEY.'] };
-  const nameCol = cols.find(c => c.name.toLowerCase() === 'name');
+  const nameCol = exactColumnName(cols, 'name');
   if (!nameCol) return { passed: false, messages: ['Column name is missing.'] };
   if (!hasColumn(cols,'name','VARCHAR(50)')) return { passed: false, messages: ['name should have type VARCHAR(50).'] };
   if (!nameCol.notNull) return { passed: false, messages: ['name should be marked NOT NULL.'] };
+  if (!exactColumnName(cols, 'subject')) return { passed: false, messages: ['Column subject is missing.'] };
   if (!hasColumn(cols,'subject','VARCHAR(30)')) return { passed: false, messages: ['subject should have type VARCHAR(30).'] };
   return { passed: true, messages: ['Teachers created with PRIMARY KEY (teacher_code) constraint syntax!'] };
 });
