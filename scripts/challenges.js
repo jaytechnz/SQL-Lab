@@ -8,6 +8,7 @@ import {
   getChallengeProgress,
   getLocalChallengeProgress,
   saveChallengeProgress,
+  saveLastSQL,
   updateLeaderboard,
   getClassLeaderboard,
   logSession
@@ -76,13 +77,8 @@ export class ChallengeManager {
       this.progress = cached;
       this._renderSidebar();
       this._updateXpDisplay();
+      Object.entries(cached.lastSQL || {}).forEach(([id, s]) => this._lastSQL.set(id, s));
     }
-
-    // Restore last-typed SQL for each exercise from localStorage
-    try {
-      const saved = JSON.parse(localStorage.getItem(`sqllab_sql_${uid}`) || '{}');
-      Object.entries(saved).forEach(([id, sql]) => this._lastSQL.set(id, sql));
-    } catch {}
 
     // Load Firestore progress and SQL engine concurrently
     const [progress, sql] = await Promise.all([
@@ -91,6 +87,8 @@ export class ChallengeManager {
     ]);
     this._SQL     = sql;
     this.progress = progress;
+    // Firestore lastSQL is authoritative — overwrite anything from cache
+    Object.entries(progress.lastSQL || {}).forEach(([id, s]) => this._lastSQL.set(id, s));
     this._renderSidebar();
     this._updateXpDisplay();
   }
@@ -203,12 +201,7 @@ export class ChallengeManager {
 
     // Remember what the student typed so we can restore it if they navigate away
     this._lastSQL.set(ex.id, studentSQL);
-    try {
-      const key = `sqllab_sql_${this.uid}`;
-      const map = JSON.parse(localStorage.getItem(key) || '{}');
-      map[ex.id] = studentSQL;
-      localStorage.setItem(key, JSON.stringify(map));
-    } catch {}
+    saveLastSQL(this.uid, ex.id, studentSQL).catch(() => {});
 
     const SQL = this._SQL;
     if (!SQL) {

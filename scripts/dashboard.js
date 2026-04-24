@@ -78,6 +78,7 @@ function _render(container) {
     ${_renderChallengeHeatmap(students)}
     ${_renderSQLConcepts(students)}
     ${_renderAtRisk(students)}
+    ${_renderStudentSQL(students)}
   `;
 
   container.querySelector('#dash-class-filter')?.addEventListener('change', e => {
@@ -307,6 +308,66 @@ function _renderAtRisk(students) {
       </table>
     </div>
   </div>`;
+}
+
+// ── Student SQL work viewer ────────────────────────────────────────────────────
+
+function _renderStudentSQL(students) {
+  const withSQL = students.filter(st => {
+    const lastSQL = _allProgress[st.uid]?.lastSQL;
+    return lastSQL && Object.keys(lastSQL).length > 0;
+  });
+
+  if (!withSQL.length) return `
+  <div class="dash-card span-4">
+    <div class="dash-card-title">Student SQL Work</div>
+    <p class="dash-empty">No SQL attempts recorded yet.</p>
+  </div>`;
+
+  const exMap = Object.fromEntries(EXERCISES.map(e => [e.id, e]));
+
+  const studentBlocks = withSQL.map(st => {
+    const prog    = _allProgress[st.uid] || {};
+    const lastSQL = prog.lastSQL || {};
+    const entries = Object.entries(lastSQL)
+      .filter(([id]) => exMap[id])
+      .sort(([a], [b]) => a.localeCompare(b));
+
+    const rows = entries.map(([id, sql]) => {
+      const ex        = exMap[id];
+      const completed = !!prog.completed?.[id];
+      const status    = completed ? '<span class="sql-status sql-status--done">✓</span>' : '<span class="sql-status">○</span>';
+      return `
+        <div class="sql-entry">
+          <div class="sql-entry-header">
+            ${status}
+            <span class="sql-entry-id">${id}</span>
+            <span class="sql-entry-title">${ex.title}</span>
+            <span class="ch-badge-diff badge-${ex.difficulty}">${ex.difficulty}</span>
+          </div>
+          <pre class="sql-entry-code">${esc(sql)}</pre>
+        </div>`;
+    }).join('');
+
+    return `
+      <details class="sql-student">
+        <summary class="sql-student-summary">
+          <span class="sql-student-name">${st.displayName || st.email}</span>
+          <span class="sql-student-count">${entries.length} exercise${entries.length !== 1 ? 's' : ''}</span>
+        </summary>
+        <div class="sql-entries">${rows}</div>
+      </details>`;
+  }).join('');
+
+  return `
+  <div class="dash-card span-4">
+    <div class="dash-card-title">Student SQL Work</div>
+    <div class="sql-student-list">${studentBlocks}</div>
+  </div>`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ── Helper: relative time ──────────────────────────────────────────────────────

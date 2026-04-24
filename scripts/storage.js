@@ -62,6 +62,26 @@ export async function getChallengeProgress(uid) {
   return loadLocal(uid) || { completed: {}, totalXP: 0, badges: [], submissions: {} };
 }
 
+export async function saveLastSQL(uid, exerciseId, sql) {
+  try {
+    const key = `sqllab_sql_${uid}`;
+    const map = JSON.parse(localStorage.getItem(key) || '{}');
+    map[exerciseId] = sql;
+    localStorage.setItem(key, JSON.stringify(map));
+  } catch {}
+  try {
+    await updateDoc(doc(db, 'sql_progress', uid), {
+      [`lastSQL.${exerciseId}`]: sql,
+      updatedAt: serverTimestamp()
+    });
+  } catch {
+    setDoc(doc(db, 'sql_progress', uid), {
+      lastSQL: { [exerciseId]: sql },
+      updatedAt: serverTimestamp()
+    }, { merge: true }).catch(e => console.warn('Firestore SQL save blocked:', e.message));
+  }
+}
+
 export async function saveChallengeProgress(uid, progress) {
   saveLocal(uid, progress);   // always persist locally first — never fails
   try {
