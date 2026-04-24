@@ -317,10 +317,26 @@ html, body {
 
 /* Challenge list in sidebar */
 .challenge-list { flex: 1; }
-.ch-section { border-bottom: 1px solid rgba(255,255,255,0.05); }
+.ch-section {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 8px;
+}
 .ch-section.collapsed .ch-section-items { display: none; }
 .ch-section.collapsed .ch-section-chevron {
   transform: rotate(-90deg); 
+}
+
+.ch-section--ddl {
+  background: linear-gradient(180deg, rgba(74,222,128,0.07), rgba(74,222,128,0.01));
+}
+
+.ch-section--dml {
+  background: linear-gradient(180deg, rgba(251,191,36,0.08), rgba(251,191,36,0.01));
+}
+
+.ch-section--combined {
+  background: linear-gradient(180deg, rgba(96,165,250,0.08), rgba(96,165,250,0.01));
 }
 
 .ch-section-header {
@@ -335,6 +351,18 @@ html, body {
 
 .ch-section-header:hover { 
   background: var(--sidebar-hover); 
+}
+
+.ch-section--ddl .ch-section-header {
+  box-shadow: inset 3px 0 0 #4ADE80;
+}
+
+.ch-section--dml .ch-section-header {
+  box-shadow: inset 3px 0 0 #FBBF24;
+}
+
+.ch-section--combined .ch-section-header {
+  box-shadow: inset 3px 0 0 #60A5FA;
 }
 
 .ch-section-icon  { 
@@ -360,7 +388,7 @@ html, body {
 .ch-section-progress { 
   height: 2px; 
   background: rgba(255,255,255,0.08); 
-  margin: 0 10px 2px; 
+  margin: 0 10px 4px; 
   border-radius: 1px; 
 }
 
@@ -371,6 +399,10 @@ html, body {
   transition: width 0.4s; 
 }
 
+.ch-section--ddl .ch-section-bar { background: #4ADE80; }
+.ch-section--dml .ch-section-bar { background: #FBBF24; }
+.ch-section--combined .ch-section-bar { background: #60A5FA; }
+
 .ch-item {
   display: flex; align-items: center; gap: 6px;
   padding: 6px 10px 6px 16px; width: 100%;
@@ -380,7 +412,13 @@ html, body {
 }
 .ch-item:hover { background: var(--sidebar-hover); }
 .ch-item--active { background: var(--sidebar-active) !important; }
-.ch-item--done .ch-item-status { color: var(--success); }
+.ch-item--done .ch-item-status { color: #4ADE80; }
+.ch-item--done .ch-item-title {
+  color: rgba(255,255,255,0.82);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: rgba(255,255,255,0.5);
+}
 .ch-item-status { font-size: 11px; flex-shrink: 0; color: var(--sidebar-text-muted); }
 .ch-item-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ch-badge-diff { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 20px; flex-shrink: 0; }
