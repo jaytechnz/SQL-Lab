@@ -6,6 +6,7 @@ import { getDatabaseById } from './databases.js';
 import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js';
 import {
   getChallengeProgress,
+  getLocalChallengeProgress,
   saveChallengeProgress,
   updateLeaderboard,
   getClassLeaderboard,
@@ -68,13 +69,22 @@ export class ChallengeManager {
     this.uid          = uid;
     this.classCode    = classCode;
     this._displayName = displayName;
-    try {
-      this.progress = await getChallengeProgress(uid);
-    } catch (e) {
-      console.error('Failed to load progress from Firestore:', e);
-      this.progress = { completed: {}, totalXP: 0, badges: [], submissions: {} };
+
+    // Render immediately from localStorage — no async wait
+    const cached = getLocalChallengeProgress(uid);
+    if (cached) {
+      this.progress = cached;
+      this._renderSidebar();
+      this._updateXpDisplay();
     }
-    this._SQL         = await initSQLEngine();
+
+    // Load Firestore progress and SQL engine concurrently
+    const [progress, sql] = await Promise.all([
+      getChallengeProgress(uid),
+      initSQLEngine()
+    ]);
+    this._SQL     = sql;
+    this.progress = progress;
     this._renderSidebar();
     this._updateXpDisplay();
   }

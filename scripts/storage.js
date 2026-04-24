@@ -44,6 +44,10 @@ function loadLocal(uid) {
 
 // ── Challenge Progress ─────────────────────────────────────────────────────────
 
+export function getLocalChallengeProgress(uid) {
+  return loadLocal(uid);
+}
+
 export async function getChallengeProgress(uid) {
   try {
     const snap = await getDoc(doc(db, 'sql_progress', uid));

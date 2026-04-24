@@ -29,6 +29,7 @@ function domainOf(email) {
 
 const SUPERADMIN_EMAILS = new Set([
   'j.smith@cga.school',
+  'computingsmith@gmail.com',
 ]);
 
 function roleForDomain(domain) {

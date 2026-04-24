@@ -64,10 +64,8 @@ async function showApp() {
   document.querySelectorAll('.teacher-only').forEach(el => el.classList.toggle('hidden', !isTeacher));
   document.querySelectorAll('.student-only').forEach(el => el.classList.toggle('hidden', isTeacher));
 
-  // Init SQL engine
-  _SQL = await initSQLEngine();
-
-  // Init challenge manager
+  // Init challenge manager — renders from localStorage immediately, loads
+  // Firestore progress and SQL engine concurrently inside init()
   _challengeMgr = new ChallengeManager({
     onXpChange: (xp, level) => {
       $('ch-xp-display').textContent    = `${xp} XP`;
@@ -79,6 +77,9 @@ async function showApp() {
     onError:   (err)    => showError(err)
   });
   await _challengeMgr.init(_user.uid, _profile.classCode || '', _profile.displayName || '');
+
+  // SQL engine is now cached by init(); grab the reference for sandbox/schema use
+  _SQL = await initSQLEngine();
 
   // Load initial database and create persistent sandbox
   setActiveDatabase('bookshop');
