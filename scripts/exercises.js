@@ -268,11 +268,11 @@ null, '',
 const ddl08 = ex('ddl-08','ddl','PRIMARY KEY — Inline Syntax','easy',
 `Create a table called \`Countries\` with:
 - \`country_id\` — INTEGER, and make it the **PRIMARY KEY**
-- \`country_name\` — VARCHAR(50)
+- \`country_name\` — VARCHAR(50), and make it **NOT NULL**
 - \`population\` — INTEGER
 
-A primary key uniquely identifies each row in a table.`,
-['Add PRIMARY KEY after the data type: country_id INTEGER PRIMARY KEY', 'A table should have exactly one primary key'],
+A primary key uniquely identifies each row in a table. A non-key field can also be required by marking it NOT NULL.`,
+['Add PRIMARY KEY after the data type: country_id INTEGER PRIMARY KEY', 'Use NOT NULL on country_name'],
 '',
 null, '',
 (db, sql) => {
@@ -285,19 +285,21 @@ null, '',
   if (!hasColumn(cols,'population'))   msgs.push('Column population is missing.');
   const pkCol = cols.find(c => c.name.toLowerCase() === 'country_id');
   if (pkCol && !pkCol.pk) msgs.push('country_id should be the PRIMARY KEY.');
+  const nameCol = cols.find(c => c.name.toLowerCase() === 'country_name');
+  if (nameCol && !nameCol.notNull) msgs.push('country_name should be marked NOT NULL.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['Countries created with a PRIMARY KEY on country_id!'] };
 });
 
 const ddl09 = ex('ddl-09','ddl','PRIMARY KEY (field) — Constraint Syntax','easy',
 `Create a table called \`Teachers\` with:
 - \`teacher_id\` — INTEGER
-- \`name\` — VARCHAR(50)
+- \`name\` — VARCHAR(50), and make it **NOT NULL**
 - \`subject\` — VARCHAR(30)
 
 Add the primary key using the **constraint syntax** at the end of the column list:
 \`PRIMARY KEY (teacher_id)\``,
 ['Place PRIMARY KEY (field) as the last item in the column list, after a comma',
- 'Both syntaxes (inline and constraint) are accepted SQL'],
+ 'Use NOT NULL on name'],
 '',
 null, '',
 (db, sql) => {
@@ -307,6 +309,9 @@ null, '',
   const pkCol = cols.find(c => c.name.toLowerCase() === 'teacher_id');
   if (!pkCol) return { passed: false, messages: ['Column teacher_id is missing.'] };
   if (!pkCol.pk) return { passed: false, messages: ['teacher_id must be set as PRIMARY KEY.'] };
+  const nameCol = cols.find(c => c.name.toLowerCase() === 'name');
+  if (!nameCol) return { passed: false, messages: ['Column name is missing.'] };
+  if (!nameCol.notNull) return { passed: false, messages: ['name should be marked NOT NULL.'] };
   return { passed: true, messages: ['Teachers created with PRIMARY KEY (teacher_id) constraint syntax!'] };
 });
 
