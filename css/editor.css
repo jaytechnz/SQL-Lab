@@ -190,6 +190,8 @@
 .er-panel-wrap { display: grid; gap: 14px; }
 .er-panel-note { font-size: 12px; color: var(--text-muted); }
 .er-visual-wrap {
+  display: flex;
+  justify-content: center;
   overflow-x: auto;
   border: 1px solid #111;
   border-radius: 0;
@@ -198,8 +200,11 @@
 }
 .er-visual {
   display: block;
-  min-width: 100%;
+  width: 100%;
+  min-width: 720px;
+  max-width: 1120px;
   height: auto;
+  flex: 0 0 auto;
 }
 .er-link {
   fill: none;
@@ -233,6 +238,23 @@
   font-size: 11px;
   font-family: var(--font-mono);
   color: var(--text-secondary);
+}
+
+@media (max-width: 1100px) {
+  .er-visual {
+    min-width: 680px;
+  }
+}
+
+@media (max-width: 820px) {
+  .er-visual-wrap {
+    justify-content: flex-start;
+    padding: 8px;
+  }
+
+  .er-visual {
+    min-width: 620px;
+  }
 }
 .er-relationship strong {
   color: var(--text-primary);
