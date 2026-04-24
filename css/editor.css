@@ -191,8 +191,9 @@
 .er-panel-note { font-size: 12px; color: var(--text-muted); }
 .er-visual-wrap {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid #111;
   border-radius: 0;
   background: #fff;
@@ -200,9 +201,9 @@
 }
 .er-visual {
   display: block;
-  width: 100%;
-  min-width: 520px;
-  max-width: 820px;
+  width: auto;
+  min-width: 0;
+  max-width: none;
   height: auto;
   flex: 0 0 auto;
 }
@@ -240,20 +241,10 @@
   color: var(--text-secondary);
 }
 
-@media (max-width: 1100px) {
-  .er-visual {
-    min-width: 500px;
-  }
-}
-
 @media (max-width: 820px) {
   .er-visual-wrap {
     justify-content: flex-start;
     padding: 8px;
-  }
-
-  .er-visual {
-    min-width: 460px;
   }
 }
 .er-relationship strong {
