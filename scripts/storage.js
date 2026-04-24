@@ -21,19 +21,53 @@ import {
 
 import { db } from './firebase-config.js';
 
+// ── localStorage helpers ───────────────────────────────────────────────────────
+// Canvas iframes can block Firestore's streaming channel (CSP/CORS).
+// localStorage is always available and keeps progress working reliably.
+// Firestore is attempted silently for teacher-dashboard sync.
+
+function localKey(uid) { return `sqllab_progress_${uid}`; }
+
+function saveLocal(uid, progress) {
+  try {
+    const { updatedAt: _ignored, ...data } = progress;
+    localStorage.setItem(localKey(uid), JSON.stringify(data));
+  } catch {}
+}
+
+function loadLocal(uid) {
+  try {
+    const s = localStorage.getItem(localKey(uid));
+    return s ? JSON.parse(s) : null;
+  } catch { return null; }
+}
+
 // ── Challenge Progress ─────────────────────────────────────────────────────────
 
 export async function getChallengeProgress(uid) {
-  const snap = await getDoc(doc(db, 'sql_progress', uid));
-  if (!snap.exists()) return { completed: {}, totalXP: 0, badges: [], submissions: {} };
-  return snap.data();
+  try {
+    const snap = await getDoc(doc(db, 'sql_progress', uid));
+    if (snap.exists()) {
+      const data = snap.data();
+      saveLocal(uid, data);   // keep localStorage in sync with Firestore
+      return data;
+    }
+  } catch (e) {
+    console.warn('Firestore read blocked (using localStorage):', e.message);
+  }
+  return loadLocal(uid) || { completed: {}, totalXP: 0, badges: [], submissions: {} };
 }
 
 export async function saveChallengeProgress(uid, progress) {
-  await setDoc(doc(db, 'sql_progress', uid), {
-    ...progress,
-    updatedAt: serverTimestamp()
-  }, { merge: true });
+  saveLocal(uid, progress);   // always persist locally first — never fails
+  try {
+    await setDoc(doc(db, 'sql_progress', uid), {
+      ...progress,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (e) {
+    console.warn('Firestore write blocked (progress saved locally):', e.message);
+  }
 }
 
 export async function getAllChallengeProgress() {
@@ -48,10 +82,14 @@ export async function getAllChallengeProgress() {
 export async function updateLeaderboard(uid, classCode, displayName, totalXP) {
   if (!classCode) return;
   const key = `${classCode}_${uid}`;
-  await setDoc(doc(db, 'sql_leaderboard', key), {
-    uid, classCode, displayName, totalXP,
-    updatedAt: serverTimestamp()
-  }, { merge: true });
+  try {
+    await setDoc(doc(db, 'sql_leaderboard', key), {
+      uid, classCode, displayName, totalXP,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (e) {
+    console.warn('Leaderboard update blocked:', e.message);
+  }
 }
 
 export async function getClassLeaderboard(classCode) {
