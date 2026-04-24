@@ -471,6 +471,8 @@ function validateCreatedTables(sql, db) {
   statements.forEach(([, tableName, body]) => {
     const info = tableInfoForValidation(db, tableName);
     const pkCols = info.filter(col => col.pk);
+    const createSQL = getCreateTableSQL(db, tableName);
+    const columnBlock = extractColumnBlock(createSQL) || body;
 
     if (!pkCols.length) {
       messages.push(`${tableName} must include at least one primary key field.`);
@@ -478,7 +480,7 @@ function validateCreatedTables(sql, db) {
     }
 
     pkCols.forEach(col => {
-      if (!columnIsDeclaredNotNull(body, col.name, hasTableLevelPrimaryKey(body, col.name))) {
+      if (!columnIsDeclaredNotNull(columnBlock, col.name)) {
         messages.push(`${tableName}.${col.name} must be marked NOT NULL as well as PRIMARY KEY.`);
       }
     });
@@ -500,16 +502,39 @@ function tableInfoForValidation(db, tableName) {
   }
 }
 
-function hasTableLevelPrimaryKey(body, columnName) {
-  const escaped = escapeRegExp(columnName);
-  return new RegExp(`primary\\s+key\\s*\\(\\s*${escaped}\\s*\\)`, 'i').test(body);
-}
-
 function columnIsDeclaredNotNull(body, columnName) {
   const escaped = escapeRegExp(columnName);
   const lines = body.split(',');
   const columnDef = lines.find(line => new RegExp(`^\\s*${escaped}\\b`, 'i').test(line.trim()));
   return columnDef ? /\bnot\s+null\b/i.test(columnDef) : false;
+}
+
+function getCreateTableSQL(db, tableName) {
+  try {
+    const rows = db.exec(`SELECT sql FROM sqlite_master WHERE type='table' AND LOWER(name)=LOWER('${tableName}')`);
+    return rows.length ? String(rows[0].values[0][0] || '') : '';
+  } catch {
+    return '';
+  }
+}
+
+function extractColumnBlock(createSQL) {
+  if (!createSQL) return '';
+  const start = createSQL.indexOf('(');
+  if (start === -1) return '';
+
+  let depth = 0;
+  for (let i = start; i < createSQL.length; i++) {
+    const ch = createSQL[i];
+    if (ch === '(') depth++;
+    if (ch === ')') {
+      depth--;
+      if (depth === 0) {
+        return createSQL.slice(start + 1, i);
+      }
+    }
+  }
+  return '';
 }
 
 function formatInlineText(text) {
