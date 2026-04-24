@@ -274,6 +274,21 @@ editor?.addEventListener('keydown', e => {
     updateHighlight();
     updateLineNumbers();
   }
+  // ) dedents by one level when it is the first non-whitespace on the line
+  if (e.key === ')') {
+    const pos       = editor.selectionStart;
+    const text      = editor.value;
+    const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+    const before    = text.slice(lineStart, pos);
+    if (before.length > 0 && /^\s+$/.test(before)) {
+      e.preventDefault();
+      const remove  = Math.min(4, before.length);
+      editor.value  = text.slice(0, lineStart) + before.slice(remove) + ')' + text.slice(pos);
+      editor.selectionStart = editor.selectionEnd = lineStart + before.length - remove + 1;
+      updateHighlight();
+      updateLineNumbers();
+    }
+  }
   // Ctrl/Cmd + L = clear
   if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
     e.preventDefault();
