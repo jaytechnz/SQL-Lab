@@ -545,31 +545,56 @@ function buildERVisualDiagramSVG(schema) {
 
   if (linkedTables.length < 2) return '';
 
-  const cardWidth = 220;
-  const headerHeight = 30;
-  const rowHeight = 20;
-  const gapX = 70;
-  const gapY = 60;
-  const margin = 24;
-  const columns = Math.min(3, linkedTables.length);
-  const rows = Math.ceil(linkedTables.length / columns);
+  const boxWidth = 230;
+  const boxHeight = 78;
+  const gapX = 90;
+  const marginX = 24;
+  const marginY = 20;
+  const topY = marginY;
+  const bottomY = 230;
 
-  const layout = linkedTables.map((table, index) => {
-    const col = index % columns;
-    const row = Math.floor(index / columns);
-    const height = headerHeight + Math.max(1, table.columns.length) * rowHeight;
-    return {
-      table,
-      x: margin + col * (cardWidth + gapX),
-      y: margin + row * (160 + gapY),
-      width: cardWidth,
-      height
+  const childTables = linkedTables.filter(table => (table.foreignKeys || []).length);
+  const parentTables = linkedTables.filter(table =>
+    !(table.foreignKeys || []).length ||
+    schema.some(candidate => (candidate.foreignKeys || []).some(fk => fk.referencedTable === table.name))
+  );
+
+  const specialChild = childTables.length === 1 && parentTables.length === 2 ? childTables[0] : null;
+  let layout;
+
+  if (specialChild) {
+    layout = [
+      { table: parentTables[0], x: marginX, y: topY, width: boxWidth, height: boxHeight },
+      { table: parentTables[1], x: marginX + boxWidth + gapX + boxWidth + gapX, y: topY, width: boxWidth, height: boxHeight },
+      { table: specialChild, x: marginX + boxWidth + gapX / 2, y: bottomY, width: boxWidth, height: boxHeight }
+    ];
+  } else {
+    const topRow = linkedTables.filter(table => !(table.foreignKeys || []).length);
+    const bottomRow = linkedTables.filter(table => (table.foreignKeys || []).length);
+    const fallbackTop = topRow.length ? topRow : linkedTables.slice(0, Math.ceil(linkedTables.length / 2));
+    const fallbackBottom = bottomRow.length ? bottomRow : linkedTables.slice(Math.ceil(linkedTables.length / 2));
+
+    const placeRow = (tables, y) => {
+      const rowWidth = tables.length * boxWidth + Math.max(0, tables.length - 1) * gapX;
+      const startX = marginX + Math.max(0, (Math.max(rowWidth, boxWidth * 2 + gapX) - rowWidth) / 2);
+      return tables.map((table, index) => ({
+        table,
+        x: startX + index * (boxWidth + gapX),
+        y,
+        width: boxWidth,
+        height: boxHeight
+      }));
     };
-  });
+
+    layout = [
+      ...placeRow(fallbackTop, topY),
+      ...placeRow(fallbackBottom, bottomY)
+    ];
+  }
 
   const boxBottom = Math.max(...layout.map(item => item.y + item.height));
-  const svgWidth = margin * 2 + columns * cardWidth + (columns - 1) * gapX;
-  const svgHeight = boxBottom + margin;
+  const svgWidth = Math.max(...layout.map(item => item.x + item.width)) + marginX;
+  const svgHeight = boxBottom + marginY;
   const positions = new Map(layout.map(item => [item.table.name, item]));
 
   const links = linkedTables.flatMap(table =>
@@ -578,38 +603,30 @@ function buildERVisualDiagramSVG(schema) {
       const to = positions.get(fk.referencedTable);
       if (!from || !to) return '';
 
-      const startX = from.x + from.width / 2;
-      const startY = from.y;
-      const endX = to.x + to.width / 2;
-      const endY = to.y + to.height;
-      const midY = startY - 24;
+      const startX = to.x + to.width / 2;
+      const startY = to.y + to.height;
+      const endX = from.x + from.width / 2;
+      const endY = from.y;
+      const elbowY = startY + Math.max(26, (endY - startY) / 2);
+      const crowY = endY - 14;
+      const crowLeftX = endX - 18;
+      const crowRightX = endX + 18;
 
       return `
-        <path class="er-link" d="M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}" />
-        <circle class="er-link-dot" cx="${startX}" cy="${startY}" r="3" />
-        <circle class="er-link-dot" cx="${endX}" cy="${endY}" r="3" />`;
+        <path class="er-link" d="M ${startX} ${startY} V ${elbowY} H ${endX} V ${crowY}" />
+        <path class="er-crow" d="M ${endX} ${crowY} L ${crowLeftX} ${endY} M ${endX} ${crowY} L ${endX} ${endY} M ${endX} ${crowY} L ${crowRightX} ${endY}" />`;
     })
   ).join('');
 
   const boxes = layout.map(({ table, x, y, width, height }) => `
     <g class="er-node" transform="translate(${x} ${y})">
-      <rect class="er-node-box" width="${width}" height="${height}" rx="12" ry="12" />
-      <rect class="er-node-header" width="${width}" height="${headerHeight}" rx="12" ry="12" />
-      <rect class="er-node-header-fill" y="12" width="${width}" height="${headerHeight - 12}" />
-      <text class="er-node-title" x="14" y="20">${esc(table.name)}</text>
-      ${(table.columns || []).map((column, index) => {
-        const marker = column.primaryKey ? 'PK' : (table.foreignKeys || []).some(fk => fk.fromColumn === column.name) ? 'FK' : '';
-        const yPos = headerHeight + 14 + index * rowHeight;
-        return `
-          <text class="er-node-field" x="14" y="${yPos}">
-            ${marker ? `<tspan class="er-node-marker">${marker}</tspan><tspan dx="6">${esc(column.name)}</tspan>` : esc(column.name)}
-          </text>`;
-      }).join('')}
+      <rect class="er-node-box" width="${width}" height="${height}" />
+      <text class="er-node-title" x="${width / 2}" y="${height / 2 + 4}" text-anchor="middle">${esc(table.name.toUpperCase())}</text>
     </g>`).join('');
 
   return `
     <div class="er-visual-wrap">
-      <svg class="er-visual" viewBox="0 0 ${svgWidth} ${svgHeight}" role="img" aria-label="Entity relationship diagram">
+      <svg class="er-visual" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="xMidYMin meet" role="img" aria-label="Entity relationship diagram">
         ${links}
         ${boxes}
       </svg>
