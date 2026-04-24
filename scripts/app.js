@@ -415,6 +415,7 @@ function renderResultTable(columns, rows) {
 
   // Switch to results tab
   switchOutputTab('results');
+  revealOutputFeedback();
 }
 
 function showMessages(msgs, passed) {
@@ -427,6 +428,7 @@ function showMessages(msgs, passed) {
     <div>${msgs.map(m => `<div class="msg-line">${m}</div>`).join('')}</div>
   </div>`;
   switchOutputTab('messages');
+  revealOutputFeedback();
 }
 
 function showError(err) {
@@ -437,6 +439,7 @@ function showError(err) {
     <div class="msg-line"><strong>SQL Error:</strong> ${esc(err)}</div>
   </div>`;
   switchOutputTab('messages');
+  revealOutputFeedback();
 }
 
 function clearResults() {
@@ -454,6 +457,7 @@ function renderSchemaResult(schema) {
   if (!schema || !schema.length) {
     wrap.innerHTML = '<p class="output-empty">No tables found yet. Check your table-building work for errors.</p>';
     switchOutputTab('results');
+    revealOutputFeedback();
     return;
   }
 
@@ -506,6 +510,7 @@ function renderSchemaResult(schema) {
   }
 
   switchOutputTab('results');
+  revealOutputFeedback();
 }
 
 function esc(s) {
@@ -521,6 +526,12 @@ document.querySelectorAll('.output-tab').forEach(btn => {
 function switchOutputTab(tab) {
   document.querySelectorAll('.output-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.output-pane').forEach(p => p.classList.toggle('hidden', p.id !== `output-${tab}`));
+}
+
+function revealOutputFeedback() {
+  const panel = $('output-panel');
+  if (!panel) return;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ── Query history ──────────────────────────────────────────────────────────────

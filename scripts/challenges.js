@@ -314,6 +314,7 @@ export class ChallengeManager {
           ${messages.map(m => `<div>${m}</div>`).join('')}
         </div>
       </div>`;
+    this.testResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   // ── XP + badges ────────────────────────────────────────────────────────────
