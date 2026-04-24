@@ -58,6 +58,15 @@ function setBusyButton(btn, busy, busyLabel, idleLabel) {
   btn.textContent = busy ? busyLabel : idleLabel;
 }
 
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  document.querySelectorAll('.auth-form').forEach(form => {
+    form.classList.toggle('active', form.id === `${tab}-form`);
+  });
+}
+
 async function showApp() {
   loginPage?.classList.add('hidden');
   appEl?.classList.remove('hidden');
@@ -125,6 +134,11 @@ $('signup-form')?.addEventListener('submit', async e => {
   setBusyButton(btn, true, 'Creating Account...', 'Create Account');
   try {
     await registerUser(email, pw, name, code);
+    $('signup-form')?.reset();
+    $('signup-error')?.classList.add('hidden');
+    switchAuthTab('signin');
+    $('signin-email').value = email;
+    $('signin-password').value = '';
   } catch (ex) {
     err.textContent = ex.message;
     err.classList.remove('hidden');
@@ -136,9 +150,7 @@ $('signup-form')?.addEventListener('submit', async e => {
 // Auth tabs
 document.querySelectorAll('.auth-tab').forEach(btn => {
   btn.addEventListener('click', () => {
-    const tab = btn.dataset.tab;
-    document.querySelectorAll('.auth-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-    document.querySelectorAll('.auth-form').forEach(f => f.classList.toggle('active', f.id === `${tab}-form`));
+    switchAuthTab(btn.dataset.tab);
   });
 });
 
