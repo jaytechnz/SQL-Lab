@@ -551,8 +551,7 @@ function buildERVisualDiagramSVG(schema) {
   const gapX = 56;
   const marginX = 24;
   const marginY = 16;
-  const topY = marginY;
-  const bottomY = 156;
+  const rowY = marginY + 28;
 
   const childTables = linkedTables.filter(table => (table.foreignKeys || []).length);
   const parentTables = linkedTables.filter(table =>
@@ -561,45 +560,26 @@ function buildERVisualDiagramSVG(schema) {
   );
 
   const specialChild = childTables.length === 1 && parentTables.length === 2 ? childTables[0] : null;
-  let layout;
+  const orderedTables = specialChild
+    ? [parentTables[0], specialChild, parentTables[1]].filter(Boolean)
+    : [
+        ...parentTables.filter(table => !childTables.includes(table)),
+        ...childTables,
+        ...linkedTables.filter(table => !parentTables.includes(table) && !childTables.includes(table))
+      ].filter((table, index, arr) => arr.findIndex(candidate => candidate.name === table.name) === index);
 
-  if (specialChild) {
-    layout = [
-      { table: parentTables[0], x: marginX, y: topY, width: boxWidth, height: boxHeight },
-      { table: parentTables[1], x: marginX + boxWidth + gapX + boxWidth + gapX, y: topY, width: boxWidth, height: boxHeight },
-      { table: specialChild, x: marginX + boxWidth + gapX / 2, y: bottomY, width: boxWidth, height: boxHeight }
-    ];
-  } else {
-    const topRow = linkedTables.filter(table => !(table.foreignKeys || []).length);
-    const bottomRow = linkedTables.filter(table => (table.foreignKeys || []).length);
-    const fallbackTop = topRow.length ? topRow : linkedTables.slice(0, Math.ceil(linkedTables.length / 2));
-    const fallbackBottom = bottomRow.length ? bottomRow : linkedTables.slice(Math.ceil(linkedTables.length / 2));
-
-    const placeRow = (tables, y) => {
-      const rowWidth = tables.length * boxWidth + Math.max(0, tables.length - 1) * gapX;
-      const startX = marginX + Math.max(0, (Math.max(rowWidth, boxWidth * 2 + gapX) - rowWidth) / 2);
-      return tables.map((table, index) => ({
-        table,
-        x: startX + index * (boxWidth + gapX),
-        y,
-        width: boxWidth,
-        height: boxHeight
-      }));
-    };
-
-    layout = [
-      ...placeRow(fallbackTop, topY),
-      ...placeRow(fallbackBottom, bottomY)
-    ];
-  }
+  const layout = orderedTables.map((table, index) => ({
+    table,
+    x: marginX + index * (boxWidth + gapX),
+    y: rowY,
+    width: boxWidth,
+    height: boxHeight
+  }));
 
   const boxBottom = Math.max(...layout.map(item => item.y + item.height));
   const svgWidth = Math.max(...layout.map(item => item.x + item.width)) + marginX;
   const svgHeight = boxBottom + marginY;
   const positions = new Map(layout.map(item => [item.table.name, item]));
-  const specialParents = specialChild
-    ? parentTables.map(table => positions.get(table.name)).filter(Boolean).sort((a, b) => a.x - b.x)
-    : [];
 
   const links = linkedTables.flatMap(table =>
     (table.foreignKeys || []).map(fk => {
@@ -607,37 +587,18 @@ function buildERVisualDiagramSVG(schema) {
       const to = positions.get(fk.referencedTable);
       if (!from || !to) return '';
 
-      if (specialChild && from.table.name === specialChild.name && specialParents.length === 2) {
-        const [leftParent, rightParent] = specialParents;
-        const isLeftRelationship = to.table.name === leftParent.table.name;
-        const isRightRelationship = to.table.name === rightParent.table.name;
-
-        if (isLeftRelationship || isRightRelationship) {
-          const startX = to.x + to.width / 2;
-          const startY = to.y + to.height;
-          const sideY = from.y + Math.round(from.height * 0.56);
-          const edgeX = isLeftRelationship ? from.x : from.x + from.width;
-          const crowTipX = isLeftRelationship ? edgeX - 14 : edgeX + 14;
-
-          return `
-            <path class="er-link" d="M ${startX} ${startY} V ${sideY} H ${crowTipX}" />
-            <path class="er-crow" d="M ${crowTipX} ${sideY} L ${edgeX} ${sideY - 12} M ${crowTipX} ${sideY} L ${edgeX} ${sideY} M ${crowTipX} ${sideY} L ${edgeX} ${sideY + 12}" />`;
-        }
-      }
-
-      const startX = to.x + to.width / 2;
-      const startY = to.y + to.height;
-      const endY = from.y;
-      let endX = from.x + from.width / 2;
-      let elbowY = startY + Math.max(18, (endY - startY) / 2);
-      let crowY = endY - 10;
-
-      const crowLeftX = endX - 14;
-      const crowRightX = endX + 14;
+      const lineY = from.y + Math.round(from.height * 0.56);
+      const parentOnLeft = to.x < from.x;
+      const startX = parentOnLeft ? to.x + to.width : to.x;
+      const edgeX = parentOnLeft ? from.x : from.x + from.width;
+      const crowTipX = parentOnLeft ? edgeX - 14 : edgeX + 14;
+      const crowOuterX = parentOnLeft ? edgeX : edgeX;
+      const crowUpperY = lineY - 12;
+      const crowLowerY = lineY + 12;
 
       return `
-        <path class="er-link" d="M ${startX} ${startY} V ${elbowY} H ${endX} V ${crowY}" />
-        <path class="er-crow" d="M ${endX} ${crowY} L ${crowLeftX} ${endY} M ${endX} ${crowY} L ${endX} ${endY} M ${endX} ${crowY} L ${crowRightX} ${endY}" />`;
+        <path class="er-link" d="M ${startX} ${lineY} H ${crowTipX}" />
+        <path class="er-crow" d="M ${crowTipX} ${lineY} L ${crowOuterX} ${crowUpperY} M ${crowTipX} ${lineY} L ${crowOuterX} ${lineY} M ${crowTipX} ${lineY} L ${crowOuterX} ${crowLowerY}" />`;
     })
   ).join('');
 
@@ -649,7 +610,7 @@ function buildERVisualDiagramSVG(schema) {
 
   return `
     <div class="er-visual-wrap">
-      <svg class="er-visual" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="xMidYMin meet" role="img" aria-label="Entity relationship diagram">
+      <svg class="er-visual" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="xMinYMin meet" role="img" aria-label="Entity relationship diagram">
         ${links}
         ${boxes}
       </svg>

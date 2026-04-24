@@ -662,12 +662,12 @@ null, '',
 const ddl19 = ex('ddl-19','ddl','Content Management System','hard',
 `Create a 3-table CMS schema:
 
-1. Create a table called \`Authors\`.
+Table 1: Create a table called \`Authors\`.
 - \`author_id\` — INTEGER, PRIMARY KEY
 - \`pen_name\` — VARCHAR(50)
 - \`join_date\` — DATE
 
-2. Create a table called \`Articles\`.
+Table 2: Create a table called \`Articles\`.
 - \`article_id\` — INTEGER, PRIMARY KEY
 - \`title\` — VARCHAR(200)
 - \`published\` — DATE
@@ -675,7 +675,7 @@ const ddl19 = ex('ddl-19','ddl','Content Management System','hard',
 - \`author_id\` — INTEGER
 - Foreign key: \`author_id\` references \`Authors(author_id)\`
 
-3. Create a table called \`Comments\`.
+Table 3: Create a table called \`Comments\`.
 - \`comment_id\` — INTEGER, PRIMARY KEY
 - \`commenter_name\` — VARCHAR(50)
 - \`posted_at\` — DATE
