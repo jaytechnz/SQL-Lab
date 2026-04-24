@@ -464,9 +464,17 @@ null,
 const ddl14 = ex('ddl-14','ddl','Relational Schema — Authors and Books','medium',
 `Design a small relational database by creating **two linked tables**:
 
-1. \`Authors\` — author_id INTEGER PRIMARY KEY, name VARCHAR(80)
-2. \`Books\` — book_id INTEGER PRIMARY KEY, title VARCHAR(100), author_id INTEGER, genre VARCHAR(30), price REAL
-   — with a FOREIGN KEY on author_id referencing Authors(author_id)`,
+1. Create a table called \`Authors\`.
+- \`author_id\` — INTEGER, PRIMARY KEY
+- \`name\` — VARCHAR(80)
+
+2. Create a table called \`Books\`.
+- \`book_id\` — INTEGER, PRIMARY KEY
+- \`title\` — VARCHAR(100)
+- \`genre\` — VARCHAR(30)
+- \`price\` — REAL
+- \`author_id\` — INTEGER
+- Foreign key: \`author_id\` references \`Authors(author_id)\``,
 ['Create Authors first (it is referenced by Books)',
  'Add FOREIGN KEY (author_id) REFERENCES Authors(author_id) inside the Books column list'],
 '',
@@ -613,8 +621,18 @@ null, '',
 const ddl18 = ex('ddl-18','ddl','E-commerce — Products and Orders','hard',
 `Create a 2-table e-commerce schema:
 
-1. \`Customers\` — customer_id INTEGER PK, name VARCHAR(50), email VARCHAR(80), country VARCHAR(30)
-2. \`Orders\` — order_id INTEGER PK, customer_id INTEGER FK→Customers, order_date DATE, total_amount REAL`,
+1. Create a table called \`Customers\`.
+- \`customer_id\` — INTEGER, PRIMARY KEY
+- \`name\` — VARCHAR(50)
+- \`email\` — VARCHAR(80)
+- \`country\` — VARCHAR(30)
+
+2. Create a table called \`Orders\`.
+- \`order_id\` — INTEGER, PRIMARY KEY
+- \`order_date\` — DATE
+- \`total_amount\` — REAL
+- \`customer_id\` — INTEGER
+- Foreign key: \`customer_id\` references \`Customers(customer_id)\``,
 ['Create Customers first, since Orders references it',
  'Use FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)'],
 '',
@@ -644,9 +662,26 @@ null, '',
 const ddl19 = ex('ddl-19','ddl','Content Management System','hard',
 `Create a 3-table CMS schema:
 
-1. \`Authors\` — author_id INTEGER PK, pen_name VARCHAR(50), join_date DATE
-2. \`Articles\` — article_id INTEGER PK, title VARCHAR(200), author_id INTEGER FK→Authors, published DATE, is_published BOOLEAN
-3. \`Comments\` — comment_id INTEGER PK, article_id INTEGER FK→Articles, commenter_name VARCHAR(50), posted_at DATE, content VARCHAR(500)`,
+1. Create a table called \`Authors\`.
+- \`author_id\` — INTEGER, PRIMARY KEY
+- \`pen_name\` — VARCHAR(50)
+- \`join_date\` — DATE
+
+2. Create a table called \`Articles\`.
+- \`article_id\` — INTEGER, PRIMARY KEY
+- \`title\` — VARCHAR(200)
+- \`published\` — DATE
+- \`is_published\` — BOOLEAN
+- \`author_id\` — INTEGER
+- Foreign key: \`author_id\` references \`Authors(author_id)\`
+
+3. Create a table called \`Comments\`.
+- \`comment_id\` — INTEGER, PRIMARY KEY
+- \`commenter_name\` — VARCHAR(50)
+- \`posted_at\` — DATE
+- \`content\` — VARCHAR(500)
+- \`article_id\` — INTEGER
+- Foreign key: \`article_id\` references \`Articles(article_id)\``,
 ['Build in order: Authors → Articles → Comments',
  'Articles and Comments each need one foreign key'],
 '',
@@ -688,9 +723,25 @@ null, '',
 const ddl20 = ex('ddl-20','ddl','School Timetable Schema','hard',
 `Design a complete school timetable database with 3 tables:
 
-1. \`Teachers\` — teacher_id INTEGER PK, name VARCHAR(50), subject VARCHAR(40)
-2. \`Classrooms\` — room_id INTEGER PK, room_name VARCHAR(10), capacity INTEGER
-3. \`Timetable\` — lesson_id INTEGER PK, teacher_id INTEGER FK→Teachers, room_id INTEGER FK→Classrooms, day VARCHAR(10), period INTEGER, start_time TIME
+1. Create a table called \`Teachers\`.
+- \`teacher_id\` — INTEGER, PRIMARY KEY
+- \`name\` — VARCHAR(50)
+- \`subject\` — VARCHAR(40)
+
+2. Create a table called \`Classrooms\`.
+- \`room_id\` — INTEGER, PRIMARY KEY
+- \`room_name\` — VARCHAR(10)
+- \`capacity\` — INTEGER
+
+3. Create a table called \`Timetable\`.
+- \`lesson_id\` — INTEGER, PRIMARY KEY
+- \`day\` — VARCHAR(10)
+- \`period\` — INTEGER
+- \`start_time\` — TIME
+- \`teacher_id\` — INTEGER
+- \`room_id\` — INTEGER
+- Foreign key: \`teacher_id\` references \`Teachers(teacher_id)\`
+- Foreign key: \`room_id\` references \`Classrooms(room_id)\`
 
 Make sure all relationships are correct.`,
 ['Create Teachers and Classrooms first, then Timetable',
@@ -1328,8 +1379,17 @@ null, '',
 const combo09 = ex('combo-09','combined','Relational Tables with INNER JOIN','hard',
 `Create two related tables:
 
-1. \`Genres\` — genre_id INTEGER PK, genre_name VARCHAR(30)
-2. \`Films\` — film_id INTEGER PK, title VARCHAR(100), genre_id INTEGER FK→Genres, year INTEGER, rating REAL
+1. Create a table called \`Genres\`.
+- \`genre_id\` — INTEGER, PRIMARY KEY
+- \`genre_name\` — VARCHAR(30)
+
+2. Create a table called \`Films\`.
+- \`film_id\` — INTEGER, PRIMARY KEY
+- \`title\` — VARCHAR(100)
+- \`year\` — INTEGER
+- \`rating\` — REAL
+- \`genre_id\` — INTEGER
+- Foreign key: \`genre_id\` references \`Genres(genre_id)\`
 
 Insert 3 genres and 6 films. Then write an INNER JOIN query to show each film's title alongside its genre_name.`,
 ['Create Genres first, then Films with a FOREIGN KEY',
@@ -1378,8 +1438,18 @@ null, '',
 const combo11 = ex('combo-11','combined','School Report System','hard',
 `Design and populate a mini school report system:
 
-1. Create \`Pupils\` — pupil_id PK, name VARCHAR(50), year_group INTEGER
-2. Create \`Reports\` — report_id PK, pupil_id FK, subject VARCHAR(40), score INTEGER, report_date DATE
+1. Create a table called \`Pupils\`.
+- \`pupil_id\` — INTEGER, PRIMARY KEY
+- \`name\` — VARCHAR(50)
+- \`year_group\` — INTEGER
+
+2. Create a table called \`Reports\`.
+- \`report_id\` — INTEGER, PRIMARY KEY
+- \`subject\` — VARCHAR(40)
+- \`score\` — INTEGER
+- \`report_date\` — DATE
+- \`pupil_id\` — INTEGER
+- Foreign key: \`pupil_id\` references \`Pupils(pupil_id)\`
 
 Insert 4 pupils and 8 reports. Then write a query to find each pupil's **average score**, showing pupil name and avg_score, ordered by avg_score DESC.`,
 ['Join Reports to Pupils on pupil_id',
@@ -1427,8 +1497,18 @@ null, '',
 const combo13 = ex('combo-13','combined','Flights Database','hard',
 `Create a 2-table flights database:
 
-1. \`Airlines\` — airline_id PK, airline_name VARCHAR(50), country VARCHAR(30)
-2. \`Flights\` — flight_id PK, airline_id FK, destination VARCHAR(50), departure_date DATE, price REAL
+1. Create a table called \`Airlines\`.
+- \`airline_id\` — INTEGER, PRIMARY KEY
+- \`airline_name\` — VARCHAR(50)
+- \`country\` — VARCHAR(30)
+
+2. Create a table called \`Flights\`.
+- \`flight_id\` — INTEGER, PRIMARY KEY
+- \`destination\` — VARCHAR(50)
+- \`departure_date\` — DATE
+- \`price\` — REAL
+- \`airline_id\` — INTEGER
+- Foreign key: \`airline_id\` references \`Airlines(airline_id)\`
 
 Insert 3 airlines and 8 flights. Find all flights with price between £100 and £500, showing flight_id, destination, airline_name and price, ordered by price.`,
 ['Use BETWEEN 100 AND 500, or WHERE price >= 100 AND price <= 500',
@@ -1451,8 +1531,18 @@ null, '',
 const combo14 = ex('combo-14','combined','Exam Results Tracker','hard',
 `Build an exam results tracker:
 
-1. Create \`Subjects\` — subject_id PK, subject_name VARCHAR(40), max_marks INTEGER
-2. Create \`Results\` — result_id PK, student_name VARCHAR(50), subject_id FK, marks INTEGER, exam_date DATE
+1. Create a table called \`Subjects\`.
+- \`subject_id\` — INTEGER, PRIMARY KEY
+- \`subject_name\` — VARCHAR(40)
+- \`max_marks\` — INTEGER
+
+2. Create a table called \`Results\`.
+- \`result_id\` — INTEGER, PRIMARY KEY
+- \`student_name\` — VARCHAR(50)
+- \`marks\` — INTEGER
+- \`exam_date\` — DATE
+- \`subject_id\` — INTEGER
+- Foreign key: \`subject_id\` references \`Subjects(subject_id)\`
 
 Insert 3 subjects and 9 results. Write a query that shows subject_name, COUNT(*) AS num_results, AVG(marks) AS avg_marks, ordered by avg_marks DESC.`,
 ['Join Results to Subjects',
@@ -1474,8 +1564,19 @@ null, '',
 const combo15 = ex('combo-15','combined','Library Catalogue','hard',
 `Create a mini library catalogue:
 
-1. \`LibAuthors\` — author_id PK, author_name VARCHAR(80), nationality VARCHAR(30)
-2. \`LibCatalogue\` — catalogue_id PK, author_id FK, book_title VARCHAR(150), genre VARCHAR(30), year INTEGER, copies_available INTEGER
+1. Create a table called \`LibAuthors\`.
+- \`author_id\` — INTEGER, PRIMARY KEY
+- \`author_name\` — VARCHAR(80)
+- \`nationality\` — VARCHAR(30)
+
+2. Create a table called \`LibCatalogue\`.
+- \`catalogue_id\` — INTEGER, PRIMARY KEY
+- \`book_title\` — VARCHAR(150)
+- \`genre\` — VARCHAR(30)
+- \`year\` — INTEGER
+- \`copies_available\` — INTEGER
+- \`author_id\` — INTEGER
+- Foreign key: \`author_id\` references \`LibAuthors(author_id)\`
 
 Insert 4 authors and 8 books. Then:
 - SELECT all available books (copies_available > 0) with author name, title and genre
@@ -1498,8 +1599,18 @@ null, '',
 const combo16 = ex('combo-16','combined','Student Attendance','hard',
 `Create an attendance system:
 
-1. \`Classes\` — class_id PK, class_name VARCHAR(30), teacher VARCHAR(50)
-2. \`Attendance\` — att_id PK, class_id FK, student_name VARCHAR(50), att_date DATE, present BOOLEAN
+1. Create a table called \`Classes\`.
+- \`class_id\` — INTEGER, PRIMARY KEY
+- \`class_name\` — VARCHAR(30)
+- \`teacher\` — VARCHAR(50)
+
+2. Create a table called \`Attendance\`.
+- \`att_id\` — INTEGER, PRIMARY KEY
+- \`student_name\` — VARCHAR(50)
+- \`att_date\` — DATE
+- \`present\` — BOOLEAN
+- \`class_id\` — INTEGER
+- Foreign key: \`class_id\` references \`Classes(class_id)\`
 
 Insert 3 classes and 12 attendance records. Then find the **attendance count per class** for records where present is true, showing class_name and present_count. Order by present_count DESC.`,
 ['Use a condition that keeps only rows where present is true',
@@ -1546,8 +1657,21 @@ null, '',
 const combo18 = ex('combo-18','combined','Sports League','hard',
 `Design a sports league database:
 
-1. \`Teams\` — team_id PK, team_name VARCHAR(50), home_city VARCHAR(30), founded_year INTEGER
-2. \`Matches\` — match_id PK, home_team_id FK→Teams, away_team_id FK→Teams, match_date DATE, home_score INTEGER, away_score INTEGER
+1. Create a table called \`Teams\`.
+- \`team_id\` — INTEGER, PRIMARY KEY
+- \`team_name\` — VARCHAR(50)
+- \`home_city\` — VARCHAR(30)
+- \`founded_year\` — INTEGER
+
+2. Create a table called \`Matches\`.
+- \`match_id\` — INTEGER, PRIMARY KEY
+- \`match_date\` — DATE
+- \`home_score\` — INTEGER
+- \`away_score\` — INTEGER
+- \`home_team_id\` — INTEGER
+- \`away_team_id\` — INTEGER
+- Foreign key: \`home_team_id\` references \`Teams(team_id)\`
+- Foreign key: \`away_team_id\` references \`Teams(team_id)\`
 
 Insert 4 teams and 6 matches. Write a query to show all matches with the home team name and away team name (two JOINs to the same table using aliases).`,
 ['Alias the Teams table twice: JOIN Teams AS h ON match.home_team_id = h.team_id',
@@ -1571,8 +1695,20 @@ null, '',
 const combo19 = ex('combo-19','combined','Hotel Booking System','hard',
 `Create a hotel booking system:
 
-1. \`Rooms\` — room_id PK, room_number VARCHAR(5), room_type VARCHAR(20), price_per_night REAL
-2. \`Bookings\` — booking_id PK, room_id FK, guest_name VARCHAR(50), check_in DATE, check_out DATE, total_cost REAL
+1. Create a table called \`Rooms\`.
+- \`room_id\` — INTEGER, PRIMARY KEY
+- \`room_number\` — VARCHAR(5)
+- \`room_type\` — VARCHAR(20)
+- \`price_per_night\` — REAL
+
+2. Create a table called \`Bookings\`.
+- \`booking_id\` — INTEGER, PRIMARY KEY
+- \`guest_name\` — VARCHAR(50)
+- \`check_in\` — DATE
+- \`check_out\` — DATE
+- \`total_cost\` — REAL
+- \`room_id\` — INTEGER
+- Foreign key: \`room_id\` references \`Rooms(room_id)\`
 
 Insert 5 rooms and 8 bookings. Then:
 - Find the average total_cost per room_type using INNER JOIN, GROUP BY and AVG
