@@ -118,7 +118,7 @@ const ddl01 = ex('ddl-01','ddl','CREATE DATABASE Statement','easy',
 
 This is the standard SQL DDL statement used to create a new database. The DBMS carries out all creation and modification of the database structure using DDL.
 
-<em>Note: SQLite (used in this lab) doesn't execute CREATE DATABASE — it is validated by checking your syntax.</em>`,
+`,
 ['The syntax is: CREATE DATABASE database_name;', 'Database names should be descriptive'],
 '',
 null, '',
