@@ -723,17 +723,17 @@ null, '',
 const ddl20 = ex('ddl-20','ddl','School Timetable Schema','hard',
 `Design a complete school timetable database with 3 tables:
 
-1. Create a table called \`Teachers\`.
+Table 1: Create a table called \`Teachers\`.
 - \`teacher_id\` — INTEGER, PRIMARY KEY
 - \`name\` — VARCHAR(50)
 - \`subject\` — VARCHAR(40)
 
-2. Create a table called \`Classrooms\`.
+Table 2: Create a table called \`Classrooms\`.
 - \`room_id\` — INTEGER, PRIMARY KEY
 - \`room_name\` — VARCHAR(10)
 - \`capacity\` — INTEGER
 
-3. Create a table called \`Timetable\`.
+Table 3: Create a table called \`Timetable\`.
 - \`lesson_id\` — INTEGER, PRIMARY KEY
 - \`day\` — VARCHAR(10)
 - \`period\` — INTEGER
