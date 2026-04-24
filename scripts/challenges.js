@@ -68,7 +68,12 @@ export class ChallengeManager {
     this.uid          = uid;
     this.classCode    = classCode;
     this._displayName = displayName;
-    this.progress     = await getChallengeProgress(uid);
+    try {
+      this.progress = await getChallengeProgress(uid);
+    } catch (e) {
+      console.error('Failed to load progress from Firestore:', e);
+      this.progress = { completed: {}, totalXP: 0, badges: [], submissions: {} };
+    }
     this._SQL         = await initSQLEngine();
     this._renderSidebar();
     this._updateXpDisplay();
