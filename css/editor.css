@@ -270,8 +270,27 @@ code { font-family: var(--font-mono); font-size: 11px; background: var(--gutter-
 .ch-panel-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
 .ch-difficulty-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
 .ch-panel-body  { padding: 10px 12px; font-size: 12px; line-height: 1.7; color: var(--text-primary); }
-.ch-panel-body .ch-desc code { font-size: 11px; background: var(--gutter-bg); padding: 1px 4px; border-radius: 2px; }
+.ch-desc { display: grid; gap: 8px; }
+.ch-desc p { margin: 0; }
+.ch-desc ul, .ch-desc ol { margin: 0; padding-left: 18px; }
+.ch-desc li { margin: 2px 0; }
+.ch-panel-body .ch-desc strong { color: var(--text-primary); font-weight: 700; }
 .ch-panel-body .ch-desc em { font-size: 11px; color: var(--text-muted); }
+.ch-inline-note {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 1px 0;
+  color: var(--text-secondary);
+}
+.ch-ident {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--gutter-bg);
+  color: var(--text-primary);
+  font-weight: 700;
+}
 .ch-hints { margin-top: 8px; }
 .ch-hints summary { font-size: 11px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
 .ch-hints ul { padding-left: 16px; margin-top: 6px; }
