@@ -265,7 +265,7 @@ null, '',
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['ClassSchedule created with TIME columns!'] };
 });
 
-const ddl08 = ex('ddl-08','ddl','PRIMARY KEY — Inline Syntax','easy',
+const ddl08 = ex('ddl-08','ddl','CREATE TABLE — PRIMARY KEY Inline Syntax','easy',
 `Create a table called \`Countries\` with:
 - \`country_id\` — INTEGER, and make it the **PRIMARY KEY**
 - \`country_name\` — VARCHAR(50), and make it **NOT NULL**
@@ -290,7 +290,7 @@ null, '',
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['Countries created with a PRIMARY KEY on country_id!'] };
 });
 
-const ddl09 = ex('ddl-09','ddl','PRIMARY KEY (field) — Constraint Syntax','easy',
+const ddl09 = ex('ddl-09','ddl','CREATE TABLE — PRIMARY KEY Constraint Syntax','easy',
 `Create a table called \`Teachers\` with:
 - \`teacher_id\` — INTEGER
 - \`name\` — VARCHAR(50), and make it **NOT NULL**
