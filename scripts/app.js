@@ -32,6 +32,7 @@ const resultsTable  = $('results-table-wrap');
 const messagesPanel = $('messages-panel');
 const historyPanel  = $('history-panel');
 const schemaPanel   = $('schema-panel');
+const erPanel       = $('er-panel');
 
 // ══════════════════════════════════════════════════════════════════════════════
 // AUTH
@@ -456,6 +457,7 @@ function renderSchemaResult(schema) {
 
   if (!schema || !schema.length) {
     wrap.innerHTML = '<p class="output-empty">No tables found yet. Check your table-building work for errors.</p>';
+    renderERDiagramPanel([]);
     switchOutputTab('results');
     revealOutputFeedback();
     return;
@@ -468,7 +470,7 @@ function renderSchemaResult(schema) {
         <strong>TABLE: ${esc(t.name)}</strong>
       </div>
       <table class="result-table">
-        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead>
+        <thead><tr><th>Field</th><th>Type</th><th>Constraints</th></tr></thead>
         <tbody>
           ${t.columns.map(c => {
             const fk = t.foreignKeys.find(f => f.fromColumn === c.name);
@@ -497,7 +499,7 @@ function renderSchemaResult(schema) {
           <strong>${esc(t.name)}</strong>
         </div>
         <table class="schema-cols">
-          <thead><tr><th>Column</th><th>Type</th><th>Key</th></tr></thead>
+          <thead><tr><th>Field</th><th>Type</th><th>Key</th></tr></thead>
           <tbody>
             ${t.columns.map(c => `<tr>
               <td>${esc(c.name)}</td>
@@ -509,8 +511,72 @@ function renderSchemaResult(schema) {
       </div>`).join('');
   }
 
+  renderERDiagramPanel(schema);
+
   switchOutputTab('results');
   revealOutputFeedback();
+}
+
+function buildRelationshipSummary(schema) {
+  return schema.flatMap(table =>
+    (table.foreignKeys || []).map(fk => {
+      const referencedTable = schema.find(candidate => candidate.name === fk.referencedTable);
+      const sourceColumn = table.columns.find(column => column.name === fk.fromColumn);
+      const targetColumn = referencedTable?.columns.find(column => column.name === fk.toColumn);
+      const sourceIsUnique = Boolean(sourceColumn?.primaryKey);
+      const targetIsUnique = Boolean(targetColumn?.primaryKey);
+      const relationship = sourceIsUnique && targetIsUnique ? 'one-to-one' : 'one-to-many';
+
+      return `
+        <div class="er-relationship">
+          <strong>${esc(fk.referencedTable)}</strong>.${esc(fk.toColumn)}
+          ${relationship}
+          <strong>${esc(table.name)}</strong>.${esc(fk.fromColumn)}
+        </div>`;
+    })
+  );
+}
+
+function buildERDiagramHTML(schema, emptyMessage = 'Run your work to generate an E-R diagram for linked tables.') {
+  const relationships = buildRelationshipSummary(schema);
+  const hasLinkedTables = schema.length >= 2 && relationships.length > 0;
+
+  if (!hasLinkedTables) {
+    return `
+      <div class="er-panel-wrap">
+        <p class="output-empty">${esc(emptyMessage)}</p>
+      </div>`;
+  }
+
+  const tablesHtml = schema.map(table => `
+    <div class="er-table">
+      <div class="er-table-name">${esc(table.name)}</div>
+      ${(table.columns || []).map(column => {
+        const foreignKey = (table.foreignKeys || []).find(fk => fk.fromColumn === column.name);
+        const isPrimaryKey = Boolean(column.primaryKey);
+        const isForeignKey = Boolean(foreignKey);
+        const keyIcon = isPrimaryKey ? 'PK' : isForeignKey ? 'FK' : '';
+
+        return `<div class="er-col ${isPrimaryKey ? 'er-pk' : ''} ${isForeignKey ? 'er-fk' : ''}">
+          <span class="er-key-icon">${keyIcon}</span>
+          <span class="er-col-name">${esc(column.name)}</span>
+          <span class="er-col-type">${esc(column.type)}</span>
+          ${foreignKey ? `<span class="er-fk-ref">→ ${esc(foreignKey.referencedTable)}.${esc(foreignKey.toColumn)}</span>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+
+  return `
+    <div class="er-panel-wrap">
+      <p class="er-panel-note">The diagram below is generated from your current tables and foreign key fields.</p>
+      <div class="er-diagram">${tablesHtml}</div>
+      <div class="er-relationships">${relationships.join('')}</div>
+    </div>`;
+}
+
+function renderERDiagramPanel(schema, emptyMessage) {
+  if (!erPanel) return;
+  erPanel.innerHTML = buildERDiagramHTML(schema || [], emptyMessage);
 }
 
 function esc(s) {
@@ -601,7 +667,7 @@ function renderSchemaForDatabase(dbId) {
         <span class="schema-row-count">(${countRows(dbId, t.name)} rows)</span>
       </div>
       <table class="schema-cols">
-        <thead><tr><th>Column</th><th>Type</th><th>Key</th></tr></thead>
+        <thead><tr><th>Field</th><th>Type</th><th>Key</th></tr></thead>
         <tbody>
           ${t.columns.map(c => `<tr>
             <td>${c.name}</td>
@@ -611,6 +677,8 @@ function renderSchemaForDatabase(dbId) {
         </tbody>
       </table>
     </div>`).join('');
+
+  renderERDiagramPanel(schema, 'No linked tables found in this database.');
 }
 
 function countRows(dbId, tableName) {
@@ -688,26 +756,7 @@ function renderDBViewerContent(dbId, body) {
   let dbInst;
   try { dbInst = createDatabase(_SQL, dbDef.setupSQL); } catch { return; }
   const schema = getSchema(dbInst);
-
-  // ER diagram (simple HTML table layout)
-  let erHtml = '<div class="er-diagram">';
-  schema.forEach(t => {
-    erHtml += `<div class="er-table">
-      <div class="er-table-name">${t.name}</div>
-      ${t.columns.map(c => {
-        const isPK = c.primaryKey;
-        const isFK = t.foreignKeys.some(f => f.fromColumn === c.name);
-        const ref  = isFK ? t.foreignKeys.find(f=>f.fromColumn===c.name) : null;
-        return `<div class="er-col ${isPK?'er-pk':''} ${isFK?'er-fk':''}">
-          ${isPK ? '<span class="er-key-icon">🔑</span>' : isFK ? '<span class="er-key-icon">🔗</span>' : '<span class="er-key-icon"> </span>'}
-          <span class="er-col-name">${c.name}</span>
-          <span class="er-col-type">${c.type}</span>
-          ${ref ? `<span class="er-fk-ref">→ ${ref.referencedTable}.${ref.toColumn}</span>` : ''}
-        </div>`;
-      }).join('')}
-    </div>`;
-  });
-  erHtml += '</div>';
+  const erHtml = buildERDiagramHTML(schema, 'No linked tables found in this database.');
 
   // Table previews
   let previewHtml = '<div class="db-previews">';
@@ -792,6 +841,7 @@ document.addEventListener('challenge:open', e => {
     if (dbLabel) dbLabel.textContent = '🗄️ Empty Sandbox';
     const schemaPanel = $('schema-panel');
     if (schemaPanel) schemaPanel.innerHTML = '<p class="output-empty">Run your work to see the structure you create.</p>';
+    renderERDiagramPanel([], 'Run your work to generate an E-R diagram for linked tables.');
   }
 
   clearResults();
