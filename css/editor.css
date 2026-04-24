@@ -187,6 +187,24 @@
 
 /* ── ER Diagram ── */
 .er-diagram { display: flex; flex-wrap: wrap; gap: 16px; padding: 12px 0; }
+.er-panel-wrap { display: grid; gap: 14px; }
+.er-panel-note { font-size: 12px; color: var(--text-muted); }
+.er-relationships {
+  display: grid;
+  gap: 8px;
+}
+.er-relationship {
+  padding: 8px 10px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+.er-relationship strong {
+  color: var(--text-primary);
+}
 .er-table {
   border: 1px solid var(--border); border-radius: var(--radius);
   overflow: hidden; min-width: 180px; font-size: 11px;
