@@ -221,8 +221,8 @@ const ddl06 = ex('ddl-06','ddl','CREATE TABLE — DATE Data Type','easy',
 - \`holiday_name\` — VARCHAR(50)
 - \`holiday_date\` — DATE
 
-DATE stores calendar dates in YYYY-MM-DD format, e.g. '2026-12-25'.`,
-['DATE is used for calendar dates', "Store dates as 'YYYY-MM-DD' strings in SQLite"],
+DATE stores calendar dates in dd/mm/yyyy format, e.g. '25/12/2026'.`,
+['DATE is used for calendar dates', "Store dates as 'dd/mm/yyyy' strings in SQLite"],
 '',
 null, '',
 (db, sql) => {
@@ -957,7 +957,7 @@ const dml18 = ex('dml-18','dml','DELETE FROM with WHERE','medium',
 `In the **Library** database, delete all loans from the \`loans\` table where the \`return_date\` is **earlier than** \`'2024-02-01'\`.`,
 ["DELETE FROM table WHERE condition;",
  "Use < '2024-02-01' to find dates before February 2024",
- "SQLite compares date strings alphabetically in YYYY-MM-DD format"],
+ "Use the dd/mm/yyyy format consistently when storing dates"],
 '',
 'library', '',
 (db, sql) => {
@@ -1074,7 +1074,7 @@ const combo03 = ex('combo-03','combined','Temperature Records','easy',
 
 Insert at least 5 rows with different cities and temperatures. Select all records **ordered by temp_c descending**.`,
 ['REAL is the correct type for decimal temperatures',
- 'DATE stores dates as YYYY-MM-DD',
+ 'DATE stores dates as dd/mm/yyyy',
  'ORDER BY temp_c DESC'],
 '',
 null, '',
