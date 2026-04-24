@@ -55,11 +55,15 @@ function foreignKeys(db, name) {
   }));
 }
 
-// Check column exists (case-insensitive) and optionally type contains typeFragment.
-function hasColumn(cols, colName, typeFragment) {
+function normType(type) {
+  return String(type || '').replace(/\s+/g, '').toUpperCase();
+}
+
+// Check column exists (case-insensitive) and optionally type matches exactly.
+function hasColumn(cols, colName, expectedType) {
   const col = cols.find(c => c.name.toLowerCase() === colName.toLowerCase());
   if (!col) return false;
-  if (typeFragment) return col.type.includes(typeFragment.toUpperCase());
+  if (expectedType) return normType(col.type) === normType(expectedType);
   return true;
 }
 
@@ -142,8 +146,8 @@ null, '',
     return { passed: false, messages: ['Table Continents was not created.'] };
   const cols = tableInfo(db, 'Continents');
   const msgs = [];
-  if (!hasColumn(cols,'continent_id','INT'))   msgs.push('Column continent_id with type INTEGER is missing.');
-  if (!hasColumn(cols,'continent_name','VAR')) msgs.push('Column continent_name with type VARCHAR(50) is missing.');
+  if (!hasColumn(cols,'continent_id','INTEGER'))   msgs.push('Column continent_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'continent_name','VARCHAR(50)')) msgs.push('Column continent_name with type VARCHAR(50) is missing.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['Table Continents created correctly!'] };
 });
 
@@ -162,11 +166,11 @@ null, '',
     return { passed: false, messages: ['Table GradeRecords was not created.'] };
   const cols = tableInfo(db, 'GradeRecords');
   const msgs = [];
-  if (!hasColumn(cols,'record_id')) msgs.push('Column record_id is missing.');
-  if (!hasColumn(cols,'student_name')) msgs.push('Column student_name is missing.');
+  if (!hasColumn(cols,'record_id','INTEGER')) msgs.push('Column record_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'student_name','VARCHAR(50)')) msgs.push('Column student_name with type VARCHAR(50) is missing.');
   const gradeCol = cols.find(c => c.name.toLowerCase() === 'grade');
   if (!gradeCol) msgs.push('Column grade is missing.');
-  else if (!gradeCol.type.includes('CHARACTER')) msgs.push('Column grade should have type CHARACTER.');
+  else if (!hasColumn(cols,'grade','CHARACTER')) msgs.push('Column grade should have type CHARACTER.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['GradeRecords created with a CHARACTER column!'] };
 });
 
@@ -185,11 +189,11 @@ null, '',
     return { passed: false, messages: ['Table SystemSettings was not created.'] };
   const cols = tableInfo(db, 'SystemSettings');
   const msgs = [];
-  if (!hasColumn(cols,'setting_id'))   msgs.push('Column setting_id is missing.');
-  if (!hasColumn(cols,'setting_name')) msgs.push('Column setting_name is missing.');
+  if (!hasColumn(cols,'setting_id','INTEGER'))   msgs.push('Column setting_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'setting_name','VARCHAR(30)')) msgs.push('Column setting_name with type VARCHAR(30) is missing.');
   const boolCol = cols.find(c => c.name.toLowerCase() === 'is_enabled');
   if (!boolCol) msgs.push('Column is_enabled is missing.');
-  else if (!boolCol.type.includes('BOOL') && !boolCol.type.includes('INT'))
+  else if (!hasColumn(cols,'is_enabled','BOOLEAN'))
     msgs.push('Column is_enabled should have type BOOLEAN.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['SystemSettings created with a BOOLEAN column!'] };
 });
@@ -209,9 +213,9 @@ null, '',
     return { passed: false, messages: ['Table SensorReadings was not created.'] };
   const cols = tableInfo(db, 'SensorReadings');
   const msgs = [];
-  if (!hasColumn(cols,'reading_id'))   msgs.push('Column reading_id is missing.');
+  if (!hasColumn(cols,'reading_id','INTEGER'))   msgs.push('Column reading_id with type INTEGER is missing.');
   if (!hasColumn(cols,'sensor_value','REAL')) msgs.push('Column sensor_value with type REAL is missing.');
-  if (!hasColumn(cols,'unit'))         msgs.push('Column unit is missing.');
+  if (!hasColumn(cols,'unit','VARCHAR(10)'))         msgs.push('Column unit with type VARCHAR(10) is missing.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['SensorReadings created with a REAL column!'] };
 });
 
@@ -230,11 +234,11 @@ null, '',
     return { passed: false, messages: ['Table PublicHolidays was not created.'] };
   const cols = tableInfo(db, 'PublicHolidays');
   const msgs = [];
-  if (!hasColumn(cols,'holiday_id'))   msgs.push('Column holiday_id is missing.');
-  if (!hasColumn(cols,'holiday_name')) msgs.push('Column holiday_name is missing.');
+  if (!hasColumn(cols,'holiday_id','INTEGER'))   msgs.push('Column holiday_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'holiday_name','VARCHAR(50)')) msgs.push('Column holiday_name with type VARCHAR(50) is missing.');
   const dateCol = cols.find(c => c.name.toLowerCase() === 'holiday_date');
   if (!dateCol) msgs.push('Column holiday_date is missing.');
-  else if (!dateCol.type.includes('DATE')) msgs.push('Column holiday_date should have type DATE.');
+  else if (!hasColumn(cols,'holiday_date','DATE')) msgs.push('Column holiday_date should have type DATE.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['PublicHolidays created with a DATE column!'] };
 });
 
@@ -254,14 +258,14 @@ null, '',
     return { passed: false, messages: ['Table ClassSchedule was not created.'] };
   const cols = tableInfo(db, 'ClassSchedule');
   const msgs = [];
-  if (!hasColumn(cols,'slot_id'))    msgs.push('Column slot_id is missing.');
-  if (!hasColumn(cols,'subject'))    msgs.push('Column subject is missing.');
+  if (!hasColumn(cols,'slot_id','INTEGER'))    msgs.push('Column slot_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'subject','VARCHAR(30)'))    msgs.push('Column subject with type VARCHAR(30) is missing.');
   const st = cols.find(c => c.name.toLowerCase() === 'start_time');
   const et = cols.find(c => c.name.toLowerCase() === 'end_time');
   if (!st) msgs.push('Column start_time is missing.');
-  else if (!st.type.includes('TIME')) msgs.push('Column start_time should have type TIME.');
+  else if (!hasColumn(cols,'start_time','TIME')) msgs.push('Column start_time should have type TIME.');
   if (!et) msgs.push('Column end_time is missing.');
-  else if (!et.type.includes('TIME')) msgs.push('Column end_time should have type TIME.');
+  else if (!hasColumn(cols,'end_time','TIME')) msgs.push('Column end_time should have type TIME.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['ClassSchedule created with TIME columns!'] };
 });
 
@@ -280,9 +284,9 @@ null, '',
     return { passed: false, messages: ['Table Countries was not created.'] };
   const cols = tableInfo(db, 'Countries');
   const msgs = [];
-  if (!hasColumn(cols,'country_id'))   msgs.push('Column country_id is missing.');
-  if (!hasColumn(cols,'country_name')) msgs.push('Column country_name is missing.');
-  if (!hasColumn(cols,'population'))   msgs.push('Column population is missing.');
+  if (!hasColumn(cols,'country_id','INTEGER'))   msgs.push('Column country_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'country_name','VARCHAR(50)')) msgs.push('Column country_name with type VARCHAR(50) is missing.');
+  if (!hasColumn(cols,'population','INTEGER'))   msgs.push('Column population with type INTEGER is missing.');
   const pkCol = cols.find(c => c.name.toLowerCase() === 'country_id');
   if (pkCol && !pkCol.pk) msgs.push('country_id should be the PRIMARY KEY.');
   const nameCol = cols.find(c => c.name.toLowerCase() === 'country_name');
@@ -308,11 +312,13 @@ null, '',
   const cols = tableInfo(db, 'Teachers');
   const pkCol = cols.find(c => c.name.toLowerCase() === 'teacher_code');
   if (!pkCol) return { passed: false, messages: ['Column teacher_code is missing.'] };
-  if (!pkCol.type.includes('VAR')) return { passed: false, messages: ['teacher_code should have type VARCHAR(10).'] };
+  if (!hasColumn(cols,'teacher_code','VARCHAR(10)')) return { passed: false, messages: ['teacher_code should have type VARCHAR(10).'] };
   if (!pkCol.pk) return { passed: false, messages: ['teacher_code must be set as PRIMARY KEY.'] };
   const nameCol = cols.find(c => c.name.toLowerCase() === 'name');
   if (!nameCol) return { passed: false, messages: ['Column name is missing.'] };
+  if (!hasColumn(cols,'name','VARCHAR(50)')) return { passed: false, messages: ['name should have type VARCHAR(50).'] };
   if (!nameCol.notNull) return { passed: false, messages: ['name should be marked NOT NULL.'] };
+  if (!hasColumn(cols,'subject','VARCHAR(30)')) return { passed: false, messages: ['subject should have type VARCHAR(30).'] };
   return { passed: true, messages: ['Teachers created with PRIMARY KEY (teacher_code) constraint syntax!'] };
 });
 
@@ -338,15 +344,15 @@ null, '',
   const pkCol = cols.find(c => c.name.toLowerCase() === 'product_id');
   if (!pkCol) msgs.push('Column product_id (INTEGER PRIMARY KEY) is missing.');
   else if (!pkCol.pk) msgs.push('product_id should be the PRIMARY KEY.');
-  if (!hasColumn(cols,'name'))        msgs.push('Column name (VARCHAR) is missing.');
+  if (!hasColumn(cols,'name','VARCHAR(100)'))        msgs.push('Column name (VARCHAR(100)) is missing.');
   const sizeCodeCol = cols.find(c => c.name.toLowerCase() === 'size_code');
   if (!sizeCodeCol) msgs.push('Column size_code (CHARACTER) is missing.');
-  else if (!sizeCodeCol.type.includes('CHARACTER')) msgs.push('Column size_code should be type CHARACTER.');
-  if (!hasColumn(cols,'in_stock'))    msgs.push('Column in_stock (BOOLEAN) is missing.');
+  else if (!hasColumn(cols,'size_code','CHARACTER')) msgs.push('Column size_code should be type CHARACTER.');
+  if (!hasColumn(cols,'in_stock','BOOLEAN'))    msgs.push('Column in_stock (BOOLEAN) is missing.');
   if (!hasColumn(cols,'price','REAL'))msgs.push('Column price (REAL) is missing.');
   const dateCol = cols.find(c => c.name.toLowerCase() === 'added_date');
   if (!dateCol) msgs.push('Column added_date (DATE) is missing.');
-  else if (!dateCol.type.includes('DATE')) msgs.push('Column added_date should be type DATE.');
+  else if (!hasColumn(cols,'added_date','DATE')) msgs.push('Column added_date should be type DATE.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['All six Cambridge data types used correctly!'] };
 });
 
@@ -371,7 +377,7 @@ null,
   const emailCol = cols.find(c => c.name.toLowerCase() === 'email');
   if (!emailCol)
     return { passed: false, messages: ['Column email was not added. Use ALTER TABLE Students ADD email VARCHAR(100);'] };
-  if (!emailCol.type.includes('VAR') && !emailCol.type.includes('TEXT'))
+  if (!hasColumn(cols,'email','VARCHAR(100)'))
     return { passed: false, messages: ['Column email should be VARCHAR(100).'] };
   return { passed: true, messages: ['email VARCHAR(100) column added successfully!'] };
 });
@@ -399,7 +405,9 @@ null,
   const isbn = cols.find(c => c.name.toLowerCase() === 'isbn');
   const yr   = cols.find(c => c.name.toLowerCase() === 'publish_year');
   if (!isbn) msgs.push('Column isbn was not added.');
+  else if (!hasColumn(cols,'isbn','VARCHAR(20)')) msgs.push('Column isbn should be VARCHAR(20).');
   if (!yr)   msgs.push('Column publish_year was not added.');
+  else if (!hasColumn(cols,'publish_year','INTEGER')) msgs.push('Column publish_year should be INTEGER.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['Both columns added with ALTER TABLE!'] };
 });
 
@@ -424,6 +432,11 @@ null,
 (db, sql) => {
   if (!tableExists(db, 'Staff'))
     return { passed: false, messages: ['Table Staff was not created.'] };
+  const cols = tableInfo(db, 'Staff');
+  const msgs = [];
+  if (!hasColumn(cols,'staff_id','INTEGER')) msgs.push('staff_id should have type INTEGER.');
+  if (!hasColumn(cols,'name','VARCHAR(50)')) msgs.push('name should have type VARCHAR(50).');
+  if (!hasColumn(cols,'dept_id','INTEGER')) msgs.push('dept_id should have type INTEGER.');
   const fks = foreignKeys(db, 'Staff');
   if (!fks.length)
     return { passed: false, messages: ['No FOREIGN KEY found on the Staff table.',
@@ -431,8 +444,8 @@ null,
   const fk = fks.find(f => f.from.toLowerCase() === 'dept_id' &&
                             f.table.toLowerCase() === 'departments');
   if (!fk)
-    return { passed: false, messages: ['The FOREIGN KEY should reference Departments(dept_id).'] };
-  return { passed: true, messages: ['FOREIGN KEY correctly references Departments!'] };
+    msgs.push('The FOREIGN KEY should reference Departments(dept_id).');
+  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['FOREIGN KEY correctly references Departments!'] };
 });
 
 const ddl14 = ex('ddl-14','ddl','Relational Schema — Authors and Books','medium',
@@ -451,8 +464,13 @@ null, '',
   if (!tableExists(db, 'Books'))   msgs.push('Table Books was not created.');
   if (msgs.length) return { passed: false, messages: msgs };
   const bCols = tableInfo(db, 'Books');
-  if (!hasColumn(bCols,'title'))    msgs.push('Books is missing the title column.');
-  if (!hasColumn(bCols,'author_id'))msgs.push('Books is missing the author_id column.');
+  const aCols = tableInfo(db, 'Authors');
+  if (!hasColumn(aCols,'author_id','INTEGER')) msgs.push('Authors is missing author_id with type INTEGER.');
+  if (!hasColumn(aCols,'name','VARCHAR(80)')) msgs.push('Authors is missing name with type VARCHAR(80).');
+  if (!hasColumn(bCols,'book_id','INTEGER')) msgs.push('Books is missing book_id with type INTEGER.');
+  if (!hasColumn(bCols,'title','VARCHAR(100)'))    msgs.push('Books is missing the title column with type VARCHAR(100).');
+  if (!hasColumn(bCols,'author_id','INTEGER'))msgs.push('Books is missing the author_id column with type INTEGER.');
+  if (!hasColumn(bCols,'genre','VARCHAR(30)')) msgs.push('Books is missing the genre column with type VARCHAR(30).');
   if (!hasColumn(bCols,'price','REAL')) msgs.push('Books is missing the price REAL column.');
   const fks = foreignKeys(db, 'Books');
   const fk = fks.find(f => f.from.toLowerCase() === 'author_id' &&
@@ -480,12 +498,14 @@ null, '',
   const msgs = [];
   if (!cols.find(c => c.name.toLowerCase() === 'appt_id' && c.pk))
     msgs.push('appt_id should be INTEGER PRIMARY KEY.');
+  if (!hasColumn(cols,'patient_name','VARCHAR(50)')) msgs.push('patient_name should be type VARCHAR(50).');
   const dateC = cols.find(c => c.name.toLowerCase() === 'appt_date');
   const timeC = cols.find(c => c.name.toLowerCase() === 'appt_time');
   if (!dateC) msgs.push('Column appt_date (DATE) is missing.');
-  else if (!dateC.type.includes('DATE')) msgs.push('appt_date should be type DATE.');
+  else if (!hasColumn(cols,'appt_date','DATE')) msgs.push('appt_date should be type DATE.');
   if (!timeC) msgs.push('Column appt_time (TIME) is missing.');
-  else if (!timeC.type.includes('TIME')) msgs.push('appt_time should be type TIME.');
+  else if (!hasColumn(cols,'appt_time','TIME')) msgs.push('appt_time should be type TIME.');
+  if (!hasColumn(cols,'confirmed','BOOLEAN')) msgs.push('confirmed should be type BOOLEAN.');
   return msgs.length ? { passed: false, messages: msgs }
     : { passed: true, messages: ['Appointments table created with DATE and TIME columns!'] };
 });
@@ -508,10 +528,11 @@ null,
 (db, sql) => {
   const cols = tableInfo(db, 'Vehicles');
   const msgs = [];
-  if (!cols.find(c => c.name.toLowerCase() === 'model'))       msgs.push('Column model is missing.');
-  if (!cols.find(c => c.name.toLowerCase() === 'year'))        msgs.push('Column year is missing.');
-  if (!cols.find(c => c.name.toLowerCase() === 'price'))       msgs.push('Column price is missing.');
-  if (!cols.find(c => c.name.toLowerCase() === 'vehicle_id'))  msgs.push('vehicle_id should still exist.');
+  if (!hasColumn(cols,'model','VARCHAR(50)'))       msgs.push('Column model with type VARCHAR(50) is missing.');
+  if (!hasColumn(cols,'year','INTEGER'))        msgs.push('Column year with type INTEGER is missing.');
+  if (!hasColumn(cols,'price','REAL'))       msgs.push('Column price with type REAL is missing.');
+  if (!hasColumn(cols,'vehicle_id','INTEGER'))  msgs.push('vehicle_id should still exist with type INTEGER.');
+  if (!hasColumn(cols,'make','VARCHAR(30)')) msgs.push('make should still exist with type VARCHAR(30).');
   return msgs.length ? { passed: false, messages: msgs }
     : { passed: true, messages: ['Vehicles table extended with 3 new columns!'] };
 });
@@ -534,14 +555,24 @@ null, '',
   });
   if (msgs.length) return { passed: false, messages: msgs };
   const dCols = tableInfo(db, 'Doctors');
-  if (!hasColumn(dCols,'speciality')) msgs.push('Doctors is missing the speciality column.');
+  if (!hasColumn(dCols,'doctor_id','INTEGER')) msgs.push('Doctors is missing doctor_id with type INTEGER.');
+  if (!hasColumn(dCols,'name','VARCHAR(50)')) msgs.push('Doctors is missing name with type VARCHAR(50).');
+  if (!hasColumn(dCols,'speciality','VARCHAR(50)')) msgs.push('Doctors is missing the speciality column with type VARCHAR(50).');
   const pCols = tableInfo(db, 'Patients');
+  if (!hasColumn(pCols,'patient_id','INTEGER')) msgs.push('Patients is missing patient_id with type INTEGER.');
+  if (!hasColumn(pCols,'name','VARCHAR(50)')) msgs.push('Patients is missing name with type VARCHAR(50).');
   const dobC = pCols.find(c => c.name.toLowerCase() === 'dob');
   if (!dobC) msgs.push('Patients is missing the dob column.');
-  else if (!dobC.type.includes('DATE')) msgs.push('dob should be type DATE.');
+  else if (!hasColumn(pCols,'dob','DATE')) msgs.push('dob should be type DATE.');
   const btC = pCols.find(c => c.name.toLowerCase() === 'blood_type');
   if (!btC) msgs.push('Patients is missing blood_type.');
-  else if (!btC.type.includes('CHARACTER')) msgs.push('blood_type should be type CHARACTER.');
+  else if (!hasColumn(pCols,'blood_type','CHARACTER')) msgs.push('blood_type should be type CHARACTER.');
+  const aCols = tableInfo(db, 'Appointments');
+  if (!hasColumn(aCols,'appt_id','INTEGER')) msgs.push('Appointments is missing appt_id with type INTEGER.');
+  if (!hasColumn(aCols,'doctor_id','INTEGER')) msgs.push('Appointments is missing doctor_id with type INTEGER.');
+  if (!hasColumn(aCols,'patient_id','INTEGER')) msgs.push('Appointments is missing patient_id with type INTEGER.');
+  if (!hasColumn(aCols,'appt_date','DATE')) msgs.push('Appointments is missing appt_date with type DATE.');
+  if (!hasColumn(aCols,'appt_time','TIME')) msgs.push('Appointments is missing appt_time with type TIME.');
   const fks = foreignKeys(db, 'Appointments');
   if (!fks.find(f => f.from.toLowerCase() === 'doctor_id'))
     msgs.push('Appointments is missing FK on doctor_id.');
@@ -565,8 +596,15 @@ null, '',
   if (!tableExists(db, 'Customers')) msgs.push('Table Customers is missing.');
   if (!tableExists(db, 'Orders'))    msgs.push('Table Orders is missing.');
   if (msgs.length) return { passed: false, messages: msgs };
+  const cCols = tableInfo(db, 'Customers');
+  if (!hasColumn(cCols,'customer_id','INTEGER')) msgs.push('Customers is missing customer_id with type INTEGER.');
+  if (!hasColumn(cCols,'name','VARCHAR(50)')) msgs.push('Customers is missing name with type VARCHAR(50).');
+  if (!hasColumn(cCols,'email','VARCHAR(80)')) msgs.push('Customers is missing email with type VARCHAR(80).');
+  if (!hasColumn(cCols,'country','VARCHAR(30)')) msgs.push('Customers is missing country with type VARCHAR(30).');
   const oCols = tableInfo(db, 'Orders');
-  if (!hasColumn(oCols,'order_date')) msgs.push('Orders is missing order_date (DATE).');
+  if (!hasColumn(oCols,'order_id','INTEGER')) msgs.push('Orders is missing order_id with type INTEGER.');
+  if (!hasColumn(oCols,'customer_id','INTEGER')) msgs.push('Orders is missing customer_id with type INTEGER.');
+  if (!hasColumn(oCols,'order_date','DATE')) msgs.push('Orders is missing order_date (DATE).');
   if (!hasColumn(oCols,'total_amount','REAL')) msgs.push('Orders is missing total_amount (REAL).');
   const fks = foreignKeys(db, 'Orders');
   if (!fks.find(f => f.from.toLowerCase() === 'customer_id'))
@@ -591,9 +629,24 @@ null, '',
     if (!tableExists(db, t)) msgs.push(`Table ${t} is missing.`);
   });
   if (msgs.length) return { passed: false, messages: msgs };
+  const authCols = tableInfo(db, 'Authors');
+  if (!hasColumn(authCols,'author_id','INTEGER')) msgs.push('Authors is missing author_id with type INTEGER.');
+  if (!hasColumn(authCols,'pen_name','VARCHAR(50)')) msgs.push('Authors is missing pen_name with type VARCHAR(50).');
+  if (!hasColumn(authCols,'join_date','DATE')) msgs.push('Authors is missing join_date with type DATE.');
   const artCols = tableInfo(db, 'Articles');
+  if (!hasColumn(artCols,'article_id','INTEGER')) msgs.push('Articles is missing article_id with type INTEGER.');
+  if (!hasColumn(artCols,'title','VARCHAR(200)')) msgs.push('Articles is missing title with type VARCHAR(200).');
+  if (!hasColumn(artCols,'author_id','INTEGER')) msgs.push('Articles is missing author_id with type INTEGER.');
+  if (!hasColumn(artCols,'published','DATE')) msgs.push('Articles is missing published with type DATE.');
   const pubC = artCols.find(c => c.name.toLowerCase() === 'is_published');
   if (!pubC) msgs.push('Articles is missing is_published (BOOLEAN).');
+  else if (!hasColumn(artCols,'is_published','BOOLEAN')) msgs.push('Articles is missing is_published with type BOOLEAN.');
+  const comCols = tableInfo(db, 'Comments');
+  if (!hasColumn(comCols,'comment_id','INTEGER')) msgs.push('Comments is missing comment_id with type INTEGER.');
+  if (!hasColumn(comCols,'article_id','INTEGER')) msgs.push('Comments is missing article_id with type INTEGER.');
+  if (!hasColumn(comCols,'commenter_name','VARCHAR(50)')) msgs.push('Comments is missing commenter_name with type VARCHAR(50).');
+  if (!hasColumn(comCols,'posted_at','DATE')) msgs.push('Comments is missing posted_at with type DATE.');
+  if (!hasColumn(comCols,'content','VARCHAR(500)')) msgs.push('Comments is missing content with type VARCHAR(500).');
   const artFKs = foreignKeys(db, 'Articles');
   if (!artFKs.find(f => f.from.toLowerCase() === 'author_id'))
     msgs.push('Articles is missing FK on author_id.');
@@ -623,10 +676,23 @@ null, '',
     if (!tableExists(db, t)) msgs.push(`Table ${t} is missing.`);
   });
   if (msgs.length) return { passed: false, messages: msgs };
+  const tCols = tableInfo(db, 'Teachers');
+  if (!hasColumn(tCols,'teacher_id','INTEGER')) msgs.push('Teachers is missing teacher_id with type INTEGER.');
+  if (!hasColumn(tCols,'name','VARCHAR(50)')) msgs.push('Teachers is missing name with type VARCHAR(50).');
+  if (!hasColumn(tCols,'subject','VARCHAR(40)')) msgs.push('Teachers is missing subject with type VARCHAR(40).');
+  const cCols = tableInfo(db, 'Classrooms');
+  if (!hasColumn(cCols,'room_id','INTEGER')) msgs.push('Classrooms is missing room_id with type INTEGER.');
+  if (!hasColumn(cCols,'room_name','VARCHAR(10)')) msgs.push('Classrooms is missing room_name with type VARCHAR(10).');
+  if (!hasColumn(cCols,'capacity','INTEGER')) msgs.push('Classrooms is missing capacity with type INTEGER.');
   const ttCols = tableInfo(db, 'Timetable');
+  if (!hasColumn(ttCols,'lesson_id','INTEGER')) msgs.push('Timetable is missing lesson_id with type INTEGER.');
+  if (!hasColumn(ttCols,'teacher_id','INTEGER')) msgs.push('Timetable is missing teacher_id with type INTEGER.');
+  if (!hasColumn(ttCols,'room_id','INTEGER')) msgs.push('Timetable is missing room_id with type INTEGER.');
+  if (!hasColumn(ttCols,'day','VARCHAR(10)')) msgs.push('Timetable is missing day with type VARCHAR(10).');
+  if (!hasColumn(ttCols,'period','INTEGER')) msgs.push('Timetable is missing period with type INTEGER.');
   const stC = ttCols.find(c => c.name.toLowerCase() === 'start_time');
   if (!stC) msgs.push('Timetable is missing start_time (TIME).');
-  else if (!stC.type.includes('TIME')) msgs.push('start_time should be type TIME.');
+  else if (!hasColumn(ttCols,'start_time','TIME')) msgs.push('start_time should be type TIME.');
   const fks = foreignKeys(db, 'Timetable');
   if (!fks.find(f => f.from.toLowerCase() === 'teacher_id'))
     msgs.push('Timetable is missing FK on teacher_id.');
