@@ -546,13 +546,13 @@ function buildERVisualDiagramSVG(schema) {
 
   if (linkedTables.length < 2) return '';
 
-  const boxWidth = 230;
-  const boxHeight = 78;
-  const gapX = 90;
+  const boxWidth = 180;
+  const boxHeight = 58;
+  const gapX = 56;
   const marginX = 24;
-  const marginY = 20;
+  const marginY = 16;
   const topY = marginY;
-  const bottomY = 230;
+  const bottomY = 156;
 
   const childTables = linkedTables.filter(table => (table.foreignKeys || []).length);
   const parentTables = linkedTables.filter(table =>
@@ -615,13 +615,13 @@ function buildERVisualDiagramSVG(schema) {
         if (isLeftRelationship || isRightRelationship) {
           const startX = to.x + to.width / 2;
           const startY = to.y + to.height;
-          const sideY = from.y + Math.round(from.height * 0.58);
+          const sideY = from.y + Math.round(from.height * 0.56);
           const edgeX = isLeftRelationship ? from.x : from.x + from.width;
-          const crowTipX = isLeftRelationship ? edgeX - 18 : edgeX + 18;
+          const crowTipX = isLeftRelationship ? edgeX - 14 : edgeX + 14;
 
           return `
             <path class="er-link" d="M ${startX} ${startY} V ${sideY} H ${crowTipX}" />
-            <path class="er-crow" d="M ${crowTipX} ${sideY} L ${edgeX} ${sideY - 16} M ${crowTipX} ${sideY} L ${edgeX} ${sideY} M ${crowTipX} ${sideY} L ${edgeX} ${sideY + 16}" />`;
+            <path class="er-crow" d="M ${crowTipX} ${sideY} L ${edgeX} ${sideY - 12} M ${crowTipX} ${sideY} L ${edgeX} ${sideY} M ${crowTipX} ${sideY} L ${edgeX} ${sideY + 12}" />`;
         }
       }
 
@@ -629,11 +629,11 @@ function buildERVisualDiagramSVG(schema) {
       const startY = to.y + to.height;
       const endY = from.y;
       let endX = from.x + from.width / 2;
-      let elbowY = startY + Math.max(26, (endY - startY) / 2);
-      let crowY = endY - 14;
+      let elbowY = startY + Math.max(18, (endY - startY) / 2);
+      let crowY = endY - 10;
 
-      const crowLeftX = endX - 18;
-      const crowRightX = endX + 18;
+      const crowLeftX = endX - 14;
+      const crowRightX = endX + 14;
 
       return `
         <path class="er-link" d="M ${startX} ${startY} V ${elbowY} H ${endX} V ${crowY}" />
@@ -644,7 +644,7 @@ function buildERVisualDiagramSVG(schema) {
   const boxes = layout.map(({ table, x, y, width, height }) => `
     <g class="er-node" transform="translate(${x} ${y})">
       <rect class="er-node-box" width="${width}" height="${height}" />
-      <text class="er-node-title" x="${width / 2}" y="${height / 2 + 4}" text-anchor="middle">${esc(table.name.toUpperCase())}</text>
+      <text class="er-node-title" x="${width / 2}" y="${height / 2 + 3}" text-anchor="middle">${esc(table.name.toUpperCase())}</text>
     </g>`).join('');
 
   return `
