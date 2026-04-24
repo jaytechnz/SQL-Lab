@@ -302,7 +302,7 @@ const ddl09 = ex('ddl-09','ddl','CREATE TABLE — PRIMARY KEY Constraint Syntax'
 
 Add the primary key using the **constraint syntax** at the end of the column list:
 \`PRIMARY KEY (teacher_code)\``,
-['Place PRIMARY KEY (field) as the last item in the column list, after a comma',
+['Use PRIMARY KEY (teacher_code) for the key field',
  'Use NOT NULL on name'],
 '',
 null, '',
