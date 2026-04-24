@@ -1091,7 +1091,8 @@ if (resizeHandle) {
   });
   function onResizeMove(e) {
     const delta = startY - e.clientY;
-    const newH  = Math.max(80, Math.min(startH + delta, window.innerHeight * 0.6));
+    const maxPanelHeight = window.innerHeight >= 900 ? window.innerHeight * 0.76 : window.innerHeight * 0.68;
+    const newH  = Math.max(80, Math.min(startH + delta, maxPanelHeight));
     document.documentElement.style.setProperty('--output-h', newH + 'px');
   }
 }
