@@ -115,7 +115,7 @@ export class ChallengeManager {
       const pct    = Math.round(done / catExs.length * 100);
 
       const section = document.createElement('div');
-      section.className = 'ch-section';
+      section.className = `ch-section ch-section--${cat.id}`;
       section.innerHTML = `
         <div class="ch-section-header" data-cat="${cat.id}">
           <span class="ch-section-icon">${cat.icon}</span>
