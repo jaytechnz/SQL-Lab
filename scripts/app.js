@@ -244,6 +244,7 @@ function highlightSQL(code) {
 editor?.addEventListener('input', e => {
   // Auto-uppercase on paste; word-by-word uppercasing is handled in keyup
   if (e.inputType === 'insertFromPaste') autoUppercaseKeywords();
+  _challengeMgr?.updateDraft(editor.value);
   updateHighlight();
   updateLineNumbers();
 });

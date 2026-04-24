@@ -163,6 +163,7 @@ export class ChallengeManager {
   // ── Open / close challenge panel ───────────────────────────────────────────
 
   _openChallenge(ex) {
+    this._saveCurrentDraftFromEditor();
     this.currentEx = ex;
 
     // Highlight sidebar item
@@ -193,6 +194,7 @@ export class ChallengeManager {
   }
 
   _closePanel() {
+    this._saveCurrentDraftFromEditor(true);
     this.challengePanel?.classList.add('hidden');
     this.currentEx = null;
     document.querySelectorAll('.ch-item').forEach(el => el.classList.remove('ch-item--active'));
@@ -200,6 +202,24 @@ export class ChallengeManager {
   }
 
   getCurrentExercise() { return this.currentEx; }
+
+  updateDraft(sql) {
+    const ex = this.currentEx;
+    if (!ex) return;
+    this._lastSQL.set(ex.id, sql);
+  }
+
+  _saveCurrentDraftFromEditor(persist = false) {
+    const ex = this.currentEx;
+    if (!ex) return;
+    const editor = document.getElementById('sql-editor');
+    if (!editor) return;
+    const sql = editor.value ?? '';
+    this._lastSQL.set(ex.id, sql);
+    if (persist && this.uid) {
+      saveLastSQL(this.uid, ex.id, sql).catch(() => {});
+    }
+  }
 
   // ── Run challenge ──────────────────────────────────────────────────────────
   // studentSQL is the full editor content.
