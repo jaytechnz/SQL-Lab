@@ -14,8 +14,6 @@ import {
   updateDoc,
   query,
   where,
-  orderBy,
-  limit,
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
@@ -180,6 +178,18 @@ export async function getAllTeacherClasses(teacherUid) {
   const codes = new Set();
   snap.forEach(d => { if (d.data().classCode) codes.add(d.data().classCode); });
   return [...codes].sort();
+}
+
+export async function assignStudentToClass(uid, classCode) {
+  await updateDoc(doc(db, 'users', uid), {
+    classCode: classCode.trim().toUpperCase()
+  });
+}
+
+export async function removeStudentFromClass(uid) {
+  await updateDoc(doc(db, 'users', uid), {
+    classCode: ''
+  });
 }
 
 // ── Suggestions / Feedback ────────────────────────────────────────────────────
