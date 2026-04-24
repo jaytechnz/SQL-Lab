@@ -144,7 +144,7 @@ null, '',
 });
 
 const ddl02 = ex('ddl-02','ddl','CREATE TABLE — INTEGER and VARCHAR','easy',
-`Create a table called \`Continents\` with the following columns:
+`Create a table called \`Continents\` with the following fields:
 - \`continent_id\` — INTEGER
 - \`continent_name\` — VARCHAR(50)`,
 ['Syntax: CREATE TABLE name (col1 TYPE, col2 TYPE);', 'VARCHAR(n) stores variable-length text up to n characters'],
@@ -155,13 +155,13 @@ null, '',
     return { passed: false, messages: ['Table Continents was not created.'] };
   const cols = tableInfo(db, 'Continents');
   const msgs = [];
-  if (!hasColumn(cols,'continent_id','INTEGER'))   msgs.push('Column continent_id with type INTEGER is missing.');
-  if (!hasColumn(cols,'continent_name','VARCHAR(50)')) msgs.push('Column continent_name with type VARCHAR(50) is missing.');
+  if (!hasColumn(cols,'continent_id','INTEGER'))   msgs.push('Field continent_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'continent_name','VARCHAR(50)')) msgs.push('Field continent_name with type VARCHAR(50) is missing.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['Table Continents created correctly!'] };
 });
 
 const ddl03 = ex('ddl-03','ddl','CREATE TABLE — CHARACTER Data Type','easy',
-`Create a table called \`GradeRecords\` with these columns:
+`Create a table called \`GradeRecords\` with these fields:
 - \`record_id\` — INTEGER
 - \`student_name\` — VARCHAR(50)
 - \`grade\` — CHARACTER
@@ -175,12 +175,12 @@ null, '',
     return { passed: false, messages: ['Table GradeRecords was not created.'] };
   const cols = tableInfo(db, 'GradeRecords');
   const msgs = [];
-  if (!hasColumn(cols,'record_id','INTEGER')) msgs.push('Column record_id with type INTEGER is missing.');
-  if (!hasColumn(cols,'student_name','VARCHAR(50)')) msgs.push('Column student_name with type VARCHAR(50) is missing.');
+  if (!hasColumn(cols,'record_id','INTEGER')) msgs.push('Field record_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'student_name','VARCHAR(50)')) msgs.push('Field student_name with type VARCHAR(50) is missing.');
   const gradeCol = cols.find(c => c.name.toLowerCase() === 'grade');
-  if (!gradeCol) msgs.push('Column grade is missing.');
-  else if (!hasColumn(cols,'grade','CHARACTER')) msgs.push('Column grade should have type CHARACTER.');
-  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['GradeRecords created with a CHARACTER column!'] };
+  if (!gradeCol) msgs.push('Field grade is missing.');
+  else if (!hasColumn(cols,'grade','CHARACTER')) msgs.push('Field grade should have type CHARACTER.');
+  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['GradeRecords created with a CHARACTER field!'] };
 });
 
 const ddl04 = ex('ddl-04','ddl','CREATE TABLE — BOOLEAN Data Type','easy',
@@ -198,13 +198,13 @@ null, '',
     return { passed: false, messages: ['Table SystemSettings was not created.'] };
   const cols = tableInfo(db, 'SystemSettings');
   const msgs = [];
-  if (!hasColumn(cols,'setting_id','INTEGER'))   msgs.push('Column setting_id with type INTEGER is missing.');
-  if (!hasColumn(cols,'setting_name','VARCHAR(30)')) msgs.push('Column setting_name with type VARCHAR(30) is missing.');
+  if (!hasColumn(cols,'setting_id','INTEGER'))   msgs.push('Field setting_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'setting_name','VARCHAR(30)')) msgs.push('Field setting_name with type VARCHAR(30) is missing.');
   const boolCol = cols.find(c => c.name.toLowerCase() === 'is_enabled');
-  if (!boolCol) msgs.push('Column is_enabled is missing.');
+  if (!boolCol) msgs.push('Field is_enabled is missing.');
   else if (!hasColumn(cols,'is_enabled','BOOLEAN'))
-    msgs.push('Column is_enabled should have type BOOLEAN.');
-  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['SystemSettings created with a BOOLEAN column!'] };
+    msgs.push('Field is_enabled should have type BOOLEAN.');
+  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['SystemSettings created with a BOOLEAN field!'] };
 });
 
 const ddl05 = ex('ddl-05','ddl','CREATE TABLE — REAL Data Type','easy',
@@ -222,10 +222,10 @@ null, '',
     return { passed: false, messages: ['Table SensorReadings was not created.'] };
   const cols = tableInfo(db, 'SensorReadings');
   const msgs = [];
-  if (!hasColumn(cols,'reading_id','INTEGER'))   msgs.push('Column reading_id with type INTEGER is missing.');
-  if (!hasColumn(cols,'sensor_value','REAL')) msgs.push('Column sensor_value with type REAL is missing.');
-  if (!hasColumn(cols,'unit','VARCHAR(10)'))         msgs.push('Column unit with type VARCHAR(10) is missing.');
-  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['SensorReadings created with a REAL column!'] };
+  if (!hasColumn(cols,'reading_id','INTEGER'))   msgs.push('Field reading_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'sensor_value','REAL')) msgs.push('Field sensor_value with type REAL is missing.');
+  if (!hasColumn(cols,'unit','VARCHAR(10)'))         msgs.push('Field unit with type VARCHAR(10) is missing.');
+  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['SensorReadings created with a REAL field!'] };
 });
 
 const ddl06 = ex('ddl-06','ddl','CREATE TABLE — DATE Data Type','easy',
@@ -243,12 +243,12 @@ null, '',
     return { passed: false, messages: ['Table PublicHolidays was not created.'] };
   const cols = tableInfo(db, 'PublicHolidays');
   const msgs = [];
-  if (!hasColumn(cols,'holiday_id','INTEGER'))   msgs.push('Column holiday_id with type INTEGER is missing.');
-  if (!hasColumn(cols,'holiday_name','VARCHAR(50)')) msgs.push('Column holiday_name with type VARCHAR(50) is missing.');
+  if (!hasColumn(cols,'holiday_id','INTEGER'))   msgs.push('Field holiday_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'holiday_name','VARCHAR(50)')) msgs.push('Field holiday_name with type VARCHAR(50) is missing.');
   const dateCol = cols.find(c => c.name.toLowerCase() === 'holiday_date');
-  if (!dateCol) msgs.push('Column holiday_date is missing.');
-  else if (!hasColumn(cols,'holiday_date','DATE')) msgs.push('Column holiday_date should have type DATE.');
-  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['PublicHolidays created with a DATE column!'] };
+  if (!dateCol) msgs.push('Field holiday_date is missing.');
+  else if (!hasColumn(cols,'holiday_date','DATE')) msgs.push('Field holiday_date should have type DATE.');
+  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['PublicHolidays created with a DATE field!'] };
 });
 
 const ddl07 = ex('ddl-07','ddl','CREATE TABLE — TIME Data Type','easy',
@@ -267,15 +267,15 @@ null, '',
     return { passed: false, messages: ['Table ClassSchedule was not created.'] };
   const cols = tableInfo(db, 'ClassSchedule');
   const msgs = [];
-  if (!hasColumn(cols,'slot_id','INTEGER'))    msgs.push('Column slot_id with type INTEGER is missing.');
-  if (!hasColumn(cols,'subject','VARCHAR(30)'))    msgs.push('Column subject with type VARCHAR(30) is missing.');
+  if (!hasColumn(cols,'slot_id','INTEGER'))    msgs.push('Field slot_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'subject','VARCHAR(30)'))    msgs.push('Field subject with type VARCHAR(30) is missing.');
   const st = cols.find(c => c.name.toLowerCase() === 'start_time');
   const et = cols.find(c => c.name.toLowerCase() === 'end_time');
-  if (!st) msgs.push('Column start_time is missing.');
-  else if (!hasColumn(cols,'start_time','TIME')) msgs.push('Column start_time should have type TIME.');
-  if (!et) msgs.push('Column end_time is missing.');
-  else if (!hasColumn(cols,'end_time','TIME')) msgs.push('Column end_time should have type TIME.');
-  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['ClassSchedule created with TIME columns!'] };
+  if (!st) msgs.push('Field start_time is missing.');
+  else if (!hasColumn(cols,'start_time','TIME')) msgs.push('Field start_time should have type TIME.');
+  if (!et) msgs.push('Field end_time is missing.');
+  else if (!hasColumn(cols,'end_time','TIME')) msgs.push('Field end_time should have type TIME.');
+  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['ClassSchedule created with TIME fields!'] };
 });
 
 const ddl08 = ex('ddl-08','ddl','CREATE TABLE — PRIMARY KEY Inline Syntax','easy',
@@ -293,9 +293,9 @@ null, '',
     return { passed: false, messages: ['Table Countries was not created.'] };
   const cols = tableInfo(db, 'Countries');
   const msgs = [];
-  if (!hasColumn(cols,'country_id','INTEGER'))   msgs.push('Column country_id with type INTEGER is missing.');
-  if (!hasColumn(cols,'country_name','VARCHAR(50)')) msgs.push('Column country_name with type VARCHAR(50) is missing.');
-  if (!hasColumn(cols,'population','INTEGER'))   msgs.push('Column population with type INTEGER is missing.');
+  if (!hasColumn(cols,'country_id','INTEGER'))   msgs.push('Field country_id with type INTEGER is missing.');
+  if (!hasColumn(cols,'country_name','VARCHAR(50)')) msgs.push('Field country_name with type VARCHAR(50) is missing.');
+  if (!hasColumn(cols,'population','INTEGER'))   msgs.push('Field population with type INTEGER is missing.');
   const pkCol = cols.find(c => c.name.toLowerCase() === 'country_id');
   if (pkCol && !pkCol.pk) msgs.push('country_id should be the PRIMARY KEY.');
   const nameCol = cols.find(c => c.name.toLowerCase() === 'country_name');
@@ -309,7 +309,7 @@ const ddl09 = ex('ddl-09','ddl','CREATE TABLE — PRIMARY KEY Constraint Syntax'
 - \`name\` — VARCHAR(50), and make it **NOT NULL**
 - \`subject\` — VARCHAR(30)
 
-Add the primary key using the **constraint syntax** at the end of the column list:
+Add the primary key using the **constraint syntax** at the end of the field list:
 \`PRIMARY KEY (teacher_code)\``,
 ['Use PRIMARY KEY (teacher_code) for the key field',
  'Use NOT NULL on name'],
@@ -323,14 +323,14 @@ null, '',
     return { passed: false, messages: ['The table name must be written exactly as Teachers, with the correct capital letter.'] };
   const cols = tableInfo(db, 'Teachers');
   const pkCol = exactColumnName(cols, 'teacher_code');
-  if (!pkCol) return { passed: false, messages: ['Column teacher_code is missing.'] };
+  if (!pkCol) return { passed: false, messages: ['Field teacher_code is missing.'] };
   if (!hasColumn(cols,'teacher_code','VARCHAR(10)')) return { passed: false, messages: ['teacher_code should have type VARCHAR(10).'] };
   if (!pkCol.pk) return { passed: false, messages: ['teacher_code must be set as PRIMARY KEY.'] };
   const nameCol = exactColumnName(cols, 'name');
-  if (!nameCol) return { passed: false, messages: ['Column name is missing.'] };
+  if (!nameCol) return { passed: false, messages: ['Field name is missing.'] };
   if (!hasColumn(cols,'name','VARCHAR(50)')) return { passed: false, messages: ['name should have type VARCHAR(50).'] };
   if (!nameCol.notNull) return { passed: false, messages: ['name should be marked NOT NULL.'] };
-  if (!exactColumnName(cols, 'subject')) return { passed: false, messages: ['Column subject is missing.'] };
+  if (!exactColumnName(cols, 'subject')) return { passed: false, messages: ['Field subject is missing.'] };
   if (!hasColumn(cols,'subject','VARCHAR(30)')) return { passed: false, messages: ['subject should have type VARCHAR(30).'] };
   return { passed: true, messages: ['Teachers created with PRIMARY KEY (teacher_code) constraint syntax!'] };
 });
@@ -355,24 +355,24 @@ null, '',
   const cols = tableInfo(db, 'Products');
   const msgs = [];
   const pkCol = cols.find(c => c.name.toLowerCase() === 'product_id');
-  if (!pkCol) msgs.push('Column product_id (INTEGER PRIMARY KEY) is missing.');
+  if (!pkCol) msgs.push('Field product_id (INTEGER PRIMARY KEY) is missing.');
   else if (!pkCol.pk) msgs.push('product_id should be the PRIMARY KEY.');
-  if (!hasColumn(cols,'name','VARCHAR(100)'))        msgs.push('Column name (VARCHAR(100)) is missing.');
+  if (!hasColumn(cols,'name','VARCHAR(100)'))        msgs.push('Field name (VARCHAR(100)) is missing.');
   const sizeCodeCol = cols.find(c => c.name.toLowerCase() === 'size_code');
-  if (!sizeCodeCol) msgs.push('Column size_code (CHARACTER) is missing.');
-  else if (!hasColumn(cols,'size_code','CHARACTER')) msgs.push('Column size_code should be type CHARACTER.');
-  if (!hasColumn(cols,'in_stock','BOOLEAN'))    msgs.push('Column in_stock (BOOLEAN) is missing.');
-  if (!hasColumn(cols,'price','REAL'))msgs.push('Column price (REAL) is missing.');
+  if (!sizeCodeCol) msgs.push('Field size_code (CHARACTER) is missing.');
+  else if (!hasColumn(cols,'size_code','CHARACTER')) msgs.push('Field size_code should be type CHARACTER.');
+  if (!hasColumn(cols,'in_stock','BOOLEAN'))    msgs.push('Field in_stock (BOOLEAN) is missing.');
+  if (!hasColumn(cols,'price','REAL'))msgs.push('Field price (REAL) is missing.');
   const dateCol = cols.find(c => c.name.toLowerCase() === 'added_date');
-  if (!dateCol) msgs.push('Column added_date (DATE) is missing.');
-  else if (!hasColumn(cols,'added_date','DATE')) msgs.push('Column added_date should be type DATE.');
+  if (!dateCol) msgs.push('Field added_date (DATE) is missing.');
+  else if (!hasColumn(cols,'added_date','DATE')) msgs.push('Field added_date should be type DATE.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['All six Cambridge data types used correctly!'] };
 });
 
 const ddl11 = ex('ddl-11','ddl','ALTER TABLE — Add Column','easy',
-`A \`Students\` table already exists with columns: \`student_id\`, \`name\`, \`year_group\`.
+`A \`Students\` table already exists with fields: \`student_id\`, \`name\`, \`year_group\`.
 
-Use \`ALTER TABLE\` to **add** a new column:
+Use \`ALTER TABLE\` to **add** a new field:
 - \`email\` — VARCHAR(100)`,
 ['Syntax: ALTER TABLE table_name ADD COLUMN col_name TYPE;',
  'Or just: ALTER TABLE table_name ADD col_name TYPE;'],
@@ -385,20 +385,20 @@ null,
 );`,
 (db, sql) => {
   if (!tableExists(db, 'Students'))
-    return { passed: false, messages: ['The Students table was removed — only use ALTER TABLE to add the column.'] };
+    return { passed: false, messages: ['The Students table was removed — only use ALTER TABLE to add the field.'] };
   const cols = tableInfo(db, 'Students');
   const emailCol = cols.find(c => c.name.toLowerCase() === 'email');
   if (!emailCol)
-    return { passed: false, messages: ['Column email was not added. Use ALTER TABLE Students ADD email VARCHAR(100);'] };
+    return { passed: false, messages: ['Field email was not added. Use ALTER TABLE Students ADD email VARCHAR(100);'] };
   if (!hasColumn(cols,'email','VARCHAR(100)'))
-    return { passed: false, messages: ['Column email should be VARCHAR(100).'] };
-  return { passed: true, messages: ['email VARCHAR(100) column added successfully!'] };
+    return { passed: false, messages: ['Field email should be VARCHAR(100).'] };
+  return { passed: true, messages: ['email VARCHAR(100) field added successfully!'] };
 });
 
 const ddl12 = ex('ddl-12','ddl','ALTER TABLE — Add Multiple Columns','medium',
 `A \`Books\` table exists with: \`book_id\`, \`title\`, \`author\`.
 
-Add **two** new columns using ALTER TABLE:
+Add **two** new fields using ALTER TABLE:
 1. \`isbn\` — VARCHAR(20)
 2. \`publish_year\` — INTEGER`,
 ['You will need two separate ALTER TABLE statements — one for each column',
@@ -417,11 +417,11 @@ null,
   const msgs = [];
   const isbn = cols.find(c => c.name.toLowerCase() === 'isbn');
   const yr   = cols.find(c => c.name.toLowerCase() === 'publish_year');
-  if (!isbn) msgs.push('Column isbn was not added.');
-  else if (!hasColumn(cols,'isbn','VARCHAR(20)')) msgs.push('Column isbn should be VARCHAR(20).');
-  if (!yr)   msgs.push('Column publish_year was not added.');
-  else if (!hasColumn(cols,'publish_year','INTEGER')) msgs.push('Column publish_year should be INTEGER.');
-  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['Both columns added with ALTER TABLE!'] };
+  if (!isbn) msgs.push('Field isbn was not added.');
+  else if (!hasColumn(cols,'isbn','VARCHAR(20)')) msgs.push('Field isbn should be VARCHAR(20).');
+  if (!yr)   msgs.push('Field publish_year was not added.');
+  else if (!hasColumn(cols,'publish_year','INTEGER')) msgs.push('Field publish_year should be INTEGER.');
+  return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['Both fields added with ALTER TABLE!'] };
 });
 
 const ddl13 = ex('ddl-13','ddl','FOREIGN KEY Reference','medium',
@@ -435,7 +435,7 @@ Departments has been created for you. Create the \`Staff\` table with:
 
 Syntax: \`FOREIGN KEY (field) REFERENCES Table (Field)\``,
 ['Add the foreign key as a table constraint: FOREIGN KEY (dept_id) REFERENCES Departments(dept_id)',
- 'The foreign key column and referenced column must be compatible types'],
+ 'The foreign key field and referenced field must be compatible types'],
 '',
 null,
 `CREATE TABLE Departments (
@@ -481,9 +481,9 @@ null, '',
   if (!hasColumn(aCols,'author_id','INTEGER')) msgs.push('Authors is missing author_id with type INTEGER.');
   if (!hasColumn(aCols,'name','VARCHAR(80)')) msgs.push('Authors is missing name with type VARCHAR(80).');
   if (!hasColumn(bCols,'book_id','INTEGER')) msgs.push('Books is missing book_id with type INTEGER.');
-  if (!hasColumn(bCols,'title','VARCHAR(100)'))    msgs.push('Books is missing the title column with type VARCHAR(100).');
-  if (!hasColumn(bCols,'author_id','INTEGER'))msgs.push('Books is missing the author_id column with type INTEGER.');
-  if (!hasColumn(bCols,'genre','VARCHAR(30)')) msgs.push('Books is missing the genre column with type VARCHAR(30).');
+  if (!hasColumn(bCols,'title','VARCHAR(100)'))    msgs.push('Books is missing the title field with type VARCHAR(100).');
+  if (!hasColumn(bCols,'author_id','INTEGER'))msgs.push('Books is missing the author_id field with type INTEGER.');
+  if (!hasColumn(bCols,'genre','VARCHAR(30)')) msgs.push('Books is missing the genre field with type VARCHAR(30).');
   if (!hasColumn(bCols,'price','REAL')) msgs.push('Books is missing the price REAL column.');
   const fks = foreignKeys(db, 'Books');
   const fk = fks.find(f => f.from.toLowerCase() === 'author_id' &&
@@ -514,9 +514,9 @@ null, '',
   if (!hasColumn(cols,'patient_name','VARCHAR(50)')) msgs.push('patient_name should be type VARCHAR(50).');
   const dateC = cols.find(c => c.name.toLowerCase() === 'appt_date');
   const timeC = cols.find(c => c.name.toLowerCase() === 'appt_time');
-  if (!dateC) msgs.push('Column appt_date (DATE) is missing.');
+  if (!dateC) msgs.push('Field appt_date (DATE) is missing.');
   else if (!hasColumn(cols,'appt_date','DATE')) msgs.push('appt_date should be type DATE.');
-  if (!timeC) msgs.push('Column appt_time (TIME) is missing.');
+  if (!timeC) msgs.push('Field appt_time (TIME) is missing.');
   else if (!hasColumn(cols,'appt_time','TIME')) msgs.push('appt_time should be type TIME.');
   if (!hasColumn(cols,'confirmed','BOOLEAN')) msgs.push('confirmed should be type BOOLEAN.');
   return msgs.length ? { passed: false, messages: msgs }
@@ -531,7 +531,7 @@ Extend it using ALTER TABLE to add:
 2. \`year\` — INTEGER
 3. \`price\` — REAL`,
 ['Run three separate ALTER TABLE ... ADD statements',
- 'Check each column name is spelled exactly as specified'],
+ 'Check each field name is spelled exactly as specified'],
 '',
 null,
 `CREATE TABLE Vehicles (
@@ -541,24 +541,33 @@ null,
 (db, sql) => {
   const cols = tableInfo(db, 'Vehicles');
   const msgs = [];
-  if (!hasColumn(cols,'model','VARCHAR(50)'))       msgs.push('Column model with type VARCHAR(50) is missing.');
-  if (!hasColumn(cols,'year','INTEGER'))        msgs.push('Column year with type INTEGER is missing.');
-  if (!hasColumn(cols,'price','REAL'))       msgs.push('Column price with type REAL is missing.');
+  if (!hasColumn(cols,'model','VARCHAR(50)'))       msgs.push('Field model with type VARCHAR(50) is missing.');
+  if (!hasColumn(cols,'year','INTEGER'))        msgs.push('Field year with type INTEGER is missing.');
+  if (!hasColumn(cols,'price','REAL'))       msgs.push('Field price with type REAL is missing.');
   if (!hasColumn(cols,'vehicle_id','INTEGER'))  msgs.push('vehicle_id should still exist with type INTEGER.');
   if (!hasColumn(cols,'make','VARCHAR(30)')) msgs.push('make should still exist with type VARCHAR(30).');
   return msgs.length ? { passed: false, messages: msgs }
-    : { passed: true, messages: ['Vehicles table extended with 3 new columns!'] };
+    : { passed: true, messages: ['Vehicles table extended with 3 new fields!'] };
 });
 
 const ddl17 = ex('ddl-17','ddl','Three-Table Hospital Schema','hard',
-`Create a 3-table hospital database:
+`Create these three linked tables for a hospital database:
 
-1. \`Doctors\` — doctor_id INTEGER PK, name VARCHAR(50), speciality VARCHAR(50)
-2. \`Patients\` — patient_id INTEGER PK, name VARCHAR(50), dob DATE, blood_type CHARACTER
-3. \`Appointments\` — appt_id INTEGER PK, doctor_id INTEGER FK→Doctors, patient_id INTEGER FK→Patients, appt_date DATE, appt_time TIME`,
+1. Create a table called \`Doctors\`.
+\`doctor_id\` is the primary key field and must use INTEGER.
+Also include \`name\` as VARCHAR(50) and \`speciality\` as VARCHAR(50).
+
+2. Create a table called \`Patients\`.
+\`patient_id\` is the primary key field and must use INTEGER.
+Also include \`name\` as VARCHAR(50), \`dob\` as DATE, and \`blood_type\` as CHARACTER.
+
+3. Create a table called \`Appointments\`.
+\`appt_id\` is the primary key field and must use INTEGER.
+Also include \`doctor_id\` as INTEGER, \`patient_id\` as INTEGER, \`appt_date\` as DATE, and \`appt_time\` as TIME.
+
+In \`Appointments\`, add a foreign key from \`doctor_id\` to \`Doctors.doctor_id\`, and a foreign key from \`patient_id\` to \`Patients.patient_id\`.`,
 ['Create Doctors and Patients first, then Appointments',
- 'Appointments needs two FOREIGN KEY constraints',
- 'FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id)'],
+ 'Appointments needs two FOREIGN KEY constraints'],
 '',
 null, '',
 (db, sql) => {
@@ -570,12 +579,12 @@ null, '',
   const dCols = tableInfo(db, 'Doctors');
   if (!hasColumn(dCols,'doctor_id','INTEGER')) msgs.push('Doctors is missing doctor_id with type INTEGER.');
   if (!hasColumn(dCols,'name','VARCHAR(50)')) msgs.push('Doctors is missing name with type VARCHAR(50).');
-  if (!hasColumn(dCols,'speciality','VARCHAR(50)')) msgs.push('Doctors is missing the speciality column with type VARCHAR(50).');
+  if (!hasColumn(dCols,'speciality','VARCHAR(50)')) msgs.push('Doctors is missing the speciality field with type VARCHAR(50).');
   const pCols = tableInfo(db, 'Patients');
   if (!hasColumn(pCols,'patient_id','INTEGER')) msgs.push('Patients is missing patient_id with type INTEGER.');
   if (!hasColumn(pCols,'name','VARCHAR(50)')) msgs.push('Patients is missing name with type VARCHAR(50).');
   const dobC = pCols.find(c => c.name.toLowerCase() === 'dob');
-  if (!dobC) msgs.push('Patients is missing the dob column.');
+  if (!dobC) msgs.push('Patients is missing the dob field.');
   else if (!hasColumn(pCols,'dob','DATE')) msgs.push('dob should be type DATE.');
   const btC = pCols.find(c => c.name.toLowerCase() === 'blood_type');
   if (!btC) msgs.push('Patients is missing blood_type.');
@@ -720,8 +729,8 @@ null, '',
 // ══════════════════════════════════════════════════════════════════════════════
 
 const dml01 = ex('dml-01','dml','SELECT — All Columns','easy',
-`Using the **Bookshop** database, write a query to retrieve **all columns and all rows** from the \`books\` table.`,
-['Use SELECT * to retrieve all columns', 'SELECT * FROM table_name;'],
+`Using the **Bookshop** database, write a query to retrieve **all fields and all rows** from the \`books\` table.`,
+['Use SELECT * to retrieve all fields', 'SELECT * FROM table_name;'],
 '',
 'bookshop', '',
 (db, sql) => {
@@ -730,13 +739,13 @@ const dml01 = ex('dml-01','dml','SELECT — All Columns','easy',
   if (r.rows.length !== 10)
     return { passed: false, messages: [`Expected 10 rows but got ${r.rows.length}. Select from the books table.`] };
   if (r.columns.length < 5)
-    return { passed: false, messages: ['Use SELECT * to retrieve all columns.'] };
+    return { passed: false, messages: ['Use SELECT * to retrieve all fields.'] };
   return { passed: true, messages: ['All 10 books retrieved!'] };
 });
 
 const dml02 = ex('dml-02','dml','SELECT — Specific Columns','easy',
-`From the **Bookshop** database, retrieve only the \`title\`, \`author\` and \`price\` columns from the \`books\` table.`,
-['List column names separated by commas after SELECT',
+`From the **Bookshop** database, retrieve only the \`title\`, \`author\` and \`price\` fields from the \`books\` table.`,
+['List field names separated by commas after SELECT',
  'SELECT col1, col2 FROM table_name;'],
 '',
 'bookshop', '',
