@@ -220,11 +220,22 @@ function highlightSQL(code) {
     .replace(numbers,  m => `<span class="syn-num">${m}</span>`);
 }
 
-editor?.addEventListener('input', () => {
-  autoUppercaseKeywords();
+editor?.addEventListener('input', e => {
+  // Auto-uppercase on paste; word-by-word uppercasing is handled in keyup
+  if (e.inputType === 'insertFromPaste') autoUppercaseKeywords();
   updateHighlight();
   updateLineNumbers();
 });
+
+// Uppercase completed keywords when the user finishes a word
+const WORD_ENDERS = new Set([' ', ';', '(', ')', ',', 'Enter']);
+editor?.addEventListener('keyup', e => {
+  if (WORD_ENDERS.has(e.key)) {
+    autoUppercaseKeywords();
+    updateHighlight();
+  }
+});
+
 editor?.addEventListener('scroll', () => {
   const hl = $('editor-highlight');
   const gutter = $('editor-gutter');
@@ -232,20 +243,36 @@ editor?.addEventListener('scroll', () => {
   if (gutter) gutter.scrollTop = editor.scrollTop;
 });
 editor?.addEventListener('keydown', e => {
-  // Tab inserts 2 spaces
+  // Tab inserts 4 spaces
   if (e.key === 'Tab') {
     e.preventDefault();
     const start = editor.selectionStart;
     const end   = editor.selectionEnd;
-    editor.value = editor.value.slice(0, start) + '  ' + editor.value.slice(end);
-    editor.selectionStart = editor.selectionEnd = start + 2;
+    editor.value = editor.value.slice(0, start) + '    ' + editor.value.slice(end);
+    editor.selectionStart = editor.selectionEnd = start + 4;
     updateHighlight();
     updateLineNumbers();
   }
-  // Ctrl/Cmd + Enter = Run
+  // Ctrl/Cmd + Enter = Run (must come before plain Enter handler)
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault();
     executeQuery();
+    return;
+  }
+  // Enter: auto-indent to match current line; extra indent after (
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const pos       = editor.selectionStart;
+    const text      = editor.value;
+    const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+    const curLine   = text.slice(lineStart, pos);
+    const indent    = curLine.match(/^(\s*)/)[1];
+    const extra     = curLine.trimEnd().endsWith('(') ? '    ' : '';
+    const insertion = '\n' + indent + extra;
+    editor.value = text.slice(0, pos) + insertion + text.slice(editor.selectionEnd);
+    editor.selectionStart = editor.selectionEnd = pos + insertion.length;
+    updateHighlight();
+    updateLineNumbers();
   }
   // Ctrl/Cmd + L = clear
   if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
