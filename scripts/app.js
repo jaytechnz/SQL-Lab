@@ -51,6 +51,13 @@ function showLogin() {
   appEl?.classList.add('hidden');
 }
 
+function setBusyButton(btn, busy, busyLabel, idleLabel) {
+  if (!btn) return;
+  btn.disabled = busy;
+  btn.classList.toggle('is-loading', busy);
+  btn.textContent = busy ? busyLabel : idleLabel;
+}
+
 async function showApp() {
   loginPage?.classList.add('hidden');
   appEl?.classList.remove('hidden');
@@ -94,15 +101,15 @@ $('signin-form')?.addEventListener('submit', async e => {
   const pw    = $('signin-password').value;
   const btn   = $('signin-btn');
   const err   = $('signin-error');
-  btn.disabled = true;
   err.classList.add('hidden');
+  setBusyButton(btn, true, 'Signing In...', 'Sign In');
   try {
     await signIn(email, pw);
   } catch (ex) {
     err.textContent = ex.message;
     err.classList.remove('hidden');
   } finally {
-    btn.disabled = false;
+    setBusyButton(btn, false, 'Signing In...', 'Sign In');
   }
 });
 
@@ -114,15 +121,15 @@ $('signup-form')?.addEventListener('submit', async e => {
   const pw    = $('signup-password').value;
   const btn   = $('signup-btn');
   const err   = $('signup-error');
-  btn.disabled = true;
   err.classList.add('hidden');
+  setBusyButton(btn, true, 'Creating Account...', 'Create Account');
   try {
     await registerUser(email, pw, name, code);
   } catch (ex) {
     err.textContent = ex.message;
     err.classList.remove('hidden');
   } finally {
-    btn.disabled = false;
+    setBusyButton(btn, false, 'Creating Account...', 'Create Account');
   }
 });
 
