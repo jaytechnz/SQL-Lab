@@ -267,7 +267,7 @@ null, '',
 
 const ddl08 = ex('ddl-08','ddl','CREATE TABLE — PRIMARY KEY Inline Syntax','easy',
 `Create a table called \`Countries\` with:
-- \`country_id\` — INTEGER, and make it the **PRIMARY KEY**
+- \`country_id\` — INTEGER, and make it the **PRIMARY KEY** field
 - \`country_name\` — VARCHAR(50), and make it **NOT NULL**
 - \`population\` — INTEGER
 
@@ -292,12 +292,12 @@ null, '',
 
 const ddl09 = ex('ddl-09','ddl','CREATE TABLE — PRIMARY KEY Constraint Syntax','easy',
 `Create a table called \`Teachers\` with:
-- \`teacher_id\` — INTEGER
+- \`teacher_code\` — VARCHAR(10), and make it the **PRIMARY KEY** field
 - \`name\` — VARCHAR(50), and make it **NOT NULL**
 - \`subject\` — VARCHAR(30)
 
 Add the primary key using the **constraint syntax** at the end of the column list:
-\`PRIMARY KEY (teacher_id)\``,
+\`PRIMARY KEY (teacher_code)\``,
 ['Place PRIMARY KEY (field) as the last item in the column list, after a comma',
  'Use NOT NULL on name'],
 '',
@@ -306,13 +306,14 @@ null, '',
   if (!tableExists(db, 'Teachers'))
     return { passed: false, messages: ['Table Teachers was not created.'] };
   const cols = tableInfo(db, 'Teachers');
-  const pkCol = cols.find(c => c.name.toLowerCase() === 'teacher_id');
-  if (!pkCol) return { passed: false, messages: ['Column teacher_id is missing.'] };
-  if (!pkCol.pk) return { passed: false, messages: ['teacher_id must be set as PRIMARY KEY.'] };
+  const pkCol = cols.find(c => c.name.toLowerCase() === 'teacher_code');
+  if (!pkCol) return { passed: false, messages: ['Column teacher_code is missing.'] };
+  if (!pkCol.type.includes('VAR')) return { passed: false, messages: ['teacher_code should have type VARCHAR(10).'] };
+  if (!pkCol.pk) return { passed: false, messages: ['teacher_code must be set as PRIMARY KEY.'] };
   const nameCol = cols.find(c => c.name.toLowerCase() === 'name');
   if (!nameCol) return { passed: false, messages: ['Column name is missing.'] };
   if (!nameCol.notNull) return { passed: false, messages: ['name should be marked NOT NULL.'] };
-  return { passed: true, messages: ['Teachers created with PRIMARY KEY (teacher_id) constraint syntax!'] };
+  return { passed: true, messages: ['Teachers created with PRIMARY KEY (teacher_code) constraint syntax!'] };
 });
 
 const ddl10 = ex('ddl-10','ddl','All Cambridge Data Types','medium',
