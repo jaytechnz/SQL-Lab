@@ -596,6 +596,9 @@ function buildERVisualDiagramSVG(schema) {
   const svgWidth = Math.max(...layout.map(item => item.x + item.width)) + marginX;
   const svgHeight = boxBottom + marginY;
   const positions = new Map(layout.map(item => [item.table.name, item]));
+  const specialParents = specialChild
+    ? parentTables.map(table => positions.get(table.name)).filter(Boolean).sort((a, b) => a.x - b.x)
+    : [];
 
   const links = linkedTables.flatMap(table =>
     (table.foreignKeys || []).map(fk => {
@@ -605,10 +608,24 @@ function buildERVisualDiagramSVG(schema) {
 
       const startX = to.x + to.width / 2;
       const startY = to.y + to.height;
-      const endX = from.x + from.width / 2;
       const endY = from.y;
-      const elbowY = startY + Math.max(26, (endY - startY) / 2);
-      const crowY = endY - 14;
+      let endX = from.x + from.width / 2;
+      let elbowY = startY + Math.max(26, (endY - startY) / 2);
+      let crowY = endY - 14;
+
+      if (specialChild && from.table.name === specialChild.name && specialParents.length === 2) {
+        const [leftParent, rightParent] = specialParents;
+        const childLeftJoin = from.x + Math.round(from.width * 0.28);
+        const childRightJoin = from.x + Math.round(from.width * 0.72);
+        if (to.table.name === leftParent.table.name) {
+          endX = childLeftJoin;
+        } else if (to.table.name === rightParent.table.name) {
+          endX = childRightJoin;
+        }
+        elbowY = startY + Math.max(34, (endY - startY) / 2);
+        crowY = endY - 16;
+      }
+
       const crowLeftX = endX - 18;
       const crowRightX = endX + 18;
 
