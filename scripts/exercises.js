@@ -153,8 +153,8 @@ const ddl03 = ex('ddl-03','ddl','CREATE TABLE — CHARACTER Data Type','easy',
 - \`student_name\` — VARCHAR(50)
 - \`grade\` — CHARACTER
 
-CHARACTER (or CHAR) stores a single character, e.g. a grade letter 'A', 'B', 'C'.`,
-['CHARACTER and CHAR are equivalent in SQL', 'A single character is different from a string'],
+CHARACTER stores a single character, e.g. a grade letter 'A', 'B', 'C'.`,
+['Use CHARACTER for a single character value', 'A single character is different from a string'],
 '',
 null, '',
 (db, sql) => {
@@ -166,7 +166,7 @@ null, '',
   if (!hasColumn(cols,'student_name')) msgs.push('Column student_name is missing.');
   const gradeCol = cols.find(c => c.name.toLowerCase() === 'grade');
   if (!gradeCol) msgs.push('Column grade is missing.');
-  else if (!gradeCol.type.includes('CHAR')) msgs.push('Column grade should have type CHARACTER or CHAR.');
+  else if (!gradeCol.type.includes('CHARACTER')) msgs.push('Column grade should have type CHARACTER.');
   return msgs.length ? { passed: false, messages: msgs } : { passed: true, messages: ['GradeRecords created with a CHARACTER column!'] };
 });
 
@@ -320,7 +320,7 @@ const ddl10 = ex('ddl-10','ddl','All Cambridge Data Types','medium',
 - \`added_date\` — DATE
 
 This exercise covers every data type in the 9618 syllabus.`,
-['Use all six types: INTEGER, VARCHAR, CHARACTER/CHAR, BOOLEAN, REAL, DATE',
+['Use all six types: INTEGER, VARCHAR, CHARACTER, BOOLEAN, REAL, DATE',
  'Add PRIMARY KEY to product_id'],
 '',
 null, '',
@@ -333,7 +333,9 @@ null, '',
   if (!pkCol) msgs.push('Column product_id (INTEGER PRIMARY KEY) is missing.');
   else if (!pkCol.pk) msgs.push('product_id should be the PRIMARY KEY.');
   if (!hasColumn(cols,'name'))        msgs.push('Column name (VARCHAR) is missing.');
-  if (!hasColumn(cols,'size_code'))   msgs.push('Column size_code (CHARACTER) is missing.');
+  const sizeCodeCol = cols.find(c => c.name.toLowerCase() === 'size_code');
+  if (!sizeCodeCol) msgs.push('Column size_code (CHARACTER) is missing.');
+  else if (!sizeCodeCol.type.includes('CHARACTER')) msgs.push('Column size_code should be type CHARACTER.');
   if (!hasColumn(cols,'in_stock'))    msgs.push('Column in_stock (BOOLEAN) is missing.');
   if (!hasColumn(cols,'price','REAL'))msgs.push('Column price (REAL) is missing.');
   const dateCol = cols.find(c => c.name.toLowerCase() === 'added_date');
@@ -533,7 +535,7 @@ null, '',
   else if (!dobC.type.includes('DATE')) msgs.push('dob should be type DATE.');
   const btC = pCols.find(c => c.name.toLowerCase() === 'blood_type');
   if (!btC) msgs.push('Patients is missing blood_type.');
-  else if (!btC.type.includes('CHAR')) msgs.push('blood_type should be type CHARACTER.');
+  else if (!btC.type.includes('CHARACTER')) msgs.push('blood_type should be type CHARACTER.');
   const fks = foreignKeys(db, 'Appointments');
   if (!fks.find(f => f.from.toLowerCase() === 'doctor_id'))
     msgs.push('Appointments is missing FK on doctor_id.');

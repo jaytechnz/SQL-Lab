@@ -463,6 +463,10 @@ function validateCreatedTables(sql, db) {
   const statements = [...String(sql || '').matchAll(/create\s+table\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([\s\S]*?)\)\s*;?/gi)];
   const messages = [];
 
+  if (/\bCHAR\b(?!ACTER)\b/i.test(String(sql || ''))) {
+    messages.push('Use CHARACTER instead of CHAR for this course.');
+  }
+
   statements.forEach(([, tableName, body]) => {
     const info = tableInfoForValidation(db, tableName);
     const pkCols = info.filter(col => col.pk);
