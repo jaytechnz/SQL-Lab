@@ -537,6 +537,85 @@ function buildRelationshipSummary(schema) {
   );
 }
 
+function buildERVisualDiagramSVG(schema) {
+  const linkedTables = schema.filter(table =>
+    (table.foreignKeys || []).length ||
+    schema.some(candidate => (candidate.foreignKeys || []).some(fk => fk.referencedTable === table.name))
+  );
+
+  if (linkedTables.length < 2) return '';
+
+  const cardWidth = 220;
+  const headerHeight = 30;
+  const rowHeight = 20;
+  const gapX = 70;
+  const gapY = 60;
+  const margin = 24;
+  const columns = Math.min(3, linkedTables.length);
+  const rows = Math.ceil(linkedTables.length / columns);
+
+  const layout = linkedTables.map((table, index) => {
+    const col = index % columns;
+    const row = Math.floor(index / columns);
+    const height = headerHeight + Math.max(1, table.columns.length) * rowHeight;
+    return {
+      table,
+      x: margin + col * (cardWidth + gapX),
+      y: margin + row * (160 + gapY),
+      width: cardWidth,
+      height
+    };
+  });
+
+  const boxBottom = Math.max(...layout.map(item => item.y + item.height));
+  const svgWidth = margin * 2 + columns * cardWidth + (columns - 1) * gapX;
+  const svgHeight = boxBottom + margin;
+  const positions = new Map(layout.map(item => [item.table.name, item]));
+
+  const links = linkedTables.flatMap(table =>
+    (table.foreignKeys || []).map(fk => {
+      const from = positions.get(table.name);
+      const to = positions.get(fk.referencedTable);
+      if (!from || !to) return '';
+
+      const startX = from.x + from.width / 2;
+      const startY = from.y;
+      const endX = to.x + to.width / 2;
+      const endY = to.y + to.height;
+      const midY = startY - 24;
+
+      return `
+        <path class="er-link" d="M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}" />
+        <circle class="er-link-dot" cx="${startX}" cy="${startY}" r="3" />
+        <circle class="er-link-dot" cx="${endX}" cy="${endY}" r="3" />`;
+    })
+  ).join('');
+
+  const boxes = layout.map(({ table, x, y, width, height }) => `
+    <g class="er-node" transform="translate(${x} ${y})">
+      <rect class="er-node-box" width="${width}" height="${height}" rx="12" ry="12" />
+      <rect class="er-node-header" width="${width}" height="${headerHeight}" rx="12" ry="12" />
+      <rect class="er-node-header-fill" y="12" width="${width}" height="${headerHeight - 12}" />
+      <text class="er-node-title" x="14" y="20">${esc(table.name)}</text>
+      ${(table.columns || []).map((column, index) => {
+        const marker = column.primaryKey ? 'PK' : (table.foreignKeys || []).some(fk => fk.fromColumn === column.name) ? 'FK' : '';
+        const yPos = headerHeight + 14 + index * rowHeight;
+        return `
+          <text class="er-node-field" x="14" y="${yPos}">
+            ${marker ? `<tspan class="er-node-marker">${marker}</tspan><tspan dx="6">${esc(column.name)}</tspan>` : esc(column.name)}
+          </text>`;
+      }).join('')}
+    </g>`).join('');
+
+  return `
+    <div class="er-visual-wrap">
+      <svg class="er-visual" viewBox="0 0 ${svgWidth} ${svgHeight}" role="img" aria-label="Entity relationship diagram">
+        ${links}
+        ${boxes}
+      </svg>
+    </div>`;
+}
+
 function buildERDiagramHTML(schema, emptyMessage = 'Run your work to generate an E-R diagram for linked tables.') {
   const relationships = buildRelationshipSummary(schema);
   const hasLinkedTables = schema.length >= 2 && relationships.length > 0;
@@ -548,6 +627,7 @@ function buildERDiagramHTML(schema, emptyMessage = 'Run your work to generate an
       </div>`;
   }
 
+  const visualDiagram = buildERVisualDiagramSVG(schema);
   const tablesHtml = schema.map(table => `
     <div class="er-table">
       <div class="er-table-name">${esc(table.name)}</div>
@@ -569,6 +649,7 @@ function buildERDiagramHTML(schema, emptyMessage = 'Run your work to generate an
   return `
     <div class="er-panel-wrap">
       <p class="er-panel-note">The diagram below is generated from your current tables and foreign key fields.</p>
+      ${visualDiagram}
       <div class="er-diagram">${tablesHtml}</div>
       <div class="er-relationships">${relationships.join('')}</div>
     </div>`;

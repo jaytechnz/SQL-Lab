@@ -551,7 +551,9 @@ null,
 });
 
 const ddl17 = ex('ddl-17','ddl','Three-Table Hospital Schema','hard',
-`Create these three linked tables for a hospital database:
+`First, create a database called \`Hospital\`.
+
+Then create these three linked tables for that hospital database:
 
 1. Create a table called \`Doctors\`.
 \`doctor_id\` is the primary key field and must use INTEGER.
@@ -566,12 +568,16 @@ Also include \`name\` as VARCHAR(50), \`dob\` as DATE, and \`blood_type\` as CHA
 Also include \`doctor_id\` as INTEGER, \`patient_id\` as INTEGER, \`appt_date\` as DATE, and \`appt_time\` as TIME.
 
 In \`Appointments\`, add a foreign key from \`doctor_id\` to \`Doctors.doctor_id\`, and a foreign key from \`patient_id\` to \`Patients.patient_id\`.`,
-['Create Doctors and Patients first, then Appointments',
+['Write the CREATE DATABASE statement before the CREATE TABLE statements',
+ 'Create Doctors and Patients first, then Appointments',
  'Appointments needs two FOREIGN KEY constraints'],
 '',
 null, '',
 (db, sql) => {
   const msgs = [];
+  if (!/\bCREATE\s+DATABASE\s+Hospital\b/i.test(sql)) {
+    msgs.push('You must include CREATE DATABASE Hospital.');
+  }
   ['Doctors','Patients','Appointments'].forEach(t => {
     if (!tableExists(db, t)) msgs.push(`Table ${t} is missing.`);
   });
