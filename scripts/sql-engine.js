@@ -36,7 +36,7 @@ export function createDatabase(SQL, setupSQL = '') {
 // Execute one or more SQL statements and collect results.
 // Returns: { results: [{columns, rows, type}], error: string|null, rowsAffected: number }
 export function executeSQL(db, sql) {
-  const stmts = sql.trim();
+  const stmts = stripUnsupportedStatements(sql).trim();
   if (!stmts) return { results: [], error: null, rowsAffected: 0 };
 
   try {
@@ -54,6 +54,11 @@ export function executeSQL(db, sql) {
   } catch (e) {
     return { results: [], error: e.message, rowsAffected: 0 };
   }
+}
+
+function stripUnsupportedStatements(sql) {
+  return String(sql || '')
+    .replace(/^\s*CREATE\s+DATABASE\s+[A-Za-z_][A-Za-z0-9_]*\s*;?\s*/gim, '');
 }
 
 // ── Schema introspection ──────────────────────────────────────────────────────
