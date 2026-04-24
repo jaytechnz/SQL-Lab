@@ -78,6 +78,12 @@ export class ChallengeManager {
       this._updateXpDisplay();
     }
 
+    // Restore last-typed SQL for each exercise from localStorage
+    try {
+      const saved = JSON.parse(localStorage.getItem(`sqllab_sql_${uid}`) || '{}');
+      Object.entries(saved).forEach(([id, sql]) => this._lastSQL.set(id, sql));
+    } catch {}
+
     // Load Firestore progress and SQL engine concurrently
     const [progress, sql] = await Promise.all([
       getChallengeProgress(uid),
@@ -197,6 +203,12 @@ export class ChallengeManager {
 
     // Remember what the student typed so we can restore it if they navigate away
     this._lastSQL.set(ex.id, studentSQL);
+    try {
+      const key = `sqllab_sql_${this.uid}`;
+      const map = JSON.parse(localStorage.getItem(key) || '{}');
+      map[ex.id] = studentSQL;
+      localStorage.setItem(key, JSON.stringify(map));
+    } catch {}
 
     const SQL = this._SQL;
     if (!SQL) {
