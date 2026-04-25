@@ -18,6 +18,12 @@
 }
 .toolbar-left  { display: flex; align-items: center; gap: 5px; flex: 1; }
 .toolbar-right { display: flex; align-items: center; gap: 5px; }
+.toolbar-db-group,
+.toolbar-db-active {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 .toolbar-sep   { width: 1px; height: 16px; background: var(--border); margin: 0 3px; }
 
 .btn-run {
