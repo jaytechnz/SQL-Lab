@@ -1,7 +1,7 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode } from './auth.js';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js';
 import { ChallengeManager } from './challenges.js';
 import { renderDashboard, refreshDashboard } from './dashboard.js';
 import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js';
@@ -118,7 +118,7 @@ $('signin-form')?.addEventListener('submit', async e => {
   try {
     await signIn(email, pw);
   } catch (ex) {
-    err.textContent = ex.message;
+    err.textContent = authErrorMessage(ex);
     err.classList.remove('hidden');
   } finally {
     setBusyButton(btn, false, 'Signing In...', 'Sign In');
@@ -143,7 +143,7 @@ $('signup-form')?.addEventListener('submit', async e => {
     $('signin-email').value = email;
     $('signin-password').value = '';
   } catch (ex) {
-    err.textContent = ex.message;
+    err.textContent = authErrorMessage(ex);
     err.classList.remove('hidden');
   } finally {
     setBusyButton(btn, false, 'Creating Account...', 'Create Account');
@@ -172,7 +172,7 @@ $('reset-submit-btn')?.addEventListener('click', async () => {
     $('reset-panel').classList.add('hidden');
     alert('Password reset email sent. Check your inbox.');
   } catch (ex) {
-    err.textContent = ex.message;
+    err.textContent = authErrorMessage(ex);
     err.classList.remove('hidden');
   }
 });
