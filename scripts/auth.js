@@ -23,6 +23,9 @@ import {
 
 import { auth, db } from './firebase-config.js';
 
+const AUTH_NETWORK_TIMEOUT_MS = 8000;
+let lastAuthNetworkCheckAt = 0;
+
 function domainOf(email) {
   return email.split('@')[1]?.toLowerCase() ?? '';
 }
@@ -53,8 +56,80 @@ function validateDomain(email) {
   return role;
 }
 
+function authNetworkError(cause) {
+  const err = new Error(
+    'SQL Lab cannot reach Firebase Authentication from this browser. Try refreshing, disabling content blockers/VPNs for this site, or using a different network. If you are in Canvas, open the lab in a new tab.'
+  );
+  err.code = 'auth/network-request-failed';
+  err.cause = cause;
+  return err;
+}
+
+async function verifyAuthNetwork() {
+  const now = Date.now();
+  if (now - lastAuthNetworkCheckAt < 60000) return;
+
+  const apiKey = auth.app.options.apiKey;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AUTH_NETWORK_TIMEOUT_MS);
+
+  try {
+    const continueUri = window.location.origin && window.location.origin !== 'null'
+      ? window.location.origin
+      : 'http://localhost';
+    const response = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: 'firebase-connectivity-check@example.invalid',
+          continueUri
+        }),
+        cache: 'no-store',
+        signal: controller.signal
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Firebase Auth probe returned HTTP ${response.status}`);
+    }
+
+    lastAuthNetworkCheckAt = Date.now();
+  } catch (ex) {
+    throw authNetworkError(ex);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export function authErrorMessage(ex) {
+  switch (ex?.code) {
+    case 'auth/network-request-failed':
+      return 'SQL Lab cannot reach Firebase Authentication from this browser. Try refreshing, disabling content blockers/VPNs for this site, or using a different network. If you are in Canvas, open the lab in a new tab.';
+    case 'auth/invalid-credential':
+    case 'auth/invalid-login-credentials':
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+      return 'The email or password is not correct. If you just reset it, use the newest password from the reset flow.';
+    case 'auth/too-many-requests':
+      return 'Firebase has temporarily blocked sign-in attempts for this account. Wait a few minutes, then try again.';
+    case 'auth/user-disabled':
+      return 'This account has been disabled in Firebase.';
+    case 'auth/invalid-email':
+      return 'Enter a valid email address.';
+    case 'auth/email-already-in-use':
+      return 'An account already exists for this email. Use Sign In instead.';
+    case 'auth/weak-password':
+      return 'Use a stronger password.';
+    default:
+      return ex?.message || 'Something went wrong. Please try again.';
+  }
+}
+
 export async function registerUser(email, password, displayName, classCode = '') {
   validateDomain(email);
+  await verifyAuthNetwork();
   const role = roleForEmail(email);
 
   const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -80,6 +155,7 @@ export async function updateUserClassCode(uid, classCode) {
 }
 
 export async function signIn(email, password) {
+  await verifyAuthNetwork();
   const cred = await signInWithEmailAndPassword(auth, email, password);
   const updates = { lastLoginAt: serverTimestamp() };
   updates.role = roleForEmail(email);
@@ -92,6 +168,7 @@ export async function signOutUser() {
 }
 
 export async function resetPassword(email) {
+  await verifyAuthNetwork();
   await sendPasswordResetEmail(auth, email);
 }
 
