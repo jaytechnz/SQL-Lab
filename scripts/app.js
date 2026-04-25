@@ -33,6 +33,8 @@ const messagesPanel = $('messages-panel');
 const historyPanel  = $('history-panel');
 const schemaPanel   = $('schema-panel');
 const erPanel       = $('er-panel');
+const dbToolbarGroup = $('db-toolbar-group');
+const dbActiveGroup  = $('db-active-group');
 
 // ══════════════════════════════════════════════════════════════════════════════
 // AUTH
@@ -682,6 +684,11 @@ function revealOutputFeedback() {
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function setDatabaseControlsVisible(visible) {
+  dbToolbarGroup?.classList.toggle('hidden', !visible);
+  dbActiveGroup?.classList.toggle('hidden', !visible);
+}
+
 // ── Query history ──────────────────────────────────────────────────────────────
 
 function addToHistory(sql, success) {
@@ -909,18 +916,27 @@ document.addEventListener('challenge:open', e => {
 
   const dbSelect = $('db-select');
   const dbLabel  = $('active-db-label');
+  const showDatabaseControls = ex.category !== 'ddl';
+  setDatabaseControlsVisible(showDatabaseControls);
 
-  if (ex.database) {
-    // DML challenge — lock selector to the pre-built database
+  if (ex.category === 'dml' && ex.database) {
+    // DML challenge — default to the required pre-built database, but keep the picker visible
     _activeDatabaseId = ex.database;
-    if (dbSelect) { dbSelect.value = ex.database; dbSelect.disabled = true; }
+    if (dbSelect) { dbSelect.value = ex.database; dbSelect.disabled = false; }
     const dbDef = getDatabaseById(ex.database);
     if (dbLabel) dbLabel.textContent = `${dbDef?.icon || '🗄️'} ${dbDef?.label || ex.database}`;
     renderSchemaForDatabase(ex.database);
+  } else if (ex.category === 'combined') {
+    if (dbSelect) {
+      dbSelect.disabled = false;
+      dbSelect.value = _activeDatabaseId;
+    }
+    const dbDef = getDatabaseById(_activeDatabaseId);
+    if (dbLabel) dbLabel.textContent = `${dbDef?.icon || '🗄️'} ${dbDef?.label || _activeDatabaseId}`;
+    renderSchemaForDatabase(_activeDatabaseId);
   } else {
     // DDL / combined — student creates their own schema; disable selector
     if (dbSelect) dbSelect.disabled = true;
-    if (dbLabel) dbLabel.textContent = '🗄️ Empty Sandbox';
     const schemaPanel = $('schema-panel');
     if (schemaPanel) schemaPanel.innerHTML = '<p class="output-empty">Run your work to see the structure you create.</p>';
     renderERDiagramPanel([], 'Run your work to generate an E-R diagram for linked tables.');
@@ -936,6 +952,7 @@ document.addEventListener('challenge:open', e => {
 
 document.addEventListener('challenge:close', () => {
   const dbSelect = $('db-select');
+  setDatabaseControlsVisible(true);
   if (dbSelect) { dbSelect.disabled = false; dbSelect.value = _activeDatabaseId; }
   const dbDef = getDatabaseById(_activeDatabaseId);
   const dbLabel = $('active-db-label');
