@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-4';
-import { ChallengeManager } from './challenges.js?v=20260427-4';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-4';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-4';
-import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-4';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-4';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-4';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-5';
+import { ChallengeManager } from './challenges.js?v=20260427-5';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-5';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-5';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-5';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-5';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-5';
 
 const $ = id => document.getElementById(id);
 
@@ -528,7 +528,9 @@ function buildRelationshipSummary(schema) {
       const targetColumn = referencedTable?.columns.find(column => column.name === fk.toColumn);
       const sourceIsUnique = Boolean(sourceColumn?.primaryKey);
       const targetIsUnique = Boolean(targetColumn?.primaryKey);
-      const relationship = sourceIsUnique && targetIsUnique ? 'one-to-one' : 'one-to-many';
+      const relationship = sourceIsUnique && targetIsUnique
+        ? 'one-to-one'
+        : `one ${fk.referencedTable} can have many ${table.name}`;
 
       return `
         <div class="er-relationship">

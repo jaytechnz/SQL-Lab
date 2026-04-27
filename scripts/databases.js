@@ -176,7 +176,7 @@ INSERT INTO loans VALUES
   store: {
     id: 'store',
     label: 'Online Store',
-    description: 'A 4-table relational database: customers, products, orders and order items.',
+    description: 'A 4-table relational database where order_items resolves the many-to-many relationship between orders and products.',
     icon: '🛒',
     tables: ['customers', 'products', 'orders', 'order_items'],
     setupSQL: `
