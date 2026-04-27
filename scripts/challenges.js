@@ -1,9 +1,9 @@
 // ─── Challenge System ─────────────────────────────────────────────────────────
 // Manages challenge execution, progress, XP, badges and the sidebar UI.
 
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-4';
-import { getDatabaseById } from './databases.js?v=20260427-4';
-import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js?v=20260427-4';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-15';
+import { getDatabaseById } from './databases.js?v=20260427-15';
+import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js?v=20260427-15';
 import {
   getChallengeProgress,
   getLocalChallengeProgress,
@@ -12,7 +12,7 @@ import {
   updateLeaderboard,
   getClassLeaderboard,
   logSession
-} from './storage.js?v=20260427-4';
+} from './storage.js?v=20260427-15';
 
 const $ = id => document.getElementById(id);
 
@@ -628,11 +628,10 @@ function redactSQLExamples(text) {
 function formatCodeLikeText(content) {
   const tokens = String(content).match(/[A-Za-z_][A-Za-z0-9_.]*|\d+|[^\s]/g) || [];
   const formatted = tokens.map(token => {
-    if (/^[A-Za-z_][A-Za-z0-9_.]*$/.test(token) && !SQL_TERMS.has(token.toLowerCase())) {
-      return `<span class="ch-ident">${token}</span>`;
-    }
-    if (/^[A-Za-z]+$/.test(token) && SQL_TERMS.has(token.toLowerCase())) {
-      return token.toLowerCase();
+    if (/^[A-Za-z_][A-Za-z0-9_.]*$/.test(token)) {
+      return SQL_TERMS.has(token.toLowerCase())
+        ? token.toLowerCase()
+        : `<span class="ch-ident">${esc(token)}</span>`;
     }
     return esc(token);
   }).join(' ')
