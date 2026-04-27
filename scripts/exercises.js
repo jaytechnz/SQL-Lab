@@ -1326,7 +1326,7 @@ Insert these tuples:
 - (2, 'Noah Chen', 'Robotics', #07/02/2024#)
 - (3, 'Mia Thompson', 'Crochet', #09/02/2024#)
 - (4, 'Leo Williams', 'Crochet', #12/02/2024#)
-- (5, 'Sofia Garcia', 'Debate', #15/02/2024#)
+- (5, 'Sofia Garcia', 'Debating', #15/02/2024#)
 
 Then UPDATE the \`club_name\` for one specific member. Finally SELECT all.`,
 ['Choose one member by their ID and change that member\'s club name',
