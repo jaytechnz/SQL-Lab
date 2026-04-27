@@ -20,7 +20,7 @@ import {
 import { db } from './firebase-config.js';
 
 // ── localStorage helpers ───────────────────────────────────────────────────────
-// Canvas iframes can block Firestore's streaming channel (CSP/CORS).
+// LMS iframes can block Firestore's streaming channel (CSP/CORS).
 // localStorage is always available and keeps progress working reliably.
 // Firestore is attempted silently for teacher-dashboard sync.
 
