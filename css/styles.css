@@ -205,8 +205,18 @@ html, body {
   font-family: var(--font-display); font-size: 22px;
   color: var(--bg-deep); text-align: center; margin-bottom: 8px;
 }
-.login-logo { text-align: center; margin: 12px 0; }
-.login-logo-img img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; }
+.login-logo {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0 16px;
+}
+.login-logo-img img {
+  display: block;
+  width: clamp(130px, 42vw, 170px);
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+}
 
 .auth-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
 .auth-tab {
