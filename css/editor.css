@@ -117,6 +117,9 @@
   pointer-events: none;
   z-index: 0;
 }
+.output-panel[data-active-tab="schema"] .output-panel-illustration {
+  display: none;
+}
 .output-tabs {
   display: flex; align-items: center;
   border-bottom: 1px solid var(--border); background: var(--tabbar-bg);
