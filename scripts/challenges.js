@@ -1,9 +1,9 @@
 // ─── Challenge System ─────────────────────────────────────────────────────────
 // Manages challenge execution, progress, XP, badges and the sidebar UI.
 
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-20';
-import { getDatabaseById } from './databases.js?v=20260427-20';
-import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js?v=20260427-20';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-24';
+import { getDatabaseById } from './databases.js?v=20260427-24';
+import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js?v=20260427-24';
 import {
   getChallengeProgress,
   getLocalChallengeProgress,
@@ -12,7 +12,7 @@ import {
   updateLeaderboard,
   getClassLeaderboard,
   logSession
-} from './storage.js?v=20260427-20';
+} from './storage.js?v=20260427-24';
 
 const $ = id => document.getElementById(id);
 
@@ -614,7 +614,7 @@ function redactSQLExamples(text) {
     { regex: /\bINSERT\s+INTO\b[\s\S]*?\bVALUES\b[\s\S]*?(?=$|[.;])/gi, replacement: 'the required insert statement' },
     { regex: /\bUPDATE\b[\s\S]*?\bSET\b[\s\S]*?(?=$|[.;])/gi, replacement: 'the required update statement' },
     { regex: /\bDELETE\s+FROM\b[\s\S]*?(?=$|[.;])/gi, replacement: 'the required delete statement' },
-    { regex: /\bSELECT\b[\s\S]*?\bFROM\b[\s\S]*?(?=$|[.;])/gi, replacement: 'the required select query' },
+    { regex: /\bSELECT\s+(?:\*|[A-Za-z_][A-Za-z0-9_.]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_.]*)*)\s+FROM\s+[A-Za-z_][A-Za-z0-9_]*(?:\s+(?:WHERE|GROUP\s+BY|ORDER\s+BY|INNER\s+JOIN|JOIN|LIMIT)\b[\s\S]*?)?(?=$|[.;])/gi, replacement: 'the required select query' },
     { regex: /\bINNER\s+JOIN\b[\s\S]*?\bON\b[\s\S]*?(?=$|[.;])/gi, replacement: 'the required inner join using the matching key fields' },
     { regex: /\bFOREIGN\s+KEY\s*\([\s\S]*?\)\s*REFERENCES\s*[A-Za-z_][A-Za-z0-9_]*\s*\([\s\S]*?\)/gi, replacement: 'the required foreign key constraint using the specified linked fields' }
   ];
