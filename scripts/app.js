@@ -220,15 +220,29 @@ $('class-confirm')?.addEventListener('click', async () => {
 const SQL_KEYWORDS = 'SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|DATABASE|ALTER|ADD|DROP|COLUMN|PRIMARY|KEY|FOREIGN|REFERENCES|INNER|LEFT|RIGHT|OUTER|FULL|CROSS|JOIN|ON|ORDER|BY|GROUP|HAVING|DISTINCT|AS|AND|OR|NOT|NULL|IS|IN|BETWEEN|LIKE|COUNT|SUM|AVG|MAX|MIN|ASC|DESC|LIMIT|OFFSET|UNION|ALL|EXCEPT|INTERSECT|CASE|WHEN|THEN|ELSE|END|IF|EXISTS|UNIQUE|CHECK|DEFAULT|CONSTRAINT|INTEGER|VARCHAR|CHARACTER|BOOLEAN|REAL|DATE|TIME|INT|TEXT|NUMERIC';
 const SQL_KEYWORD_SET = new Set(SQL_KEYWORDS.split('|'));
 const SQL_IDENTIFIER_RE = /[A-Za-z_][A-Za-z0-9_]*/g;
+const SQL_WORD_RE = /[A-Za-z_][A-Za-z0-9_]*/g;
+const SQL_WORD_CHAR_RE = /[A-Za-z0-9_]/;
+const SQL_TOKEN_DELIMITER_RE = /[\s,;().]/;
+
+function isSqlTokenDelimiter(char) {
+  return char !== '' && SQL_TOKEN_DELIMITER_RE.test(char);
+}
+
+function replaceCompletedSqlKeywords(text, replacer) {
+  return String(text || '').replace(SQL_WORD_RE, (token, offset, source) => {
+    const before = offset > 0 ? source[offset - 1] : '';
+    const after = source[offset + token.length] || '';
+    if (SQL_WORD_CHAR_RE.test(before) || !isSqlTokenDelimiter(after)) return token;
+    return SQL_KEYWORD_SET.has(token.toUpperCase()) ? replacer(token) : token;
+  });
+}
 
 function autoUppercaseKeywords() {
   if (!editor) return;
   const start  = editor.selectionStart;
   const end    = editor.selectionEnd;
   const newVal = replaceOutsideSqlText(editor.value, text =>
-    text.replace(/(?<![A-Za-z0-9_])[A-Za-z][A-Za-z0-9]*(?![A-Za-z0-9_])/g, token =>
-      SQL_KEYWORD_SET.has(token.toUpperCase()) ? token.toUpperCase() : token
-    )
+    replaceCompletedSqlKeywords(text, token => token.toUpperCase())
   );
   if (newVal !== editor.value) {
     editor.value = newVal;
@@ -244,9 +258,7 @@ function highlightSQL(code) {
     const html = esc(part.text);
     if (part.type === 'comment') return `<span class="syn-cmt">${html}</span>`;
     if (part.type === 'string') return `<span class="syn-str">${html}</span>`;
-    return html.replace(/(?<![A-Za-z0-9_])[A-Za-z][A-Za-z0-9]*(?![A-Za-z0-9_])/g, token =>
-        SQL_KEYWORD_SET.has(token.toUpperCase()) ? `<span class="syn-kw">${token}</span>` : token
-      )
+    return replaceCompletedSqlKeywords(html, token => `<span class="syn-kw">${token}</span>`)
       .replace(numbers, m => `<span class="syn-num">${m}</span>`);
   }).join('');
 }
