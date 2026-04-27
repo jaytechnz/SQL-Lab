@@ -1422,7 +1422,10 @@ null, '',
 const combo07 = ex('combo-07','combined','ALTER TABLE then Query','medium',
 `First, create a database called \`StaffDB\`.
 
-A table called \`Staff\` has been created with: \`staff_id\`, \`name\`, \`salary\`.
+Then create a table called \`Staff\` with:
+- \`staff_id\` INTEGER NOT NULL PRIMARY KEY
+- \`name\` VARCHAR(50)
+- \`salary\` REAL
 
 1. Use \`ALTER TABLE\` to add a \`department\` column (VARCHAR(30))
 2. Insert these tuples:
@@ -1436,14 +1439,17 @@ A table called \`Staff\` has been created with: \`staff_id\`, \`name\`, \`salary
  'Include the new department value when adding each staff member',
  'Filter staff by one chosen department'],
 '',
-null,
-`CREATE TABLE Staff (
-  staff_id INTEGER PRIMARY KEY,
-  name     VARCHAR(50),
-  salary   REAL
-);`,
+null, '',
 (db, sql) => {
+  if (!tableExists(db, 'Staff'))
+    return { passed: false, messages: ['Table Staff was not created.'] };
   const cols = tableInfo(db, 'Staff');
+  if (!hasColumn(cols,'staff_id','INTEGER')) return { passed: false, messages: ['staff_id should be INTEGER.'] };
+  const staffId = cols.find(c => c.name.toLowerCase() === 'staff_id');
+  if (!staffId?.pk || !staffId?.notNull)
+    return { passed: false, messages: ['staff_id should be INTEGER NOT NULL PRIMARY KEY.'] };
+  if (!hasColumn(cols,'name','VARCHAR(50)')) return { passed: false, messages: ['name should be VARCHAR(50).'] };
+  if (!hasColumn(cols,'salary','REAL')) return { passed: false, messages: ['salary should be REAL.'] };
   if (!cols.find(c => c.name.toLowerCase() === 'department'))
     return { passed: false, messages: ['The department column has not been added. Use ALTER TABLE Staff ADD department VARCHAR(30).'] };
   const r = query(db, 'SELECT * FROM Staff');
