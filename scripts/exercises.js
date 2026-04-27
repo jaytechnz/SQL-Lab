@@ -1007,10 +1007,9 @@ const dml13 = ex('dml-13','dml','INNER JOIN — Students and Subjects','medium',
 
 Return: \`students.name\`, \`enrolments.subject_id\`
 
-Use \`INNER JOIN students ON enrolments.student_id = students.student_id\`.`,
+Start from the \`enrolments\` table, then use \`INNER JOIN students ON enrolments.student_id = students.student_id\`.`,
 ['INNER JOIN returns rows that have matching values in both tables',
- 'Syntax: FROM table1 INNER JOIN table2 ON table1.id = table2.id',
- 'Start FROM enrolments, then INNER JOIN students'],
+ 'Syntax: FROM table1 INNER JOIN table2 ON table1.id = table2.id'],
 '',
 'school', '',
 (db, sql) => {
