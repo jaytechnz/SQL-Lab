@@ -176,9 +176,9 @@ INSERT INTO loans VALUES
   store: {
     id: 'store',
     label: 'Online Store',
-    description: 'A 4-table relational database where order_items resolves the many-to-many relationship between orders and products.',
+    description: 'A 4-table relational database where orders_products resolves the many-to-many relationship between orders and products.',
     icon: '🛒',
-    tables: ['customers', 'products', 'orders', 'order_items'],
+    tables: ['customers', 'products', 'orders', 'orders_products'],
     setupSQL: `
 CREATE TABLE customers (
   customer_id INTEGER PRIMARY KEY,
@@ -198,7 +198,7 @@ CREATE TABLE orders (
   order_date  DATE,
   FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
 );
-CREATE TABLE order_items (
+CREATE TABLE orders_products (
   item_id    INTEGER PRIMARY KEY,
   order_id   INTEGER,
   product_id INTEGER,
@@ -230,7 +230,7 @@ INSERT INTO orders VALUES
   (6, 5, '2024-03-08'),
   (7, 2, '2024-03-22'),
   (8, 1, '2024-04-10');
-INSERT INTO order_items VALUES
+INSERT INTO orders_products VALUES
   (1,  1, 1, 1), (2,  1, 2, 2), (3,  1, 4, 3),
   (4,  2, 3, 1), (5,  2, 6, 1),
   (6,  3, 7, 1), (7,  3, 5, 1),

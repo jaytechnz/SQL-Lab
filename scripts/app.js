@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-12';
-import { ChallengeManager } from './challenges.js?v=20260427-12';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-12';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-12';
-import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-12';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-12';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-12';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-20';
+import { ChallengeManager } from './challenges.js?v=20260427-20';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-20';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-20';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-20';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-20';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-20';
 
 const $ = id => document.getElementById(id);
 
@@ -214,15 +214,20 @@ $('class-confirm')?.addEventListener('click', async () => {
 // SQL EDITOR
 // ══════════════════════════════════════════════════════════════════════════════
 
-// SQL keywords — shared between auto-uppercase and syntax highlighting
+// SQL keywords — shared between auto-uppercase and syntax highlighting.
+// Match whole identifiers first so field names such as avg_price are never
+// split into a keyword plus suffix.
 const SQL_KEYWORDS = 'SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|DATABASE|ALTER|ADD|DROP|COLUMN|PRIMARY|KEY|FOREIGN|REFERENCES|INNER|LEFT|RIGHT|OUTER|FULL|CROSS|JOIN|ON|ORDER|BY|GROUP|HAVING|DISTINCT|AS|AND|OR|NOT|NULL|IS|IN|BETWEEN|LIKE|COUNT|SUM|AVG|MAX|MIN|ASC|DESC|LIMIT|OFFSET|UNION|ALL|EXCEPT|INTERSECT|CASE|WHEN|THEN|ELSE|END|IF|EXISTS|UNIQUE|CHECK|DEFAULT|CONSTRAINT|INTEGER|VARCHAR|CHARACTER|BOOLEAN|REAL|DATE|TIME|INT|TEXT|NUMERIC';
-const SQL_KEYWORDS_RE = new RegExp(`(?<![A-Za-z0-9_])(${SQL_KEYWORDS})(?![A-Za-z0-9_])`, 'gi');
+const SQL_KEYWORD_SET = new Set(SQL_KEYWORDS.split('|'));
+const SQL_IDENTIFIER_RE = /[A-Za-z_][A-Za-z0-9_]*/g;
 
 function autoUppercaseKeywords() {
   if (!editor) return;
   const start  = editor.selectionStart;
   const end    = editor.selectionEnd;
-  const newVal = replaceOutsideSqlText(editor.value, SQL_KEYWORDS_RE, m => m.toUpperCase());
+  const newVal = replaceOutsideSqlText(editor.value, text =>
+    replaceSqlIdentifiers(text, token => SQL_KEYWORD_SET.has(token.toUpperCase()) ? token.toUpperCase() : token)
+  );
   if (newVal !== editor.value) {
     editor.value = newVal;
     editor.setSelectionRange(start, end);
@@ -237,15 +242,20 @@ function highlightSQL(code) {
     const html = esc(part.text);
     if (part.type === 'comment') return `<span class="syn-cmt">${html}</span>`;
     if (part.type === 'string') return `<span class="syn-str">${html}</span>`;
-    return html
-      .replace(SQL_KEYWORDS_RE, m => `<span class="syn-kw">${m}</span>`)
+    return replaceSqlIdentifiers(html, token =>
+        SQL_KEYWORD_SET.has(token.toUpperCase()) ? `<span class="syn-kw">${token}</span>` : token
+      )
       .replace(numbers, m => `<span class="syn-num">${m}</span>`);
   }).join('');
 }
 
-function replaceOutsideSqlText(code, regex, replacer) {
+function replaceSqlIdentifiers(text, replacer) {
+  return String(text || '').replace(SQL_IDENTIFIER_RE, replacer);
+}
+
+function replaceOutsideSqlText(code, replacer) {
   return splitSqlText(code).map(part =>
-    part.type === 'code' ? part.text.replace(regex, replacer) : part.text
+    part.type === 'code' ? replacer(part.text) : part.text
   ).join('');
 }
 
@@ -578,14 +588,13 @@ function buildRelationshipSummary(schema) {
       const sourceIsUnique = Boolean(sourceColumn?.primaryKey);
       const targetIsUnique = Boolean(targetColumn?.primaryKey);
       const relationship = sourceIsUnique && targetIsUnique
-        ? 'one-to-one'
-        : `one ${fk.referencedTable} can have many ${table.name}`;
+        ? '1:1'
+        : `1:M`;
 
       return `
         <div class="er-relationship">
-          <strong>${esc(fk.referencedTable)}</strong>.${esc(fk.toColumn)}
-          ${relationship}
-          <strong>${esc(table.name)}</strong>.${esc(fk.fromColumn)}
+          <strong>${esc(fk.referencedTable)}</strong> to <strong>${esc(table.name)}</strong>: ${relationship}
+          <span class="er-relationship-detail">(${esc(fk.toColumn)} to ${esc(fk.fromColumn)})</span>
         </div>`;
     })
   );
@@ -616,20 +625,33 @@ function buildERVisualDiagramSVG(schema) {
     const parentNames = new Set((table.foreignKeys || []).map(fk => fk.referencedTable));
     return parentNames.size === 2;
   });
+  const junctionParentNames = junctionTable
+    ? Array.from(new Set(junctionTable.foreignKeys.map(fk => fk.referencedTable)))
+    : [];
+  const junctionParents = junctionParentNames
+    .map(name => linkedTables.find(table => table.name === name))
+    .filter(Boolean);
+  const dependentParent = junctionParents.find(parent => (parent.foreignKeys || []).length) || junctionParents[0];
+  const otherParent = junctionParents.find(parent => parent !== dependentParent);
+  const dependentParentParents = dependentParent
+    ? (dependentParent.foreignKeys || [])
+        .map(fk => linkedTables.find(table => table.name === fk.referencedTable))
+        .filter(Boolean)
+    : [];
   const orderedTables = junctionTable
       ? [
-          ...Array.from(new Set(junctionTable.foreignKeys.map(fk => fk.referencedTable)))
-            .map(name => linkedTables.find(table => table.name === name))
-            .slice(0, 1),
+          ...dependentParentParents,
+          dependentParent,
           junctionTable,
-          ...Array.from(new Set(junctionTable.foreignKeys.map(fk => fk.referencedTable)))
-            .map(name => linkedTables.find(table => table.name === name))
-            .slice(1),
+          otherParent,
           ...linkedTables.filter(table =>
             table !== junctionTable &&
-            !junctionTable.foreignKeys.some(fk => fk.referencedTable === table.name)
+            table !== dependentParent &&
+            table !== otherParent &&
+            !dependentParentParents.includes(table)
           )
         ].filter(Boolean)
+         .filter((table, index, arr) => arr.findIndex(candidate => candidate.name === table.name) === index)
     : [
         ...parentTables.filter(table => !childTables.includes(table)),
         ...childTables,
@@ -659,9 +681,13 @@ function buildERVisualDiagramSVG(schema) {
       const parentOnLeft = to.x < from.x;
       const parentEdgeX = parentOnLeft ? to.x + to.width : to.x;
       const childEdgeX = parentOnLeft ? from.x : from.x + from.width;
+      const labelX = Math.round((parentEdgeX + childEdgeX) / 2);
+      const labelY = lineY - 6;
+      const label = table.columns.find(column => column.name === fk.fromColumn)?.primaryKey ? '1:1' : '1:M';
 
       return `
-        <path class="er-link" d="M ${parentEdgeX} ${lineY} H ${childEdgeX}" />`;
+        <path class="er-link" d="M ${parentEdgeX} ${lineY} H ${childEdgeX}" />
+        <text class="er-link-label" x="${labelX}" y="${labelY}" text-anchor="middle">${label}</text>`;
     })
   ).join('');
 

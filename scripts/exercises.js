@@ -112,6 +112,15 @@ function hasAnyKeyword(sql, ...kws) {
   return kws.some(k => new RegExp(k.replace(/\s+/g,'\\s+'), 'i').test(sql));
 }
 
+function lastSqlStatement(sql) {
+  return String(sql || '')
+    .replace(/--.*$/gm, '')
+    .split(';')
+    .map(statement => statement.trim())
+    .filter(Boolean)
+    .at(-1) || '';
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // CATEGORY METADATA
 // ══════════════════════════════════════════════════════════════════════════════
@@ -132,7 +141,7 @@ const ddl01 = ex('ddl-01','ddl','CREATE DATABASE Statement','easy',
 This is the standard SQL DDL statement used to create a new database. The DBMS carries out all creation and modification of the database structure using DDL.
 
 `,
-['The syntax is: CREATE DATABASE database_name;', 'Database names should be descriptive'],
+['Use the database creation command from DDL', 'Database names should be descriptive'],
 '',
 null, '',
 (db, sql) => {
@@ -147,7 +156,7 @@ const ddl02 = ex('ddl-02','ddl','CREATE TABLE — INTEGER and VARCHAR','easy',
 `Create a table called \`Continents\` with the following fields:
 - \`continent_id\` — INTEGER
 - \`continent_name\` — VARCHAR(50)`,
-['Syntax: CREATE TABLE name (col1 TYPE, col2 TYPE);', 'VARCHAR(n) stores variable-length text up to n characters'],
+['Define the table name first, then list each field with its data type', 'VARCHAR(n) stores variable-length text up to n characters'],
 '',
 null, '',
 (db, sql) => {
@@ -285,7 +294,7 @@ const ddl08 = ex('ddl-08','ddl','CREATE TABLE — PRIMARY KEY Inline Syntax','ea
 - \`population\` — INTEGER
 
 A primary key uniquely identifies each row in a table. A non-key field can also be required by marking it NOT NULL.`,
-['Add PRIMARY KEY after the data type: country_id INTEGER PRIMARY KEY', 'Use NOT NULL on country_name'],
+['Mark country_id as the key field', 'Use NOT NULL on country_name'],
 '',
 null, '',
 (db, sql) => {
@@ -311,7 +320,7 @@ const ddl09 = ex('ddl-09','ddl','CREATE TABLE — PRIMARY KEY Constraint Syntax'
 
 Add the primary key using the **constraint syntax** at the end of the field list:
 \`PRIMARY KEY (teacher_code)\``,
-['Use PRIMARY KEY (teacher_code) for the key field',
+['Use the table-level primary key constraint for teacher_code',
  'Use NOT NULL on name'],
 '',
 null, '',
@@ -346,7 +355,7 @@ const ddl10 = ex('ddl-10','ddl','All Cambridge Data Types','medium',
 
 This exercise covers every data type in the 9618 syllabus.`,
 ['Use all six types: INTEGER, VARCHAR, CHARACTER, BOOLEAN, REAL, DATE',
- 'Add PRIMARY KEY to product_id'],
+ 'Make product_id the key field'],
 '',
 null, '',
 (db, sql) => {
@@ -374,8 +383,8 @@ const ddl11 = ex('ddl-11','ddl','ALTER TABLE — Add Column','easy',
 
 Use \`ALTER TABLE\` to **add** a new field:
 - \`email\` — VARCHAR(100)`,
-['Syntax: ALTER TABLE table_name ADD COLUMN col_name TYPE;',
- 'Or just: ALTER TABLE table_name ADD col_name TYPE;'],
+['Use the table alteration command to add the new field',
+ 'Add the field without recreating the table'],
 '',
 null,
 `CREATE TABLE Students (
@@ -401,8 +410,8 @@ const ddl12 = ex('ddl-12','ddl','ALTER TABLE — Add Multiple Columns','medium',
 Add **two** new fields using ALTER TABLE:
 1. \`isbn\` — VARCHAR(20)
 2. \`publish_year\` — INTEGER`,
-['You will need two separate ALTER TABLE statements — one for each column',
- 'ALTER TABLE Books ADD isbn VARCHAR(20);'],
+['You will need two separate table alteration statements — one for each column',
+ 'Add each new field to the existing Books table'],
 '',
 null,
 `CREATE TABLE Books (
@@ -434,7 +443,7 @@ Departments has been created for you. Create the \`Staff\` table with:
 - A **FOREIGN KEY** on \`dept_id\` that references \`Departments(dept_id)\`
 
 Syntax: \`FOREIGN KEY (field) REFERENCES Table (Field)\``,
-['Add the foreign key as a table constraint: FOREIGN KEY (dept_id) REFERENCES Departments(dept_id)',
+['Add the foreign key as a table constraint linked to Departments(dept_id)',
  'The foreign key field and referenced field must be compatible types'],
 '',
 null,
@@ -475,8 +484,8 @@ const ddl14 = ex('ddl-14','ddl','Relational Schema — Authors and Books','mediu
 - \`price\` — REAL
 - \`author_id\` — INTEGER
 - Foreign key: \`author_id\` references \`Authors(author_id)\``,
-['Create Authors first (it is referenced by Books)',
- 'Add FOREIGN KEY (author_id) REFERENCES Authors(author_id) inside the Books column list'],
+['Create Authors first because Books references it',
+ 'Add a foreign key from Books.author_id to Authors.author_id'],
 '',
 null, '',
 (db, sql) => {
@@ -538,7 +547,7 @@ Extend it using ALTER TABLE to add:
 1. \`model\` — VARCHAR(50)
 2. \`year\` — INTEGER
 3. \`price\` — REAL`,
-['Run three separate ALTER TABLE ... ADD statements',
+['Run three separate table alteration commands',
  'Check each field name is spelled exactly as specified'],
 '',
 null,
@@ -576,9 +585,9 @@ Also include \`name\` as VARCHAR(50), \`dob\` as DATE, and \`blood_type\` as CHA
 Also include \`doctor_id\` as INTEGER, \`patient_id\` as INTEGER, \`appt_date\` as DATE, and \`appt_time\` as TIME.
 
 In \`Appointments\`, add a foreign key from \`doctor_id\` to \`Doctors.doctor_id\`, and a foreign key from \`patient_id\` to \`Patients.patient_id\`.`,
-['Write the CREATE DATABASE statement before the CREATE TABLE statements',
+['Create the database before creating its tables',
  'Create Doctors and Patients first, then Appointments',
- 'Appointments needs two FOREIGN KEY constraints'],
+ 'Appointments needs two relationship constraints'],
 '',
 null, '',
 (db, sql) => {
@@ -634,7 +643,7 @@ const ddl18 = ex('ddl-18','ddl','E-commerce — Products and Orders','hard',
 - \`customer_id\` — INTEGER
 - Foreign key: \`customer_id\` references \`Customers(customer_id)\``,
 ['Create Customers first, since Orders references it',
- 'Use FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)'],
+ 'Link Orders.customer_id to Customers.customer_id'],
 '',
 null, '',
 (db, sql) => {
@@ -788,8 +797,8 @@ null, '',
 const dml01 = ex('dml-01','dml','SELECT — All Columns','easy',
 `Using the **Bookshop** database, write a query to retrieve **all fields and all rows** from the \`books\` table.`,
 ['Bookshop is the database name; `books` is the table name.',
- 'Use SELECT * to retrieve all fields',
- 'SELECT * FROM table_name;'],
+ 'Retrieve every field from the table',
+ 'Use the all-fields wildcard'],
 '',
 'bookshop', '',
 (db, sql) => {
@@ -804,8 +813,8 @@ const dml01 = ex('dml-01','dml','SELECT — All Columns','easy',
 
 const dml02 = ex('dml-02','dml','SELECT — Specific Columns','easy',
 `From the **Bookshop** database, retrieve only the \`title\`, \`author\` and \`price\` fields from the \`books\` table.`,
-['List field names separated by commas after SELECT',
- 'SELECT col1, col2 FROM table_name;'],
+['List only the required field names',
+ 'Separate selected field names with commas'],
 '',
 'bookshop', '',
 (db, sql) => {
@@ -825,7 +834,7 @@ const dml02 = ex('dml-02','dml','SELECT — Specific Columns','easy',
 
 const dml03 = ex('dml-03','dml','SELECT with WHERE','easy',
 `From the **Bookshop** database, retrieve all columns from \`books\` where the \`genre\` is \`'Fiction'\`.`,
-['Use WHERE genre = \'Fiction\'', 'String values in SQL use single quotes'],
+['Filter on the genre field', 'String values in SQL use single quotes'],
 '',
 'bookshop', '',
 (db, sql) => {
@@ -839,8 +848,8 @@ const dml03 = ex('dml-03','dml','SELECT with WHERE','easy',
 
 const dml04 = ex('dml-04','dml','SELECT with ORDER BY ASC','easy',
 `From the **Employees** database, retrieve the \`name\` and \`salary\` columns from \`employees\`, **ordered by salary from lowest to highest**.`,
-['Use ORDER BY column ASC (ASC is optional — it is the default)',
- 'ORDER BY comes after FROM and WHERE clauses'],
+['Sort by the salary field from low to high',
+ 'The sorting clause comes after the table and filter clauses'],
 '',
 'employees', '',
 (db, sql) => {
@@ -858,7 +867,7 @@ const dml04 = ex('dml-04','dml','SELECT with ORDER BY ASC','easy',
 
 const dml05 = ex('dml-05','dml','SELECT with ORDER BY DESC','easy',
 `From the **Bookshop** database, retrieve \`title\` and \`price\` from \`books\`, **ordered by price highest first**.`,
-['Use ORDER BY price DESC', 'DESC means descending (highest to lowest)'],
+['Sort by the price field from high to low', 'DESC means descending (highest to lowest)'],
 '',
 'bookshop', '',
 (db, sql) => {
@@ -876,7 +885,7 @@ const dml05 = ex('dml-05','dml','SELECT with ORDER BY DESC','easy',
 
 const dml06 = ex('dml-06','dml','SELECT with AND','medium',
 `From the **Employees** database, retrieve all columns where the \`department\` is \`'Engineering'\` **AND** the \`salary\` is greater than \`60000\`.`,
-['Use WHERE condition1 AND condition2',
+['Use two conditions joined by AND',
  'String comparison uses = and single quotes; numeric comparison uses >, <, etc.'],
 '',
 'employees', '',
@@ -890,7 +899,7 @@ const dml06 = ex('dml-06','dml','SELECT with AND','medium',
 
 const dml07 = ex('dml-07','dml','SELECT with OR','easy',
 `From the **Bookshop** database, retrieve all columns from books where the genre is \`'Fiction'\` **OR** \`'Sci-Fi'\`.`,
-['Use WHERE genre = \'Fiction\' OR genre = \'Sci-Fi\'',
+['Use two genre conditions joined by OR',
  'Each side of OR is a full condition'],
 '',
 'bookshop', '',
@@ -906,8 +915,8 @@ const dml08 = ex('dml-08','dml','COUNT — Total Rows','easy',
 `From the **Bookshop** database, use the \`COUNT\` function to find the **total number of books** in the \`books\` table.
 
 Give the result an alias: \`total_books\`.`,
-['Use COUNT(*) to count all rows',
- 'Use AS to give a column an alias: COUNT(*) AS total_books'],
+['Use the row-count aggregate',
+ 'Give the result column a clear alias'],
 '',
 'bookshop', '',
 (db, sql) => {
@@ -924,8 +933,8 @@ const dml09 = ex('dml-09','dml','SUM — Total Salary by Department','medium',
 `From the **Employees** database, find the **total salary** of all employees in the \`'Marketing'\` department.
 
 Use \`SUM(salary)\` and give it the alias \`total_salary\`.`,
-['Use SUM(column) to add up values',
- 'Combine with WHERE to filter before aggregating'],
+['Use the total aggregate to add up values',
+ 'Filter before aggregating'],
 '',
 'employees', '',
 (db, sql) => {
@@ -942,8 +951,8 @@ const dml10 = ex('dml-10','dml','AVG — Average Salary','easy',
 `From the **Employees** database, calculate the **average salary** across all employees.
 
 Give the result the alias \`avg_salary\`.`,
-['AVG(column) calculates the mean of a numeric column',
- 'No WHERE clause needed — average all rows'],
+['The average aggregate calculates the mean of a numeric column',
+ 'Average all rows; no filtering is needed'],
 '',
 'employees', '',
 (db, sql) => {
@@ -962,9 +971,9 @@ const dml11 = ex('dml-11','dml','GROUP BY — Books by Genre','medium',
 
 Return: \`genre\`, \`num_books\` (using COUNT).
 Group the results by \`genre\`.`,
-['GROUP BY groups rows with the same value together',
- 'Use COUNT(*) AS num_books to count each group',
- 'SELECT genre, COUNT(*) AS num_books FROM books GROUP BY genre'],
+['Group rows that have the same genre',
+ 'Count how many rows are in each group',
+ 'Return the genre and its count'],
 '',
 'bookshop', '',
 (db, sql) => {
@@ -984,9 +993,9 @@ const dml12 = ex('dml-12','dml','GROUP BY + ORDER BY','medium',
 `From the **Employees** database, find the **average salary per department**, and order the results by average salary **from highest to lowest**.
 
 Return: \`department\`, \`avg_salary\`.`,
-['Combine GROUP BY with ORDER BY',
- 'You can ORDER BY an alias: ORDER BY avg_salary DESC',
- 'Or use the expression: ORDER BY AVG(salary) DESC'],
+['Group first, then sort the grouped results',
+ 'You can sort using the alias for the average salary',
+ 'Sort from the highest average salary to the lowest'],
 '',
 'employees', '',
 (db, sql) => {
@@ -1009,7 +1018,7 @@ Return: \`students.name\`, \`enrolments.subject_id\`
 
 Start from the \`enrolments\` table, then use \`INNER JOIN students ON enrolments.student_id = students.student_id\`.`,
 ['INNER JOIN returns rows that have matching values in both tables',
- 'Syntax: FROM table1 INNER JOIN table2 ON table1.id = table2.id'],
+ 'Join the matching student_id fields'],
 '',
 'school', '',
 (db, sql) => {
@@ -1029,8 +1038,8 @@ const dml14 = ex('dml-14','dml','INNER JOIN with WHERE','medium',
 Join \`loans\` with \`members\` to return: \`members.name\`, \`loans.loan_date\`
 
 Filter using \`WHERE loans.return_date IS NULL\`.`,
-['IS NULL checks for missing values — not = NULL',
- 'INNER JOIN members ON loans.member_id = members.member_id'],
+['IS NULL checks for missing values',
+ 'Join loans to members using member_id'],
 '',
 'library', '',
 (db, sql) => {
@@ -1046,9 +1055,9 @@ const dml15 = ex('dml-15','dml','INNER JOIN + GROUP BY','hard',
 
 Join \`orders\` and \`customers\`. Return: \`customers.name\`, \`order_count\` (COUNT of orders).
 Group by customer. Order by \`order_count\` DESC.`,
-['Join orders to customers on customer_id',
- 'GROUP BY customers.customer_id (or customers.name)',
- 'Use COUNT(orders.order_id) AS order_count'],
+['Join orders to customers using customer_id',
+ 'Group by each customer',
+ 'Count the orders for each customer'],
 '',
 'store', '',
 (db, sql) => {
@@ -1072,7 +1081,7 @@ const dml16 = ex('dml-16','dml','INSERT INTO','easy',
 - genre: \`'Sci-Fi'\`
 - price: \`11.49\`
 - stock: \`6\``,
-['INSERT INTO table (col1, col2, ...) VALUES (val1, val2, ...);',
+['List the target fields and matching values in the same order',
  'String values use single quotes; numbers do not'],
 '',
 'bookshop', '',
@@ -1093,7 +1102,7 @@ const dml17 = ex('dml-17','dml','UPDATE with WHERE','medium',
 `In the **Employees** database, give all employees in the \`'HR'\` department a **10% pay rise**.
 
 Update \`salary = salary * 1.1\` where \`department = 'HR'\`.`,
-["UPDATE table SET column = expression WHERE condition;",
+["Change only the rows that match the HR department",
  "Salary * 1.1 increases it by 10%"],
 '',
 'employees', '',
@@ -1111,8 +1120,8 @@ const dml18 = ex('dml-18','dml','DELETE FROM with WHERE','medium',
 `In the **Library** database, delete all loans from the \`loans\` table where the \`return_date\` is **earlier than** \`#01/02/2024#\`.
 
 Use the CIE-style date format \`#dd/mm/yyyy#\` in your query.`,
-["DELETE FROM table WHERE condition;",
- "Use < #01/02/2024# to find dates before February 2024",
+["Delete only the rows that match the date condition",
+ "Compare the return date with the start of February 2024",
  "CIE-style date literals use # symbols around the date"],
 '',
 'library', '',
@@ -1133,8 +1142,8 @@ const dml19 = ex('dml-19','dml','GROUP BY with Multiple Aggregates','hard',
 - \`total_stock\` — sum of stock
 
 Order by \`num_books\` descending.`,
-['You can use multiple aggregate functions in one SELECT',
- 'SELECT genre, COUNT(*) AS num_books, AVG(price) AS avg_price, SUM(stock) AS total_stock'],
+['Use multiple aggregate functions in one query',
+ 'Group by genre and return count, average price, and total stock'],
 '',
 'bookshop', '',
 (db, sql) => {
@@ -1154,11 +1163,11 @@ Order by \`num_books\` descending.`,
 const dml20 = ex('dml-20','dml','INNER JOIN with SUM','hard',
 `From the **Online Store** database, find the **total quantity ordered for each product**.
 
-Join \`order_items\` with \`products\`. Return \`products.name\`, \`total_qty\` (SUM of quantity).
+Join \`orders_products\` with \`products\`. Return \`products.name\`, \`total_qty\` (SUM of quantity).
 Group by product. Order by total_qty DESC.`,
-['JOIN order_items to products ON order_items.product_id = products.product_id',
- 'SUM(order_items.quantity) AS total_qty',
- 'GROUP BY products.product_id'],
+['Join orders_products to products using product_id',
+ 'Total the quantity values for each product',
+ 'Group by each product'],
 '',
 'store', '',
 (db, sql) => {
@@ -1185,13 +1194,17 @@ const combo01 = ex('combo-01','combined','Create, Insert and Select','easy',
 
 Then insert these 5 rows: Red, Green, Blue, Yellow, Purple (ids 1–5).
 Finally, write a \`SELECT *\` to retrieve all rows.`,
-['Write CREATE TABLE first, then INSERT INTO, then SELECT',
+['Create the table before adding rows, then query the completed table',
  'Separate statements with semicolons'],
 '',
 null, '',
 (db, sql) => {
   if (!tableExists(db, 'Colours'))
     return { passed: false, messages: ['Table Colours was not created.'] };
+  const finalStatement = lastSqlStatement(sql);
+  if (!/^\s*SELECT\b/i.test(finalStatement) || !/\bFROM\s+["'`\[]?Colours["'`\]]?\b/i.test(finalStatement)) {
+    return { passed: false, messages: ['The final statement must retrieve rows from the Colours table.'] };
+  }
   const r = query(db, 'SELECT * FROM Colours ORDER BY colour_id');
   if (!r) return { passed: false, messages: ['Error querying Colours.'] };
   if (r.rows.length !== 5)
@@ -1207,8 +1220,8 @@ const combo02 = ex('combo-02','combined','Animals Database','easy',
 - \`age\` INTEGER
 
 Insert at least 4 animals (at least 2 different species). Then select all animals of one species using WHERE.`,
-['Use WHERE species = \'...\' to filter by species',
- 'Make sure at least 2 rows match your WHERE condition'],
+['Filter using the species field',
+ 'Make sure at least 2 rows match your chosen species'],
 '',
 null, '',
 (db, sql) => {
@@ -1231,7 +1244,7 @@ const combo03 = ex('combo-03','combined','Temperature Records','easy',
 Insert at least 5 rows with different cities and temperatures. Select all records **ordered by temp_c descending**.`,
 ['REAL is the correct type for decimal temperatures',
  'DATE stores dates as dd/mm/yyyy',
- 'ORDER BY temp_c DESC'],
+ 'Sort by temperature from highest to lowest'],
 '',
 null, '',
 (db, sql) => {
@@ -1257,8 +1270,8 @@ const combo04 = ex('combo-04','combined','Student Clubs with UPDATE','medium',
 - \`joined_date\` DATE
 
 Insert 5 members. Then UPDATE the \`club_name\` for one specific member. Finally SELECT all.`,
-['UPDATE ClubMembers SET club_name = \'...\' WHERE member_id = X',
- 'Make sure the updated row appears in your SELECT results'],
+['Choose one member by their ID and change that member\'s club name',
+ 'Make sure the updated row appears in your final results'],
 '',
 null, '',
 (db, sql) => {
@@ -1283,7 +1296,7 @@ const combo05 = ex('combo-05','combined','Product Inventory Query','medium',
 
 Insert 6 items. Then SELECT items where \`unit_price < 20.00\`, ordered by \`unit_price\` ascending.`,
 ['Insert a variety of prices so some are below 20 and some are above',
- 'WHERE unit_price < 20.00 ORDER BY unit_price ASC'],
+ 'Filter by the price limit, then sort prices from lowest to highest'],
 '',
 null, '',
 (db, sql) => {
@@ -1308,7 +1321,7 @@ const combo06 = ex('combo-06','combined','COUNT by Category','medium',
 - \`due_date\` DATE
 
 Insert 8 tasks (at least 3 different categories). Then write a query to count tasks per category using \`GROUP BY category\`.`,
-['Use COUNT(*) AS task_count with GROUP BY category',
+['Count the rows in each category group',
  'BOOLEAN is used for true/false values'],
 '',
 null, '',
@@ -1332,8 +1345,8 @@ const combo07 = ex('combo-07','combined','ALTER TABLE then Query','medium',
 2. Insert 5 staff members (including their department)
 3. SELECT staff from one specific department using WHERE`,
 ['Alter the table before inserting data',
- 'INSERT INTO Staff (staff_id, name, salary, department) VALUES (...)',
- 'WHERE department = \'...\''],
+ 'Include the new department value when adding each staff member',
+ 'Filter staff by one chosen department'],
 '',
 null,
 `CREATE TABLE Staff (
@@ -1361,8 +1374,8 @@ const combo08 = ex('combo-08','combined','INSERT then DELETE','medium',
 - \`severity\` INTEGER
 
 Insert 6 log entries (mix of severities 1–5). Then DELETE all entries where \`severity < 3\`. Finally SELECT the remaining entries.`,
-['DELETE FROM EventLog WHERE severity < 3',
- 'Use SELECT * after deleting to show what remains'],
+['Remove only the low-severity entries',
+ 'Show the remaining rows after deleting'],
 '',
 null, '',
 (db, sql) => {
@@ -1395,9 +1408,9 @@ const combo09 = ex('combo-09','combined','Relational Tables with INNER JOIN','ha
 - Foreign key: \`genre_id\` references \`Genres(genre_id)\`
 
 Insert 3 genres and 6 films. Then write an INNER JOIN query to show each film's title alongside its genre_name.`,
-['Create Genres first, then Films with a FOREIGN KEY',
- 'INNER JOIN Films ON Genres.genre_id = Films.genre_id',
- 'SELECT Films.title, Genres.genre_name FROM Films INNER JOIN Genres ON ...'],
+['Create the parent table before the child table',
+ 'Match films to genres using the shared genre ID',
+ 'Show each film title beside its genre name'],
 '',
 null, '',
 (db, sql) => {
@@ -1423,7 +1436,7 @@ const combo10 = ex('combo-10','combined','Aggregate on Created Data','medium',
 - \`sale_date\` DATE
 
 Insert 10 sales across at least 3 regions. Write a query to find the **total amount per region** using SUM and GROUP BY, ordered highest first.`,
-['SUM(amount) AS total_amount GROUP BY region ORDER BY total_amount DESC'],
+['Group sales by region, total each group, then sort the largest totals first'],
 '',
 null, '',
 (db, sql) => {
@@ -1455,9 +1468,9 @@ const combo11 = ex('combo-11','combined','School Report System','hard',
 - Foreign key: \`pupil_id\` references \`Pupils(pupil_id)\`
 
 Insert 4 pupils and 8 reports. Then write a query to find each pupil's **average score**, showing pupil name and avg_score, ordered by avg_score DESC.`,
-['Join Reports to Pupils on pupil_id',
- 'SELECT Pupils.name, AVG(Reports.score) AS avg_score',
- 'GROUP BY Pupils.pupil_id ORDER BY avg_score DESC'],
+['Match reports to pupils using the shared pupil ID',
+ 'Calculate the average score for each pupil',
+ 'Sort the averages from highest to lowest'],
 '',
 null, '',
 (db, sql) => {
@@ -1482,8 +1495,8 @@ const combo12 = ex('combo-12','combined','Full CRUD Sequence','hard',
 3. **UPDATE** one contact's phone number
 4. **DELETE** one contact (use WHERE active = 0, or set one to inactive first)
 5. **SELECT** all remaining contacts`,
-['Statements execute in order — CREATE, then INSERT, then UPDATE, then DELETE, then SELECT',
- 'Make sure your final SELECT returns 4 rows'],
+['Run the steps in the same order as the task list',
+ 'Make sure the final result has 4 rows'],
 '',
 null, '',
 (db, sql) => {
@@ -1514,9 +1527,9 @@ const combo13 = ex('combo-13','combined','Flights Database','hard',
 - Foreign key: \`airline_id\` references \`Airlines(airline_id)\`
 
 Insert 3 airlines and 8 flights. Find all flights with price between £100 and £500, showing flight_id, destination, airline_name and price, ordered by price.`,
-['Use BETWEEN 100 AND 500, or WHERE price >= 100 AND price <= 500',
- 'INNER JOIN Flights to Airlines',
- 'ORDER BY price ASC'],
+['Keep only flights inside the requested price range',
+ 'Match each flight to its airline',
+ 'Sort prices from lowest to highest'],
 '',
 null, '',
 (db, sql) => {
@@ -1548,9 +1561,9 @@ const combo14 = ex('combo-14','combined','Exam Results Tracker','hard',
 - Foreign key: \`subject_id\` references \`Subjects(subject_id)\`
 
 Insert 3 subjects and 9 results. Write a query that shows subject_name, COUNT(*) AS num_results, AVG(marks) AS avg_marks, ordered by avg_marks DESC.`,
-['Join Results to Subjects',
- 'SELECT Subjects.subject_name, COUNT(*) AS num_results, AVG(Results.marks) AS avg_marks',
- 'GROUP BY Subjects.subject_id ORDER BY avg_marks DESC'],
+['Match results to subjects using the shared subject ID',
+ 'Count results and calculate average marks for each subject',
+ 'Sort the subject averages from highest to lowest'],
 '',
 null, '',
 (db, sql) => {
@@ -1584,9 +1597,9 @@ const combo15 = ex('combo-15','combined','Library Catalogue','hard',
 Insert 4 authors and 8 books. Then:
 - SELECT all available books (copies_available > 0) with author name, title and genre
 - Order by author_name`,
-['JOIN LibCatalogue to LibAuthors',
- 'WHERE copies_available > 0',
- 'ORDER BY LibAuthors.author_name'],
+['Match catalogue rows to their authors',
+ 'Keep only books with at least one copy available',
+ 'Sort by author name'],
 '',
 null, '',
 (db, sql) => {
@@ -1616,8 +1629,8 @@ const combo16 = ex('combo-16','combined','Student Attendance','hard',
 - Foreign key: \`class_id\` references \`Classes(class_id)\`
 
 Insert 3 classes and 12 attendance records. Then find the **attendance count per class** for records where present is true, showing class_name and present_count. Order by present_count DESC.`,
-['Use a condition that keeps only rows where present is true',
- 'GROUP BY class_id with COUNT(*) or COUNT(CASE WHEN present = TRUE THEN 1 END)'],
+['Keep only rows where the student was present',
+ 'Count present records within each class group'],
 '',
 null, '',
 (db, sql) => {
@@ -1642,9 +1655,9 @@ const combo17 = ex('combo-17','combined','Music Playlist App','medium',
 Insert 10 tracks. Then:
 1. Find the total duration per genre (SUM + GROUP BY)
 2. Show genres with more than 2 tracks using having-style filtering`,
-['You can combine WHERE with GROUP BY',
- 'Or use a subquery in WHERE (advanced)',
- 'At minimum: SELECT genre, COUNT(*), SUM(duration_secs) FROM Playlist GROUP BY genre'],
+['Group tracks by genre',
+ 'Count tracks and total the duration for each genre',
+ 'Keep only genres with more than 2 tracks'],
 '',
 null, '',
 (db, sql) => {
@@ -1677,9 +1690,9 @@ const combo18 = ex('combo-18','combined','Sports League','hard',
 - Foreign key: \`away_team_id\` references \`Teams(team_id)\`
 
 Insert 4 teams and 6 matches. Write a query to show all matches with the home team name and away team name (two JOINs to the same table using aliases).`,
-['Alias the Teams table twice: JOIN Teams AS h ON match.home_team_id = h.team_id',
- 'Then JOIN Teams AS a ON match.away_team_id = a.team_id',
- 'SELECT h.team_name AS home, a.team_name AS away, home_score, away_score'],
+['Use the teams table twice, once for the home team and once for the away team',
+ 'Give each copy of the teams table a short alias',
+ 'Show the two team names beside the match scores'],
 '',
 null, '',
 (db, sql) => {
@@ -1716,9 +1729,9 @@ const combo19 = ex('combo-19','combined','Hotel Booking System','hard',
 Insert 5 rooms and 8 bookings. Then:
 - Find the average total_cost per room_type using INNER JOIN, GROUP BY and AVG
 - Order by average cost DESC`,
-['JOIN Bookings to Rooms on room_id',
- 'GROUP BY Rooms.room_type',
- 'AVG(Bookings.total_cost) AS avg_cost'],
+['Match each booking to its room',
+ 'Group bookings by room type',
+ 'Calculate the average booking cost for each room type'],
 '',
 null, '',
 (db, sql) => {

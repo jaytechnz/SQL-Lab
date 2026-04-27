@@ -21,7 +21,7 @@ import {
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
-import { auth, db } from './firebase-config.js?v=20260427-3';
+import { auth, db } from './firebase-config.js?v=20260427-20';
 
 const AUTH_NETWORK_MESSAGE =
   'SQL Lab cannot reach Firebase Authentication from this browser. Try refreshing, disabling content blockers/VPNs for this site, or using a different browser or network.';

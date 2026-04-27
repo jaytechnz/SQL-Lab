@@ -6,8 +6,8 @@ import {
   saveClassName,
   assignStudentToClass,
   removeStudentFromClass
-} from './storage.js?v=20260427-3';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-3';
+} from './storage.js?v=20260427-20';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-20';
 
 const TOTAL_CHALLENGES = EXERCISES.length;
 
