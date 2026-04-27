@@ -117,7 +117,8 @@
   pointer-events: none;
   z-index: 0;
 }
-.output-panel[data-active-tab="schema"] .output-panel-illustration {
+.output-panel[data-active-tab="schema"] .output-panel-illustration,
+.output-panel[data-active-tab="er"] .output-panel-illustration {
   display: none;
 }
 .output-tabs {
