@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-11';
-import { ChallengeManager } from './challenges.js?v=20260427-11';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-11';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-11';
-import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-11';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-11';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-11';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-12';
+import { ChallengeManager } from './challenges.js?v=20260427-12';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-12';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-12';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-12';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-12';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-12';
 
 const $ = id => document.getElementById(id);
 
@@ -222,7 +222,7 @@ function autoUppercaseKeywords() {
   if (!editor) return;
   const start  = editor.selectionStart;
   const end    = editor.selectionEnd;
-  const newVal = editor.value.replace(SQL_KEYWORDS_RE, m => m.toUpperCase());
+  const newVal = replaceOutsideSqlText(editor.value, SQL_KEYWORDS_RE, m => m.toUpperCase());
   if (newVal !== editor.value) {
     editor.value = newVal;
     editor.setSelectionRange(start, end);
@@ -231,17 +231,66 @@ function autoUppercaseKeywords() {
 
 // SQL keyword syntax highlighting (simple overlay approach)
 function highlightSQL(code) {
-  const keywords = SQL_KEYWORDS_RE;
-  const strings  = /'[^']*'/g;
-  const comments = /--[^\n]*/g;
   const numbers  = /\b\d+(\.\d+)?\b/g;
 
-  return code
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(comments, m => `<span class="syn-cmt">${m}</span>`)
-    .replace(strings,  m => `<span class="syn-str">${m}</span>`)
-    .replace(keywords, m => `<span class="syn-kw">${m}</span>`)
-    .replace(numbers,  m => `<span class="syn-num">${m}</span>`);
+  return splitSqlText(code).map(part => {
+    const html = esc(part.text);
+    if (part.type === 'comment') return `<span class="syn-cmt">${html}</span>`;
+    if (part.type === 'string') return `<span class="syn-str">${html}</span>`;
+    return html
+      .replace(SQL_KEYWORDS_RE, m => `<span class="syn-kw">${m}</span>`)
+      .replace(numbers, m => `<span class="syn-num">${m}</span>`);
+  }).join('');
+}
+
+function replaceOutsideSqlText(code, regex, replacer) {
+  return splitSqlText(code).map(part =>
+    part.type === 'code' ? part.text.replace(regex, replacer) : part.text
+  ).join('');
+}
+
+function splitSqlText(code) {
+  const text = String(code || '');
+  const parts = [];
+  let i = 0;
+
+  while (i < text.length) {
+    const start = i;
+
+    if (text[i] === "'") {
+      i++;
+      while (i < text.length) {
+        if (text[i] === "'" && text[i + 1] === "'") {
+          i += 2;
+        } else if (text[i] === "'") {
+          i++;
+          break;
+        } else {
+          i++;
+        }
+      }
+      parts.push({ type: 'string', text: text.slice(start, i) });
+      continue;
+    }
+
+    if (text[i] === '-' && text[i + 1] === '-') {
+      i += 2;
+      while (i < text.length && text[i] !== '\n') i++;
+      parts.push({ type: 'comment', text: text.slice(start, i) });
+      continue;
+    }
+
+    while (
+      i < text.length &&
+      text[i] !== "'" &&
+      !(text[i] === '-' && text[i + 1] === '-')
+    ) {
+      i++;
+    }
+    parts.push({ type: 'code', text: text.slice(start, i) });
+  }
+
+  return parts;
 }
 
 editor?.addEventListener('input', e => {
