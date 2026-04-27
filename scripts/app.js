@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-23';
-import { ChallengeManager } from './challenges.js?v=20260427-23';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-23';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-23';
-import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-23';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-23';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-23';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-25';
+import { ChallengeManager } from './challenges.js?v=20260427-25';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-25';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-25';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-25';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-25';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-25';
 
 const $ = id => document.getElementById(id);
 
@@ -815,6 +815,7 @@ document.querySelectorAll('.output-tab').forEach(btn => {
 function switchOutputTab(tab) {
   document.querySelectorAll('.output-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.output-pane').forEach(p => p.classList.toggle('hidden', p.id !== `output-${tab}`));
+  $('output-panel')?.setAttribute('data-active-tab', tab);
 }
 
 function revealOutputFeedback() {
@@ -1222,6 +1223,41 @@ if (resizeHandle) {
     const delta = startY - e.clientY;
     const newH  = Math.max(80, Math.min(startH + delta, maxPanelHeight));
     document.documentElement.style.setProperty('--output-h', newH + 'px');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RESIZE HANDLE (challenge instructions)
+// ══════════════════════════════════════════════════════════════════════════════
+
+const challengeResizeHandle = $('challenge-resize-handle');
+if (challengeResizeHandle) {
+  let startY, startH;
+  challengeResizeHandle.addEventListener('mousedown', e => {
+    e.preventDefault();
+    startY = e.clientY;
+    startH = $('challenge-panel')?.offsetHeight || 260;
+    document.body.classList.add('is-resizing');
+    document.addEventListener('mousemove', onChallengeResizeMove);
+    document.addEventListener('mouseup', () => {
+      document.body.classList.remove('is-resizing');
+      document.removeEventListener('mousemove', onChallengeResizeMove);
+    }, { once: true });
+  });
+  function onChallengeResizeMove(e) {
+    const editorMain = document.querySelector('.editor-main');
+    const split = document.querySelector('.editor-output-split');
+    const toolbarHeight = document.querySelector('.editor-toolbar')?.offsetHeight || 0;
+    const testResultsHeight = $('ch-test-results')?.offsetHeight || 0;
+    const minChallengeHeight = Math.max(64, 48 + testResultsHeight);
+    const minSplitHeight = 180;
+    const availableHeight = editorMain?.clientHeight || window.innerHeight;
+    const maxChallengeHeight = Math.max(minChallengeHeight, availableHeight - toolbarHeight - minSplitHeight);
+    const delta = e.clientY - startY;
+    const newH = Math.max(minChallengeHeight, Math.min(startH + delta, maxChallengeHeight));
+
+    document.documentElement.style.setProperty('--challenge-panel-h', newH + 'px');
+    if (split) split.style.minHeight = '0';
   }
 }
 
