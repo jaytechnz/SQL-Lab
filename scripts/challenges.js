@@ -1,9 +1,9 @@
 // ─── Challenge System ─────────────────────────────────────────────────────────
 // Manages challenge execution, progress, XP, badges and the sidebar UI.
 
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-3';
-import { getDatabaseById } from './databases.js?v=20260427-3';
-import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js?v=20260427-3';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-4';
+import { getDatabaseById } from './databases.js?v=20260427-4';
+import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js?v=20260427-4';
 import {
   getChallengeProgress,
   getLocalChallengeProgress,
@@ -12,7 +12,7 @@ import {
   updateLeaderboard,
   getClassLeaderboard,
   logSession
-} from './storage.js?v=20260427-3';
+} from './storage.js?v=20260427-4';
 
 const $ = id => document.getElementById(id);
 
@@ -208,11 +208,7 @@ export class ChallengeManager {
 
     // Description
     const doneOnce = !!this.progress.completed?.[ex.id];
-    const databaseGuide = ex.category === 'dml' || ex.category === 'combined'
-      ? `<div class="ch-db-guide">Choose a pre-built database from <span class="ch-inline-note">Database</span> first, then click <span class="ch-inline-note">Schema</span> to view its tables and <span class="ch-inline-note">E-R Diagram</span> to view the relationships before writing your answer.</div>`
-      : '';
     this.panelBody.innerHTML = `
-      ${databaseGuide}
       <div class="ch-desc">${formatInstructionText(ex.description)}</div>
       ${ex.hints.length ? `<details class="ch-hints"><summary>Hints (${ex.hints.length})</summary><ul>${ex.hints.map(h=>`<li>${formatInlineText(h)}</li>`).join('')}</ul></details>` : ''}
       ${doneOnce ? '<div class="ch-done-badge">✓ Completed</div>' : ''}
