@@ -1205,6 +1205,11 @@ null, '',
   if (!/^\s*SELECT\b/i.test(finalStatement) || !/\bFROM\s+["'`\[]?Colours["'`\]]?\b/i.test(finalStatement)) {
     return { passed: false, messages: ['The final statement must retrieve rows from the Colours table.'] };
   }
+  const finalResult = query(db, finalStatement);
+  if (!finalResult)
+    return { passed: false, messages: ['The final statement could not be run. Check the query at the end.'] };
+  if (finalResult.rows.length !== 5 || finalResult.columns.length < 2)
+    return { passed: false, messages: ['The final statement must retrieve all fields and all 5 rows from Colours.'] };
   const r = query(db, 'SELECT * FROM Colours ORDER BY colour_id');
   if (!r) return { passed: false, messages: ['Error querying Colours.'] };
   if (r.rows.length !== 5)
