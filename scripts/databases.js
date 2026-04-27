@@ -68,7 +68,7 @@ INSERT INTO employees VALUES
     label: 'School',
     description: 'A 3-table relational database: students, subjects and enrolments.',
     icon: '🏫',
-    tables: ['students', 'subjects', 'enrollments'],
+    tables: ['students', 'subjects', 'enrolments'],
     setupSQL: `
 CREATE TABLE students (
   student_id  INTEGER PRIMARY KEY,
@@ -81,7 +81,7 @@ CREATE TABLE subjects (
   subject_name VARCHAR(50),
   teacher      VARCHAR(50)
 );
-CREATE TABLE enrollments (
+CREATE TABLE enrolments (
   enrol_id   INTEGER PRIMARY KEY,
   student_id INTEGER,
   subject_id INTEGER,
@@ -104,7 +104,7 @@ INSERT INTO subjects VALUES
   (3, 'Physics',          'Dr Ahmed'),
   (4, 'English',          'Mrs Clarke'),
   (5, 'Chemistry',        'Mr Brown');
-INSERT INTO enrollments VALUES
+INSERT INTO enrolments VALUES
   (1,  1, 1, 'A'),  (2,  1, 2, 'B'),  (3,  1, 3, 'A'),
   (4,  2, 1, 'B'),  (5,  2, 2, 'A'),  (6,  2, 4, 'C'),
   (7,  3, 1, 'A'),  (8,  3, 3, 'B'),  (9,  3, 5, 'A'),

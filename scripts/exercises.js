@@ -1003,14 +1003,14 @@ Return: \`department\`, \`avg_salary\`.`,
 });
 
 const dml13 = ex('dml-13','dml','INNER JOIN — Students and Subjects','medium',
-`From the **School** database, join the \`enrollments\` and \`students\` tables to get the **name of each student and the subject_id they are enrolled in**.
+`From the **School** database, join the \`enrolments\` and \`students\` tables to get the **name of each student and the subject_id they are enrolled in**.
 
-Return: \`students.name\`, \`enrollments.subject_id\`
+Return: \`students.name\`, \`enrolments.subject_id\`
 
-Use \`INNER JOIN students ON enrollments.student_id = students.student_id\`.`,
+Use \`INNER JOIN students ON enrolments.student_id = students.student_id\`.`,
 ['INNER JOIN returns rows that have matching values in both tables',
  'Syntax: FROM table1 INNER JOIN table2 ON table1.id = table2.id',
- 'Start FROM enrollments, then INNER JOIN students'],
+ 'Start FROM enrolments, then INNER JOIN students'],
 '',
 'school', '',
 (db, sql) => {
