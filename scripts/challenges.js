@@ -593,10 +593,15 @@ function extractColumnBlock(createSQL) {
 }
 
 function formatInlineText(text) {
-  let html = esc(redactSQLExamples(text));
+  const spans = [];
+  let s = redactSQLExamples(String(text ?? '')).replace(/`([^`]+)`/g, (_, content) => {
+    spans.push(formatCodeLikeText(content));
+    return `\x02${spans.length - 1}\x02`;
+  });
+  let html = esc(s);
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/&lt;em&gt;(.*?)&lt;\/em&gt;/g, '<em>$1</em>');
-  html = html.replace(/`([^`]+)`/g, (_match, content) => formatCodeLikeText(content));
+  html = html.replace(/\x02(\d+)\x02/g, (_, i) => spans[i]);
   return html;
 }
 

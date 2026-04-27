@@ -244,7 +244,7 @@ function highlightSQL(code) {
     const html = esc(part.text);
     if (part.type === 'comment') return `<span class="syn-cmt">${html}</span>`;
     if (part.type === 'string') return `<span class="syn-str">${html}</span>`;
-    return replaceSqlIdentifiers(html, token =>
+    return html.replace(/(?<![A-Za-z0-9_])[A-Za-z][A-Za-z0-9]*(?![A-Za-z0-9_])/g, token =>
         SQL_KEYWORD_SET.has(token.toUpperCase()) ? `<span class="syn-kw">${token}</span>` : token
       )
       .replace(numbers, m => `<span class="syn-num">${m}</span>`);
