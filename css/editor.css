@@ -220,8 +220,6 @@
   stroke-linecap: square;
   stroke-linejoin: miter;
 }
-.er-crow { fill: none; stroke: #111; stroke-width: 1.8; stroke-linecap: square; }
-.er-one { fill: none; stroke: #111; stroke-width: 1.8; stroke-linecap: square; }
 .er-node-box {
   fill: #fff;
   stroke: #111;
