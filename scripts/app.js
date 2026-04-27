@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-5';
-import { ChallengeManager } from './challenges.js?v=20260427-5';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-5';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-5';
-import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-5';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-5';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-5';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-6';
+import { ChallengeManager } from './challenges.js?v=20260427-6';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-6';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-6';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-6';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-6';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-6';
 
 const $ = id => document.getElementById(id);
 
@@ -244,8 +244,7 @@ function highlightSQL(code) {
 }
 
 editor?.addEventListener('input', e => {
-  // Auto-uppercase on paste; word-by-word uppercasing is handled in keyup
-  if (e.inputType === 'insertFromPaste') autoUppercaseKeywords();
+  autoUppercaseKeywords();
   _challengeMgr?.updateDraft(editor.value);
   updateHighlight();
   updateLineNumbers();
