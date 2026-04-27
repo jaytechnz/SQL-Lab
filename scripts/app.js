@@ -2,11 +2,11 @@
 // SQL Lab — Cambridge AS Computer Science 9618
 
 import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-25';
-import { ChallengeManager } from './challenges.js?v=20260427-25';
+import { ChallengeManager } from './challenges.js?v=20260427-28';
 import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-25';
 import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-25';
 import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-25';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-25';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-28';
 import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-25';
 
 const $ = id => document.getElementById(id);
@@ -342,7 +342,7 @@ function splitSqlText(code) {
 }
 
 editor?.addEventListener('input', e => {
-  repairEditorSplitKeywordIdentifiers();
+  autoUppercaseKeywords();
   _challengeMgr?.updateDraft(editor.value);
   updateHighlight();
   updateLineNumbers();

@@ -1,7 +1,7 @@
 // ─── Challenge System ─────────────────────────────────────────────────────────
 // Manages challenge execution, progress, XP, badges and the sidebar UI.
 
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-25';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-28';
 import { getDatabaseById } from './databases.js?v=20260427-25';
 import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js?v=20260427-25';
 import {

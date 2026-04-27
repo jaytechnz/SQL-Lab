@@ -1541,8 +1541,24 @@ null, '',
     return { passed: false, messages: ['Insert at least 3 genres.'] };
   if (!f || Number(f.rows[0][0]) < 6)
     return { passed: false, messages: ['Insert at least 6 films.'] };
-  if (!hasAnyKeyword(sql,'INNER JOIN','JOIN'))
+  if (!hasKeyword(sql,'INNER JOIN'))
     return { passed: false, messages: ['Include an INNER JOIN between Films and Genres.'] };
+  const finalStatement = lastSqlStatement(sql);
+  if (!/^SELECT\b/i.test(finalStatement))
+    return { passed: false, messages: ['Finish with a SELECT query that shows each film title with its genre_name.'] };
+  const joined = query(db, finalStatement);
+  if (!joined)
+    return { passed: false, messages: ['Check the syntax of your final INNER JOIN query.'] };
+  const expected = [
+    ['The Grand Mix-Up', 'Comedy'],
+    ['High Speed Chase', 'Action'],
+    ['Sky Robots', 'Animation'],
+    ['Late Homework', 'Comedy'],
+    ['Mountain Rescue', 'Action'],
+    ['Ocean Friends', 'Animation']
+  ];
+  if (!rowsEq(joined.rows.map(row => row.slice(0, 2)), expected))
+    return { passed: false, messages: ['Your INNER JOIN should return each film title beside the correct genre_name.'] };
   return { passed: true, messages: ['Two-table film database with INNER JOIN!'] };
 });
 
