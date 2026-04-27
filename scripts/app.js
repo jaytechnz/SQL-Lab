@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-21';
-import { ChallengeManager } from './challenges.js?v=20260427-21';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-21';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-21';
-import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-21';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-21';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-21';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-23';
+import { ChallengeManager } from './challenges.js?v=20260427-23';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-23';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-23';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-23';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-23';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-23';
 
 const $ = id => document.getElementById(id);
 
@@ -237,13 +237,37 @@ function replaceCompletedSqlKeywords(text, replacer) {
   });
 }
 
+function repairSplitKeywordIdentifiers(text) {
+  const keywordPrefixes = [...SQL_KEYWORD_SET].sort((a, b) => b.length - a.length);
+  return String(text || '').replace(SQL_WORD_RE, token => {
+    if (SQL_KEYWORD_SET.has(token)) return token;
+    const prefix = keywordPrefixes.find(keyword =>
+      token.startsWith(keyword) &&
+      token.length > keyword.length &&
+      /^[a-z][A-Za-z0-9_]*$/.test(token.slice(keyword.length))
+    );
+    return prefix ? token.toLowerCase() : token;
+  });
+}
+
 function autoUppercaseKeywords() {
   if (!editor) return;
   const start  = editor.selectionStart;
   const end    = editor.selectionEnd;
   const newVal = replaceOutsideSqlText(editor.value, text =>
-    replaceCompletedSqlKeywords(text, token => token.toUpperCase())
+    replaceCompletedSqlKeywords(repairSplitKeywordIdentifiers(text), token => token.toUpperCase())
   );
+  if (newVal !== editor.value) {
+    editor.value = newVal;
+    editor.setSelectionRange(start, end);
+  }
+}
+
+function repairEditorSplitKeywordIdentifiers() {
+  if (!editor) return;
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const newVal = replaceOutsideSqlText(editor.value, repairSplitKeywordIdentifiers);
   if (newVal !== editor.value) {
     editor.value = newVal;
     editor.setSelectionRange(start, end);
@@ -318,7 +342,7 @@ function splitSqlText(code) {
 }
 
 editor?.addEventListener('input', e => {
-  autoUppercaseKeywords();
+  repairEditorSplitKeywordIdentifiers();
   _challengeMgr?.updateDraft(editor.value);
   updateHighlight();
   updateLineNumbers();
@@ -467,6 +491,19 @@ async function executeQuery() {
 
 // ── Results panel ──────────────────────────────────────────────────────────────
 
+function formatDisplayValue(value) {
+  if (value === null) return '<em>NULL</em>';
+
+  const text = String(value);
+  const isoDate = text.match(/^(\d{4})[-/](\d{2})[-/](\d{2})$/);
+  if (isoDate) {
+    const [, year, month, day] = isoDate;
+    return `${day}/${month}/${year}`;
+  }
+
+  return text;
+}
+
 function renderResultTable(columns, rows) {
   const wrap = $('results-table-wrap');
   if (!wrap) return;
@@ -475,7 +512,7 @@ function renderResultTable(columns, rows) {
 
   const thead = `<thead><tr>${columns.map(c => `<th>${esc(String(c))}</th>`).join('')}</tr></thead>`;
   const tbody = `<tbody>${rows.map(row =>
-    `<tr>${row.map(cell => `<td>${esc(cell === null ? '<em>NULL</em>' : String(cell))}</td>`).join('')}</tr>`
+    `<tr>${row.map(cell => `<td>${cell === null ? '<em>NULL</em>' : esc(formatDisplayValue(cell))}</td>`).join('')}</tr>`
   ).join('')}</tbody>`;
 
   const table = document.createElement('table');
@@ -816,7 +853,7 @@ function renderHistory() {
     item.addEventListener('click', () => {
       const h = _queryHistory[item.dataset.idx];
       if (h) {
-        editor.value = h.sql;
+        editor.value = replaceOutsideSqlText(h.sql, repairSplitKeywordIdentifiers);
         updateHighlight();
         updateLineNumbers();
       }
@@ -958,7 +995,7 @@ function renderDBViewerContent(dbId, body) {
       <div class="preview-scroll">
         <table class="preview-table">
           <thead><tr>${preview.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
-          <tbody>${preview.rows.map(row=>`<tr>${row.map(v=>`<td>${esc(v===null?'NULL':String(v))}</td>`).join('')}</tr>`).join('')}</tbody>
+          <tbody>${preview.rows.map(row=>`<tr>${row.map(v=>`<td>${v===null ? '<em>NULL</em>' : esc(formatDisplayValue(v))}</td>`).join('')}</tr>`).join('')}</tbody>
         </table>
       </div>
     </details>`;
@@ -1012,7 +1049,8 @@ document.addEventListener('challenge:open', e => {
   const ex = e.detail;
 
   // Load last-run SQL if available, otherwise starter code
-  editor.value = ex.savedSQL || ex.starterCode || '';
+  editor.value = replaceOutsideSqlText(ex.savedSQL || ex.starterCode || '', repairSplitKeywordIdentifiers);
+  _challengeMgr?.updateDraft(editor.value);
   updateHighlight();
   updateLineNumbers();
 
