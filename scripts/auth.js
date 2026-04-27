@@ -23,8 +23,27 @@ import {
 
 import { auth, db } from './firebase-config.js';
 
-const AUTH_NETWORK_TIMEOUT_MS = 8000;
-let lastAuthNetworkCheckAt = 0;
+const AUTH_NETWORK_MESSAGE =
+  'SQL Lab cannot reach Firebase Authentication from this browser. Try refreshing, disabling content blockers/VPNs for this site, or using a different browser or network.';
+
+function profileKey(uid) {
+  return `sqllab_profile_${uid}`;
+}
+
+function saveLocalProfile(uid, profile) {
+  try {
+    localStorage.setItem(profileKey(uid), JSON.stringify(profile));
+  } catch {}
+}
+
+function loadLocalProfile(uid) {
+  try {
+    const raw = localStorage.getItem(profileKey(uid));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 function domainOf(email) {
   return email.split('@')[1]?.toLowerCase() ?? '';
@@ -56,57 +75,23 @@ function validateDomain(email) {
   return role;
 }
 
-function authNetworkError(cause) {
-  const err = new Error(
-    'SQL Lab cannot reach Firebase Authentication from this browser. Try refreshing, disabling content blockers/VPNs for this site, or using a different network. If you are in Canvas, open the lab in a new tab.'
-  );
-  err.code = 'auth/network-request-failed';
-  err.cause = cause;
-  return err;
-}
-
-async function verifyAuthNetwork() {
-  const now = Date.now();
-  if (now - lastAuthNetworkCheckAt < 60000) return;
-
-  const apiKey = auth.app.options.apiKey;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), AUTH_NETWORK_TIMEOUT_MS);
-
-  try {
-    const continueUri = window.location.origin && window.location.origin !== 'null'
-      ? window.location.origin
-      : 'http://localhost';
-    const response = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          identifier: 'firebase-connectivity-check@example.invalid',
-          continueUri
-        }),
-        cache: 'no-store',
-        signal: controller.signal
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Firebase Auth probe returned HTTP ${response.status}`);
-    }
-
-    lastAuthNetworkCheckAt = Date.now();
-  } catch (ex) {
-    throw authNetworkError(ex);
-  } finally {
-    clearTimeout(timer);
-  }
+function profileFromUser(user, overrides = {}) {
+  const email = user.email || overrides.email || '';
+  return {
+    uid: user.uid,
+    email,
+    displayName: overrides.displayName || user.displayName || email,
+    role: overrides.role || roleForEmail(email) || 'student',
+    classCode: overrides.classCode || ''
+  };
 }
 
 export function authErrorMessage(ex) {
   switch (ex?.code) {
     case 'auth/network-request-failed':
-      return 'SQL Lab cannot reach Firebase Authentication from this browser. Try refreshing, disabling content blockers/VPNs for this site, or using a different network. If you are in Canvas, open the lab in a new tab.';
+      return ex?.detail
+        ? `${AUTH_NETWORK_MESSAGE} (${ex.detail})`
+        : AUTH_NETWORK_MESSAGE;
     case 'auth/invalid-credential':
     case 'auth/invalid-login-credentials':
     case 'auth/user-not-found':
@@ -118,6 +103,8 @@ export function authErrorMessage(ex) {
       return 'This account has been disabled in Firebase.';
     case 'auth/invalid-email':
       return 'Enter a valid email address.';
+    case 'auth/unauthorized-domain':
+      return 'This web address is not authorised for this Firebase project. Add the deployed domain in Firebase Authentication settings.';
     case 'auth/email-already-in-use':
       return 'An account already exists for this email. Use Sign In instead.';
     case 'auth/weak-password':
@@ -129,37 +116,73 @@ export function authErrorMessage(ex) {
 
 export async function registerUser(email, password, displayName, classCode = '') {
   validateDomain(email);
-  await verifyAuthNetwork();
   const role = roleForEmail(email);
+  const normalizedClassCode = role === 'student' ? (classCode.trim().toUpperCase() || '') : '';
 
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(cred.user, { displayName });
 
-  await setDoc(doc(db, 'users', cred.user.uid), {
-    uid:         cred.user.uid,
+  const profile = profileFromUser(cred.user, {
     email,
     displayName,
     role,
-    classCode:   role === 'student' ? (classCode.trim().toUpperCase() || '') : '',
-    createdAt:   serverTimestamp(),
-    lastLoginAt: serverTimestamp()
+    classCode: normalizedClassCode
   });
+  saveLocalProfile(cred.user.uid, profile);
+
+  try {
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      uid:         cred.user.uid,
+      email,
+      displayName,
+      role,
+      classCode:   normalizedClassCode,
+      createdAt:   serverTimestamp(),
+      lastLoginAt: serverTimestamp()
+    });
+  } catch (ex) {
+    console.warn('Firestore profile create blocked (using local profile):', ex.message);
+  }
 
   return { user: cred.user, role };
 }
 
 export async function updateUserClassCode(uid, classCode) {
-  await updateDoc(doc(db, 'users', uid), {
-    classCode: classCode.trim().toUpperCase()
-  });
+  const normalizedClassCode = classCode.trim().toUpperCase();
+  const cached = loadLocalProfile(uid);
+  if (cached) saveLocalProfile(uid, { ...cached, classCode: normalizedClassCode });
+
+  try {
+    await updateDoc(doc(db, 'users', uid), {
+      classCode: normalizedClassCode
+    });
+  } catch (ex) {
+    console.warn('Firestore class-code update blocked (saved locally):', ex.message);
+  }
 }
 
 export async function signIn(email, password) {
-  await verifyAuthNetwork();
   const cred = await signInWithEmailAndPassword(auth, email, password);
-  const updates = { lastLoginAt: serverTimestamp() };
-  updates.role = roleForEmail(email);
-  await setDoc(doc(db, 'users', cred.user.uid), updates, { merge: true });
+  const cached = loadLocalProfile(cred.user.uid);
+  const updates = {
+    uid: cred.user.uid,
+    email: cred.user.email || email,
+    displayName: cred.user.displayName || email,
+    role: roleForEmail(email),
+    lastLoginAt: serverTimestamp()
+  };
+
+  saveLocalProfile(cred.user.uid, {
+    ...profileFromUser(cred.user, updates),
+    classCode: cached?.classCode || ''
+  });
+
+  try {
+    await setDoc(doc(db, 'users', cred.user.uid), updates, { merge: true });
+  } catch (ex) {
+    console.warn('Firestore profile update blocked (login still succeeded):', ex.message);
+  }
+
   return { user: cred.user, role: updates.role };
 }
 
@@ -168,22 +191,32 @@ export async function signOutUser() {
 }
 
 export async function resetPassword(email) {
-  await verifyAuthNetwork();
   await sendPasswordResetEmail(auth, email);
 }
 
 export async function getUserProfile(uid) {
-  const snap = await getDoc(doc(db, 'users', uid));
-  return snap.exists() ? snap.data() : null;
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (snap.exists()) {
+      const profile = snap.data();
+      saveLocalProfile(uid, profile);
+      return profile;
+    }
+  } catch (ex) {
+    console.warn('Firestore profile read blocked (using local profile):', ex.message);
+  }
+  return loadLocalProfile(uid);
 }
 
 export function onAuth(callback) {
   return onAuthStateChanged(auth, async (user) => {
     if (!user) { callback(null, null); return; }
-    const profile = await getUserProfile(user.uid);
-    if (profile && SUPERADMIN_EMAILS.has(user.email?.toLowerCase())) {
-      profile.role = 'superadmin';
-    }
+    const profile = {
+      ...profileFromUser(user),
+      ...(await getUserProfile(user.uid) || {})
+    };
+    if (SUPERADMIN_EMAILS.has(user.email?.toLowerCase())) profile.role = 'superadmin';
+    saveLocalProfile(user.uid, profile);
     callback(user, profile);
   });
 }
