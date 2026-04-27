@@ -17,7 +17,7 @@ import {
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
-import { db } from './firebase-config.js';
+import { db } from './firebase-config.js?v=20260427-3';
 
 // ── localStorage helpers ───────────────────────────────────────────────────────
 // LMS iframes can block Firestore's streaming channel (CSP/CORS).

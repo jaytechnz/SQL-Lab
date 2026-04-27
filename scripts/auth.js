@@ -21,10 +21,18 @@ import {
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
-import { auth, db } from './firebase-config.js';
+import { auth, db } from './firebase-config.js?v=20260427-3';
 
 const AUTH_NETWORK_MESSAGE =
   'SQL Lab cannot reach Firebase Authentication from this browser. Try refreshing, disabling content blockers/VPNs for this site, or using a different browser or network.';
+
+function authDetail(ex) {
+  return ex?.detail ||
+    ex?.customData?._tokenResponse?.error?.message ||
+    ex?.customData?.message ||
+    ex?.message ||
+    '';
+}
 
 function profileKey(uid) {
   return `sqllab_profile_${uid}`;
@@ -89,8 +97,8 @@ function profileFromUser(user, overrides = {}) {
 export function authErrorMessage(ex) {
   switch (ex?.code) {
     case 'auth/network-request-failed':
-      return ex?.detail
-        ? `${AUTH_NETWORK_MESSAGE} (${ex.detail})`
+      return authDetail(ex)
+        ? `${AUTH_NETWORK_MESSAGE} (${authDetail(ex)})`
         : AUTH_NETWORK_MESSAGE;
     case 'auth/invalid-credential':
     case 'auth/invalid-login-credentials':

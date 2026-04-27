@@ -3,7 +3,12 @@
 // then paste your project's config values below.
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
-import { getAuth }        from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+import {
+  initializeAuth,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  inMemoryPersistence
+} from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 import { getFirestore }   from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -16,7 +21,13 @@ const firebaseConfig = {
 };
 
 const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const auth = initializeAuth(app, {
+  persistence: [
+    browserLocalPersistence,
+    browserSessionPersistence,
+    inMemoryPersistence
+  ]
+});
 const db   = getFirestore(app);
 
 export { app, auth, db };
