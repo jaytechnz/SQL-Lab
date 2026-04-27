@@ -787,7 +787,9 @@ null, '',
 
 const dml01 = ex('dml-01','dml','SELECT — All Columns','easy',
 `Using the **Bookshop** database, write a query to retrieve **all fields and all rows** from the \`books\` table.`,
-['Use SELECT * to retrieve all fields', 'SELECT * FROM table_name;'],
+['Bookshop is the database name; `books` is the table name.',
+ 'Use SELECT * to retrieve all fields',
+ 'SELECT * FROM table_name;'],
 '',
 'bookshop', '',
 (db, sql) => {

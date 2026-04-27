@@ -41,6 +41,40 @@ const SQL_TERMS = new Set([
   'table','text','then','time','true','union','unique','update','values','varchar','where'
 ]);
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function identifierUsedAsTable(sql, identifier) {
+  if (!identifier) return false;
+  const quoted = escapeRegExp(identifier);
+  const patterns = [
+    `\\bFROM\\s+["'\`\\[]?${quoted}["'\`\\]]?\\b`,
+    `\\bJOIN\\s+["'\`\\[]?${quoted}["'\`\\]]?\\b`,
+    `\\bUPDATE\\s+["'\`\\[]?${quoted}["'\`\\]]?\\b`,
+    `\\bINTO\\s+["'\`\\[]?${quoted}["'\`\\]]?\\b`
+  ];
+  return patterns.some(pattern => new RegExp(pattern, 'i').test(sql));
+}
+
+function databaseNameTableMessage(ex, studentSQL, error) {
+  if (!ex?.database || !/no such table/i.test(error || '')) return null;
+
+  const dbDef = getDatabaseById(ex.database);
+  if (!dbDef) return null;
+
+  const databaseNames = [dbDef.id, dbDef.label].filter(Boolean);
+  const usedDatabaseName = databaseNames.some(name => identifierUsedAsTable(studentSQL, name));
+  if (!usedDatabaseName) return null;
+
+  const tableList = dbDef.tables.map(t => `\`${t}\``).join(', ');
+  if (dbDef.tables.length === 1) {
+    const tableName = dbDef.tables[0];
+    return `${dbDef.label} is the database already open for this challenge. Query its table instead: \`${tableName}\`. Try \`SELECT * FROM ${tableName};\``;
+  }
+  return `${dbDef.label} is the database already open for this challenge. Query one of its tables instead: ${tableList}.`;
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // CHALLENGE MANAGER
 // ══════════════════════════════════════════════════════════════════════════════
@@ -178,7 +212,11 @@ export class ChallengeManager {
 
     // Description
     const doneOnce = !!this.progress.completed?.[ex.id];
+    const databaseGuide = ex.category === 'dml' || ex.category === 'combined'
+      ? `<div class="ch-db-guide">Choose a pre-built database from <span class="ch-inline-note">Database</span> first, then click <span class="ch-inline-note">Schema</span> to view its tables and <span class="ch-inline-note">E-R Diagram</span> to view the relationships before writing your answer.</div>`
+      : '';
     this.panelBody.innerHTML = `
+      ${databaseGuide}
       <div class="ch-desc">${formatInstructionText(ex.description)}</div>
       ${ex.hints.length ? `<details class="ch-hints"><summary>Hints (${ex.hints.length})</summary><ul>${ex.hints.map(h=>`<li>${formatInlineText(h)}</li>`).join('')}</ul></details>` : ''}
       ${doneOnce ? '<div class="ch-done-badge">✓ Completed</div>' : ''}
@@ -295,6 +333,11 @@ export class ChallengeManager {
 
     // If execution errored and validation also failed, surface the SQL error
     if (error && !passed) {
+      const databaseNameMessage = databaseNameTableMessage(ex, studentSQL, error);
+      if (databaseNameMessage) {
+        this._showTestResults(false, [databaseNameMessage]);
+        return;
+      }
       this.onError?.(error);
       return;
     }
@@ -558,11 +601,36 @@ function extractColumnBlock(createSQL) {
 }
 
 function formatInlineText(text) {
-  let html = esc(text);
+  let html = esc(redactSQLExamples(text));
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/&lt;em&gt;(.*?)&lt;\/em&gt;/g, '<em>$1</em>');
   html = html.replace(/`([^`]+)`/g, (_match, content) => formatCodeLikeText(content));
   return html;
+}
+
+function redactSQLExamples(text) {
+  let cleaned = String(text ?? '');
+  const replacements = [
+    { regex: /\bCREATE\s+DATABASE\s+[A-Za-z_][A-Za-z0-9_]*\b;?/gi, replacement: 'the required create database statement' },
+    { regex: /\bCREATE\s+TABLE\s+[A-Za-z_][A-Za-z0-9_]*\s*\([\s\S]*?\)\s*;?/gi, replacement: 'the required create table statement' },
+    { regex: /\bALTER\s+TABLE\s+[A-Za-z_][A-Za-z0-9_]*\s+ADD(?:\s+COLUMN)?\s+[A-Za-z_][A-Za-z0-9_]*[\sA-Za-z0-9_(),.]*;?/gi, replacement: 'the required alter table statement' },
+    { regex: /\bINSERT\s+INTO\b[\s\S]*?\bVALUES\b[\s\S]*?(?=$|[.;])/gi, replacement: 'the required insert statement' },
+    { regex: /\bUPDATE\b[\s\S]*?\bSET\b[\s\S]*?(?=$|[.;])/gi, replacement: 'the required update statement' },
+    { regex: /\bDELETE\s+FROM\b[\s\S]*?(?=$|[.;])/gi, replacement: 'the required delete statement' },
+    { regex: /\bSELECT\b[\s\S]*?\bFROM\b[\s\S]*?(?=$|[.;])/gi, replacement: 'the required select query' },
+    { regex: /\bINNER\s+JOIN\b[\s\S]*?\bON\b[\s\S]*?(?=$|[.;])/gi, replacement: 'the required inner join using the matching key fields' },
+    { regex: /\bFOREIGN\s+KEY\s*\([\s\S]*?\)\s*REFERENCES\s*[A-Za-z_][A-Za-z0-9_]*\s*\([\s\S]*?\)/gi, replacement: 'the required foreign key constraint using the specified linked fields' }
+  ];
+
+  replacements.forEach(({ regex, replacement }) => {
+    cleaned = cleaned.replace(regex, replacement);
+  });
+
+  return cleaned
+    .replace(/Syntax:\s*the required/gi, 'Use the required')
+    .replace(/Add:\s*the required/gi, 'Add the required')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 function formatCodeLikeText(content) {
