@@ -1108,19 +1108,21 @@ Update \`salary = salary * 1.1\` where \`department = 'HR'\`.`,
 });
 
 const dml18 = ex('dml-18','dml','DELETE FROM with WHERE','medium',
-`In the **Library** database, delete all loans from the \`loans\` table where the \`return_date\` is **earlier than** \`'2024-02-01'\`.`,
+`In the **Library** database, delete all loans from the \`loans\` table where the \`return_date\` is **earlier than** \`#01/02/2024#\`.
+
+Use the CIE-style date format \`#dd/mm/yyyy#\` in your query.`,
 ["DELETE FROM table WHERE condition;",
- "Use < '2024-02-01' to find dates before February 2024",
- "Use the dd/mm/yyyy format consistently when storing dates"],
+ "Use < #01/02/2024# to find dates before February 2024",
+ "CIE-style date literals use # symbols around the date"],
 '',
 'library', '',
 (db, sql) => {
   const r = query(db, "SELECT COUNT(*) FROM loans");
   if (!r) return { passed: false, messages: ['SQL error.'] };
   const count = Number(r.rows[0][0]);
-  // Originally 9 loans; loans before 2024-02-01 have return_date '2024-01-25' (loan 1) — 1 row deleted
+  // Originally 9 loans; loans before 01/02/2024 have return_date 25/01/2024 (loan 1) — 1 row deleted
   if (count !== 8)
-    return { passed: false, messages: [`Expected 8 remaining loans but found ${count}. Delete where return_date < '2024-02-01'.`] };
+    return { passed: false, messages: [`Expected 8 remaining loans but found ${count}. Delete where return_date < #01/02/2024#.`] };
   return { passed: true, messages: ['1 old loan deleted — 8 loans remain!'] };
 });
 

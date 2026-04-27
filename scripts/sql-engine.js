@@ -36,7 +36,7 @@ export function createDatabase(SQL, setupSQL = '') {
 // Execute one or more SQL statements and collect results.
 // Returns: { results: [{columns, rows, type}], error: string|null, rowsAffected: number }
 export function executeSQL(db, sql) {
-  const stmts = stripUnsupportedStatements(sql).trim();
+  const stmts = normalizeDateLiterals(stripUnsupportedStatements(sql)).trim();
   if (!stmts) return { results: [], error: null, rowsAffected: 0 };
 
   try {
@@ -59,6 +59,14 @@ export function executeSQL(db, sql) {
 function stripUnsupportedStatements(sql) {
   return String(sql || '')
     .replace(/^\s*CREATE\s+DATABASE\s+[A-Za-z_][A-Za-z0-9_]*\s*;?\s*/gim, '');
+}
+
+function normalizeDateLiterals(sql) {
+  return String(sql || '').replace(/#(\d{1,2})\/(\d{1,2})\/(\d{4})#/g, (_match, day, month, year) => {
+    const dd = String(day).padStart(2, '0');
+    const mm = String(month).padStart(2, '0');
+    return `'${year}-${mm}-${dd}'`;
+  });
 }
 
 // ── Schema introspection ──────────────────────────────────────────────────────
