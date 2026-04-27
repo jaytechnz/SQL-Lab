@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-6';
-import { ChallengeManager } from './challenges.js?v=20260427-6';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-6';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-6';
-import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-6';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-6';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-6';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-7';
+import { ChallengeManager } from './challenges.js?v=20260427-7';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-7';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-7';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-7';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-7';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-7';
 
 const $ = id => document.getElementById(id);
 
@@ -215,7 +215,8 @@ $('class-confirm')?.addEventListener('click', async () => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 // SQL keywords — shared between auto-uppercase and syntax highlighting
-const SQL_KEYWORDS_RE = /\b(SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|DATABASE|ALTER|ADD|DROP|COLUMN|PRIMARY|KEY|FOREIGN|REFERENCES|INNER|LEFT|RIGHT|OUTER|FULL|CROSS|JOIN|ON|ORDER|BY|GROUP|HAVING|DISTINCT|AS|AND|OR|NOT|NULL|IS|IN|BETWEEN|LIKE|COUNT|SUM|AVG|MAX|MIN|ASC|DESC|LIMIT|OFFSET|UNION|ALL|EXCEPT|INTERSECT|CASE|WHEN|THEN|ELSE|END|IF|EXISTS|UNIQUE|CHECK|DEFAULT|CONSTRAINT|INTEGER|VARCHAR|CHARACTER|BOOLEAN|REAL|DATE|TIME|INT|TEXT|NUMERIC)\b/gi;
+const SQL_KEYWORDS = 'SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|DATABASE|ALTER|ADD|DROP|COLUMN|PRIMARY|KEY|FOREIGN|REFERENCES|INNER|LEFT|RIGHT|OUTER|FULL|CROSS|JOIN|ON|ORDER|BY|GROUP|HAVING|DISTINCT|AS|AND|OR|NOT|NULL|IS|IN|BETWEEN|LIKE|COUNT|SUM|AVG|MAX|MIN|ASC|DESC|LIMIT|OFFSET|UNION|ALL|EXCEPT|INTERSECT|CASE|WHEN|THEN|ELSE|END|IF|EXISTS|UNIQUE|CHECK|DEFAULT|CONSTRAINT|INTEGER|VARCHAR|CHARACTER|BOOLEAN|REAL|DATE|TIME|INT|TEXT|NUMERIC';
+const SQL_KEYWORDS_RE = new RegExp(`(?<![A-Za-z0-9_])(${SQL_KEYWORDS})(?![A-Za-z0-9_])`, 'gi');
 
 function autoUppercaseKeywords() {
   if (!editor) return;
