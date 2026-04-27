@@ -1324,8 +1324,8 @@ Then create a table called \`ClubMembers\` with:
 Insert these tuples:
 - (1, 'Ava Patel', 'Chess', #05/02/2024#)
 - (2, 'Noah Chen', 'Robotics', #07/02/2024#)
-- (3, 'Mia Thompson', 'Drama', #09/02/2024#)
-- (4, 'Leo Williams', 'Chess', #12/02/2024#)
+- (3, 'Mia Thompson', 'Crochet', #09/02/2024#)
+- (4, 'Leo Williams', 'Crochet', #12/02/2024#)
 - (5, 'Sofia Garcia', 'Debate', #15/02/2024#)
 
 Then UPDATE the \`club_name\` for one specific member. Finally SELECT all.`,
