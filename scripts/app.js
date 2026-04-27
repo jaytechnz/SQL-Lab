@@ -219,6 +219,7 @@ $('class-confirm')?.addEventListener('click', async () => {
 // split into a keyword plus suffix.
 const SQL_KEYWORDS = 'SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|DATABASE|ALTER|ADD|DROP|COLUMN|PRIMARY|KEY|FOREIGN|REFERENCES|INNER|LEFT|RIGHT|OUTER|FULL|CROSS|JOIN|ON|ORDER|BY|GROUP|HAVING|DISTINCT|AS|AND|OR|NOT|NULL|IS|IN|BETWEEN|LIKE|COUNT|SUM|AVG|MAX|MIN|ASC|DESC|LIMIT|OFFSET|UNION|ALL|EXCEPT|INTERSECT|CASE|WHEN|THEN|ELSE|END|IF|EXISTS|UNIQUE|CHECK|DEFAULT|CONSTRAINT|INTEGER|VARCHAR|CHARACTER|BOOLEAN|REAL|DATE|TIME|INT|TEXT|NUMERIC';
 const SQL_KEYWORD_SET = new Set(SQL_KEYWORDS.split('|'));
+const SQL_FUNCTION_CALL_RE = /\b(COUNT|SUM|AVG|MAX|MIN)\s*(?=\()/gi;
 const SQL_IDENTIFIER_RE = /[A-Za-z_][A-Za-z0-9_]*/g;
 const SQL_WORD_RE = /[A-Za-z_][A-Za-z0-9_]*/g;
 const SQL_WORD_CHAR_RE = /[A-Za-z0-9_]/;
@@ -235,6 +236,10 @@ function replaceCompletedSqlKeywords(text, replacer) {
     if (SQL_WORD_CHAR_RE.test(before) || !isSqlTokenDelimiter(after)) return token;
     return SQL_KEYWORD_SET.has(token.toUpperCase()) ? replacer(token) : token;
   });
+}
+
+function uppercaseSqlFunctionCalls(text) {
+  return String(text || '').replace(SQL_FUNCTION_CALL_RE, fn => fn.toUpperCase());
 }
 
 function repairSplitKeywordIdentifiers(text) {
@@ -255,7 +260,9 @@ function autoUppercaseKeywords() {
   const start  = editor.selectionStart;
   const end    = editor.selectionEnd;
   const newVal = replaceOutsideSqlText(editor.value, text =>
-    replaceCompletedSqlKeywords(repairSplitKeywordIdentifiers(text), token => token.toUpperCase())
+    uppercaseSqlFunctionCalls(
+      replaceCompletedSqlKeywords(repairSplitKeywordIdentifiers(text), token => token.toUpperCase())
+    )
   );
   if (newVal !== editor.value) {
     editor.value = newVal;
