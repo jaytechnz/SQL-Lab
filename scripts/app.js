@@ -226,7 +226,9 @@ function autoUppercaseKeywords() {
   const start  = editor.selectionStart;
   const end    = editor.selectionEnd;
   const newVal = replaceOutsideSqlText(editor.value, text =>
-    replaceSqlIdentifiers(text, token => SQL_KEYWORD_SET.has(token.toUpperCase()) ? token.toUpperCase() : token)
+    text.replace(/(?<![A-Za-z0-9_])[A-Za-z][A-Za-z0-9]*(?![A-Za-z0-9_])/g, token =>
+      SQL_KEYWORD_SET.has(token.toUpperCase()) ? token.toUpperCase() : token
+    )
   );
   if (newVal !== editor.value) {
     editor.value = newVal;
