@@ -1074,13 +1074,10 @@ Group by customer. Order by \`order_count\` DESC.`,
 });
 
 const dml16 = ex('dml-16','dml','INSERT INTO','easy',
-`The **Bookshop** database is open. Insert a **new book** into the \`books\` table:
-- book_id: \`11\`
-- title: \`'The Martian'\`
-- author: \`'Andy Weir'\`
-- genre: \`'Sci-Fi'\`
-- price: \`11.49\`
-- stock: \`6\``,
+`The **Bookshop** database is open. Insert this tuple into the \`books\` table:
+- (11, 'The Martian', 'Andy Weir', 'Sci-Fi', 11.49, 6)
+
+The fields are: \`book_id\`, \`title\`, \`author\`, \`genre\`, \`price\`, \`stock\`.`,
 ['List the target fields and matching values in the same order',
  'String values use single quotes; numbers do not'],
 '',
@@ -1192,7 +1189,13 @@ const combo01 = ex('combo-01','combined','Create, Insert and Select','easy',
 - \`colour_id\` INTEGER PRIMARY KEY
 - \`colour_name\` VARCHAR(20)
 
-Then insert these 5 rows: Red, Green, Blue, Yellow, Purple (ids 1–5).
+Then insert these tuples:
+- (1, 'Red')
+- (2, 'Green')
+- (3, 'Blue')
+- (4, 'Yellow')
+- (5, 'Purple')
+
 Finally, write a \`SELECT *\` to retrieve all rows.`,
 ['Create the table before adding rows, then query the completed table',
  'Separate statements with semicolons'],
@@ -1224,7 +1227,13 @@ const combo02 = ex('combo-02','combined','Animals Database','easy',
 - \`species\` VARCHAR(30)
 - \`age\` INTEGER
 
-Insert at least 4 animals (at least 2 different species). Then select all animals of one species using WHERE.`,
+Insert these tuples:
+- (1, 'Luna', 'Cat', 3)
+- (2, 'Milo', 'Dog', 5)
+- (3, 'Nala', 'Cat', 2)
+- (4, 'Buddy', 'Dog', 4)
+
+Then select all animals of one species using WHERE.`,
 ['Filter using the species field',
  'Make sure at least 2 rows match your chosen species'],
 '',
@@ -1246,7 +1255,14 @@ const combo03 = ex('combo-03','combined','Temperature Records','easy',
 - \`temp_c\` REAL
 - \`recorded\` DATE
 
-Insert at least 5 rows with different cities and temperatures. Select all records **ordered by temp_c descending**.`,
+Insert these tuples:
+- ('Auckland', 21.5, #12/03/2024#)
+- ('Wellington', 17.8, #12/03/2024#)
+- ('Christchurch', 15.2, #12/03/2024#)
+- ('Dunedin', 13.9, #12/03/2024#)
+- ('Hamilton', 22.1, #12/03/2024#)
+
+Select all records **ordered by temp_c descending**.`,
 ['REAL is the correct type for decimal temperatures',
  'DATE stores dates as dd/mm/yyyy',
  'Sort by temperature from highest to lowest'],
@@ -1274,7 +1290,14 @@ const combo04 = ex('combo-04','combined','Student Clubs with UPDATE','medium',
 - \`club_name\` VARCHAR(30)
 - \`joined_date\` DATE
 
-Insert 5 members. Then UPDATE the \`club_name\` for one specific member. Finally SELECT all.`,
+Insert these tuples:
+- (1, 'Ava Patel', 'Chess', #05/02/2024#)
+- (2, 'Noah Chen', 'Robotics', #07/02/2024#)
+- (3, 'Mia Thompson', 'Drama', #09/02/2024#)
+- (4, 'Leo Williams', 'Chess', #12/02/2024#)
+- (5, 'Sofia Garcia', 'Debate', #15/02/2024#)
+
+Then UPDATE the \`club_name\` for one specific member. Finally SELECT all.`,
 ['Choose one member by their ID and change that member\'s club name',
  'Make sure the updated row appears in your final results'],
 '',
@@ -1299,7 +1322,15 @@ const combo05 = ex('combo-05','combined','Product Inventory Query','medium',
 - \`quantity\` INTEGER
 - \`unit_price\` REAL
 
-Insert 6 items. Then SELECT items where \`unit_price < 20.00\`, ordered by \`unit_price\` ascending.`,
+Insert these tuples:
+- (1, 'Notebook', 40, 4.50)
+- (2, 'USB Cable', 18, 9.99)
+- (3, 'Headphones', 12, 24.99)
+- (4, 'Water Bottle', 25, 12.50)
+- (5, 'Backpack', 8, 39.95)
+- (6, 'Pen Set', 60, 3.75)
+
+Then SELECT items where \`unit_price < 20.00\`, ordered by \`unit_price\` ascending.`,
 ['Insert a variety of prices so some are below 20 and some are above',
  'Filter by the price limit, then sort prices from lowest to highest'],
 '',
@@ -1325,7 +1356,17 @@ const combo06 = ex('combo-06','combined','COUNT by Category','medium',
 - \`completed\` BOOLEAN
 - \`due_date\` DATE
 
-Insert 8 tasks (at least 3 different categories). Then write a query to count tasks per category using \`GROUP BY category\`.`,
+Insert these tuples:
+- (1, 'Revise SQL joins', 'Study', FALSE, #18/03/2024#)
+- (2, 'Submit project plan', 'Study', TRUE, #14/03/2024#)
+- (3, 'Football training', 'Sport', FALSE, #19/03/2024#)
+- (4, 'Buy groceries', 'Home', TRUE, #16/03/2024#)
+- (5, 'Clean desk', 'Home', FALSE, #20/03/2024#)
+- (6, 'Maths homework', 'Study', FALSE, #21/03/2024#)
+- (7, 'Netball match', 'Sport', TRUE, #17/03/2024#)
+- (8, 'Water plants', 'Home', FALSE, #22/03/2024#)
+
+Then write a query to count tasks per category using \`GROUP BY category\`.`,
 ['Count the rows in each category group',
  'BOOLEAN is used for true/false values'],
 '',
@@ -1347,7 +1388,12 @@ const combo07 = ex('combo-07','combined','ALTER TABLE then Query','medium',
 `A table called \`Staff\` has been created with: \`staff_id\`, \`name\`, \`salary\`.
 
 1. Use \`ALTER TABLE\` to add a \`department\` column (VARCHAR(30))
-2. Insert 5 staff members (including their department)
+2. Insert these tuples:
+- (1, 'Grace Lee', 52000, 'Admin')
+- (2, 'Omar Khan', 61000, 'IT')
+- (3, 'Ella Brown', 48000, 'Admin')
+- (4, 'Jack Wilson', 57000, 'Finance')
+- (5, 'Ivy Martin', 64000, 'IT')
 3. SELECT staff from one specific department using WHERE`,
 ['Alter the table before inserting data',
  'Include the new department value when adding each staff member',
@@ -1378,7 +1424,15 @@ const combo08 = ex('combo-08','combined','INSERT then DELETE','medium',
 - \`event_date\` DATE
 - \`severity\` INTEGER
 
-Insert 6 log entries (mix of severities 1–5). Then DELETE all entries where \`severity < 3\`. Finally SELECT the remaining entries.`,
+Insert these tuples:
+- (1, 'Login', #01/03/2024#, 1)
+- (2, 'Password Reset', #02/03/2024#, 2)
+- (3, 'Payment Failed', #03/03/2024#, 4)
+- (4, 'Server Warning', #04/03/2024#, 3)
+- (5, 'Data Export', #05/03/2024#, 5)
+- (6, 'Profile Update', #06/03/2024#, 2)
+
+Then DELETE all entries where \`severity < 3\`. Finally SELECT the remaining entries.`,
 ['Remove only the low-severity entries',
  'Show the remaining rows after deleting'],
 '',
@@ -1412,7 +1466,20 @@ const combo09 = ex('combo-09','combined','Relational Tables with INNER JOIN','ha
 - \`genre_id\` — INTEGER
 - Foreign key: \`genre_id\` references \`Genres(genre_id)\`
 
-Insert 3 genres and 6 films. Then write an INNER JOIN query to show each film's title alongside its genre_name.`,
+Insert these \`Genres\` tuples:
+- (1, 'Comedy')
+- (2, 'Action')
+- (3, 'Animation')
+
+Insert these \`Films\` tuples:
+- (1, 'The Grand Mix-Up', 2021, 7.4, 1)
+- (2, 'High Speed Chase', 2022, 6.9, 2)
+- (3, 'Sky Robots', 2020, 8.1, 3)
+- (4, 'Late Homework', 2019, 7.0, 1)
+- (5, 'Mountain Rescue', 2023, 7.8, 2)
+- (6, 'Ocean Friends', 2021, 8.3, 3)
+
+Then write an INNER JOIN query to show each film's title alongside its genre_name.`,
 ['Create the parent table before the child table',
  'Match films to genres using the shared genre ID',
  'Show each film title beside its genre name'],
@@ -1440,7 +1507,19 @@ const combo10 = ex('combo-10','combined','Aggregate on Created Data','medium',
 - \`amount\` REAL
 - \`sale_date\` DATE
 
-Insert 10 sales across at least 3 regions. Write a query to find the **total amount per region** using SUM and GROUP BY, ordered highest first.`,
+Insert these tuples:
+- (1, 'Laptop Stand', 'North', 45.00, #01/03/2024#)
+- (2, 'Keyboard', 'South', 79.99, #02/03/2024#)
+- (3, 'Mouse', 'East', 24.50, #02/03/2024#)
+- (4, 'Monitor', 'North', 199.00, #03/03/2024#)
+- (5, 'Webcam', 'West', 59.95, #04/03/2024#)
+- (6, 'Desk Lamp', 'South', 32.00, #05/03/2024#)
+- (7, 'Chair Mat', 'East', 41.25, #06/03/2024#)
+- (8, 'USB Hub', 'North', 28.75, #07/03/2024#)
+- (9, 'Notebook', 'West', 6.50, #08/03/2024#)
+- (10, 'Headset', 'South', 89.00, #09/03/2024#)
+
+Write a query to find the **total amount per region** using SUM and GROUP BY, ordered highest first.`,
 ['Group sales by region, total each group, then sort the largest totals first'],
 '',
 null, '',
@@ -1472,7 +1551,23 @@ const combo11 = ex('combo-11','combined','School Report System','hard',
 - \`pupil_id\` — INTEGER
 - Foreign key: \`pupil_id\` references \`Pupils(pupil_id)\`
 
-Insert 4 pupils and 8 reports. Then write a query to find each pupil's **average score**, showing pupil name and avg_score, ordered by avg_score DESC.`,
+Insert these \`Pupils\` tuples:
+- (1, 'Amelia Stone', 12)
+- (2, 'Ben Carter', 12)
+- (3, 'Chloe Singh', 13)
+- (4, 'Daniel Young', 13)
+
+Insert these \`Reports\` tuples:
+- (1, 'Computer Science', 82, #10/03/2024#, 1)
+- (2, 'Mathematics', 78, #11/03/2024#, 1)
+- (3, 'Computer Science', 69, #10/03/2024#, 2)
+- (4, 'Mathematics', 74, #11/03/2024#, 2)
+- (5, 'Computer Science', 91, #10/03/2024#, 3)
+- (6, 'Mathematics', 88, #11/03/2024#, 3)
+- (7, 'Computer Science', 76, #10/03/2024#, 4)
+- (8, 'Mathematics', 81, #11/03/2024#, 4)
+
+Then write a query to find each pupil's **average score**, showing pupil name and avg_score, ordered by avg_score DESC.`,
 ['Match reports to pupils using the shared pupil ID',
  'Calculate the average score for each pupil',
  'Sort the averages from highest to lowest'],
@@ -1496,7 +1591,12 @@ const combo12 = ex('combo-12','combined','Full CRUD Sequence','hard',
 `Demonstrate a complete CRUD (Create, Read, Update, Delete) cycle:
 
 1. **CREATE** a table called \`Contacts\` — contact_id PK, name VARCHAR(50), phone VARCHAR(20), email VARCHAR(80), active BOOLEAN
-2. **INSERT** 5 contacts
+2. **INSERT** these tuples:
+- (1, 'Hana Roberts', '021-555-1001', 'hana@example.com', TRUE)
+- (2, 'Isaac Miller', '021-555-1002', 'isaac@example.com', TRUE)
+- (3, 'Lily Ahmed', '021-555-1003', 'lily@example.com', FALSE)
+- (4, 'Max Taylor', '021-555-1004', 'max@example.com', TRUE)
+- (5, 'Nora Kim', '021-555-1005', 'nora@example.com', TRUE)
 3. **UPDATE** one contact's phone number
 4. **DELETE** one contact (use WHERE active = 0, or set one to inactive first)
 5. **SELECT** all remaining contacts`,
@@ -1531,7 +1631,22 @@ const combo13 = ex('combo-13','combined','Flights Database','hard',
 - \`airline_id\` — INTEGER
 - Foreign key: \`airline_id\` references \`Airlines(airline_id)\`
 
-Insert 3 airlines and 8 flights. Find all flights with price between £100 and £500, showing flight_id, destination, airline_name and price, ordered by price.`,
+Insert these \`Airlines\` tuples:
+- (1, 'Southern Air', 'New Zealand')
+- (2, 'Pacific Link', 'Australia')
+- (3, 'SkyBridge', 'Singapore')
+
+Insert these \`Flights\` tuples:
+- (1, 'Sydney', #15/04/2024#, 280.00, 2)
+- (2, 'Wellington', #16/04/2024#, 95.00, 1)
+- (3, 'Singapore', #17/04/2024#, 720.00, 3)
+- (4, 'Melbourne', #18/04/2024#, 340.00, 2)
+- (5, 'Queenstown', #19/04/2024#, 180.00, 1)
+- (6, 'Brisbane', #20/04/2024#, 410.00, 2)
+- (7, 'Christchurch', #21/04/2024#, 130.00, 1)
+- (8, 'Tokyo', #22/04/2024#, 890.00, 3)
+
+Find all flights with price between £100 and £500, showing flight_id, destination, airline_name and price, ordered by price.`,
 ['Keep only flights inside the requested price range',
  'Match each flight to its airline',
  'Sort prices from lowest to highest'],
@@ -1565,7 +1680,23 @@ const combo14 = ex('combo-14','combined','Exam Results Tracker','hard',
 - \`subject_id\` — INTEGER
 - Foreign key: \`subject_id\` references \`Subjects(subject_id)\`
 
-Insert 3 subjects and 9 results. Write a query that shows subject_name, COUNT(*) AS num_results, AVG(marks) AS avg_marks, ordered by avg_marks DESC.`,
+Insert these \`Subjects\` tuples:
+- (1, 'Computer Science', 100)
+- (2, 'Mathematics', 100)
+- (3, 'Physics', 100)
+
+Insert these \`Results\` tuples:
+- (1, 'Ava Patel', 84, #12/03/2024#, 1)
+- (2, 'Noah Chen', 79, #12/03/2024#, 1)
+- (3, 'Mia Thompson', 91, #12/03/2024#, 1)
+- (4, 'Leo Williams', 76, #13/03/2024#, 2)
+- (5, 'Sofia Garcia', 88, #13/03/2024#, 2)
+- (6, 'Omar Khan', 73, #13/03/2024#, 2)
+- (7, 'Ella Brown', 69, #14/03/2024#, 3)
+- (8, 'Jack Wilson', 82, #14/03/2024#, 3)
+- (9, 'Ivy Martin', 77, #14/03/2024#, 3)
+
+Write a query that shows subject_name, COUNT(*) AS num_results, AVG(marks) AS avg_marks, ordered by avg_marks DESC.`,
 ['Match results to subjects using the shared subject ID',
  'Count results and calculate average marks for each subject',
  'Sort the subject averages from highest to lowest'],
@@ -1599,7 +1730,23 @@ const combo15 = ex('combo-15','combined','Library Catalogue','hard',
 - \`author_id\` — INTEGER
 - Foreign key: \`author_id\` references \`LibAuthors(author_id)\`
 
-Insert 4 authors and 8 books. Then:
+Insert these \`LibAuthors\` tuples:
+- (1, 'Ursula Le Guin', 'American')
+- (2, 'Malorie Blackman', 'British')
+- (3, 'Witi Ihimaera', 'New Zealand')
+- (4, 'Andy Weir', 'American')
+
+Insert these \`LibCatalogue\` tuples:
+- (1, 'A Wizard of Earthsea', 'Fantasy', 1968, 3, 1)
+- (2, 'The Left Hand of Darkness', 'Sci-Fi', 1969, 1, 1)
+- (3, 'Noughts and Crosses', 'Fiction', 2001, 4, 2)
+- (4, 'Pig-Heart Boy', 'Fiction', 1997, 0, 2)
+- (5, 'The Whale Rider', 'Fiction', 1987, 2, 3)
+- (6, 'Bulibasha', 'Fiction', 1994, 1, 3)
+- (7, 'The Martian', 'Sci-Fi', 2011, 5, 4)
+- (8, 'Project Hail Mary', 'Sci-Fi', 2021, 0, 4)
+
+Then:
 - SELECT all available books (copies_available > 0) with author name, title and genre
 - Order by author_name`,
 ['Match catalogue rows to their authors',
@@ -1633,7 +1780,26 @@ const combo16 = ex('combo-16','combined','Student Attendance','hard',
 - \`class_id\` — INTEGER
 - Foreign key: \`class_id\` references \`Classes(class_id)\`
 
-Insert 3 classes and 12 attendance records. Then find the **attendance count per class** for records where present is true, showing class_name and present_count. Order by present_count DESC.`,
+Insert these \`Classes\` tuples:
+- (1, 'AS Computer Science', 'Ms Smith')
+- (2, 'AS Mathematics', 'Mr Patel')
+- (3, 'AS Physics', 'Dr Lee')
+
+Insert these \`Attendance\` tuples:
+- (1, 'Ava Patel', #04/03/2024#, TRUE, 1)
+- (2, 'Noah Chen', #04/03/2024#, TRUE, 1)
+- (3, 'Mia Thompson', #04/03/2024#, FALSE, 1)
+- (4, 'Leo Williams', #04/03/2024#, TRUE, 1)
+- (5, 'Sofia Garcia', #04/03/2024#, TRUE, 2)
+- (6, 'Omar Khan', #04/03/2024#, FALSE, 2)
+- (7, 'Ella Brown', #04/03/2024#, TRUE, 2)
+- (8, 'Jack Wilson', #04/03/2024#, TRUE, 2)
+- (9, 'Ivy Martin', #04/03/2024#, TRUE, 3)
+- (10, 'Grace Lee', #04/03/2024#, TRUE, 3)
+- (11, 'Ben Carter', #04/03/2024#, FALSE, 3)
+- (12, 'Chloe Singh', #04/03/2024#, TRUE, 3)
+
+Then find the **attendance count per class** for records where present is true, showing class_name and present_count. Order by present_count DESC.`,
 ['Keep only rows where the student was present',
  'Count present records within each class group'],
 '',
@@ -1657,7 +1823,19 @@ const combo17 = ex('combo-17','combined','Music Playlist App','medium',
 - \`duration_secs\` INTEGER
 - \`added_date\` DATE
 
-Insert 10 tracks. Then:
+Insert these tuples:
+- (1, 'Bright Start', 'Nova Lane', 'Pop', 212, #01/03/2024#)
+- (2, 'Late Night Code', 'Byte Club', 'Electronic', 245, #02/03/2024#)
+- (3, 'Ocean Road', 'The Signals', 'Indie', 198, #03/03/2024#)
+- (4, 'Static Dreams', 'Byte Club', 'Electronic', 231, #04/03/2024#)
+- (5, 'Golden Hour', 'Nova Lane', 'Pop', 205, #05/03/2024#)
+- (6, 'City Lights', 'The Signals', 'Indie', 224, #06/03/2024#)
+- (7, 'Pulse Runner', 'Byte Club', 'Electronic', 256, #07/03/2024#)
+- (8, 'Paper Planes', 'Maya North', 'Pop', 219, #08/03/2024#)
+- (9, 'Rain Check', 'The Signals', 'Indie', 207, #09/03/2024#)
+- (10, 'Solar Flare', 'Byte Club', 'Electronic', 263, #10/03/2024#)
+
+Then:
 1. Find the total duration per genre (SUM + GROUP BY)
 2. Show genres with more than 2 tracks using having-style filtering`,
 ['Group tracks by genre',
@@ -1694,7 +1872,21 @@ const combo18 = ex('combo-18','combined','Sports League','hard',
 - Foreign key: \`home_team_id\` references \`Teams(team_id)\`
 - Foreign key: \`away_team_id\` references \`Teams(team_id)\`
 
-Insert 4 teams and 6 matches. Write a query to show all matches with the home team name and away team name (two JOINs to the same table using aliases).`,
+Insert these \`Teams\` tuples:
+- (1, 'Auckland Aces', 'Auckland', 1997)
+- (2, 'Wellington Waves', 'Wellington', 2001)
+- (3, 'Christchurch Comets', 'Christchurch', 1995)
+- (4, 'Dunedin Dynamos', 'Dunedin', 2004)
+
+Insert these \`Matches\` tuples:
+- (1, #01/04/2024#, 3, 1, 1, 2)
+- (2, #03/04/2024#, 2, 2, 3, 4)
+- (3, #05/04/2024#, 0, 1, 2, 3)
+- (4, #07/04/2024#, 4, 2, 4, 1)
+- (5, #09/04/2024#, 1, 3, 1, 3)
+- (6, #11/04/2024#, 2, 0, 2, 4)
+
+Write a query to show all matches with the home team name and away team name (two JOINs to the same table using aliases).`,
 ['Use the teams table twice, once for the home team and once for the away team',
  'Give each copy of the teams table a short alias',
  'Show the two team names beside the match scores'],
@@ -1731,7 +1923,24 @@ const combo19 = ex('combo-19','combined','Hotel Booking System','hard',
 - \`room_id\` — INTEGER
 - Foreign key: \`room_id\` references \`Rooms(room_id)\`
 
-Insert 5 rooms and 8 bookings. Then:
+Insert these \`Rooms\` tuples:
+- (1, '101', 'Single', 120.00)
+- (2, '102', 'Single', 120.00)
+- (3, '201', 'Double', 180.00)
+- (4, '202', 'Double', 180.00)
+- (5, '301', 'Suite', 320.00)
+
+Insert these \`Bookings\` tuples:
+- (1, 'Ava Patel', #01/05/2024#, #03/05/2024#, 240.00, 1)
+- (2, 'Noah Chen', #02/05/2024#, #05/05/2024#, 540.00, 3)
+- (3, 'Mia Thompson', #04/05/2024#, #06/05/2024#, 640.00, 5)
+- (4, 'Leo Williams', #06/05/2024#, #07/05/2024#, 120.00, 2)
+- (5, 'Sofia Garcia', #07/05/2024#, #10/05/2024#, 540.00, 4)
+- (6, 'Omar Khan', #10/05/2024#, #12/05/2024#, 360.00, 3)
+- (7, 'Ella Brown', #12/05/2024#, #15/05/2024#, 960.00, 5)
+- (8, 'Jack Wilson', #14/05/2024#, #16/05/2024#, 240.00, 1)
+
+Then:
 - Find the average total_cost per room_type using INNER JOIN, GROUP BY and AVG
 - Order by average cost DESC`,
 ['Match each booking to its room',
@@ -1759,6 +1968,11 @@ Requirements:
 - Use at least **4 different data types** (INTEGER, VARCHAR, REAL, DATE or TIME or BOOLEAN or CHARACTER)
 - Insert at least **5 rows per table**
 - Write at least **3 different queries**: one with WHERE, one with GROUP BY, one with INNER JOIN
+
+If you do not want to invent your own data, use this starter idea:
+- \`Customers\`: (1, 'Ava Patel', 'ava@example.com', TRUE, #01/02/2024#), (2, 'Noah Chen', 'noah@example.com', TRUE, #03/02/2024#), (3, 'Mia Thompson', 'mia@example.com', FALSE, #05/02/2024#), (4, 'Leo Williams', 'leo@example.com', TRUE, #07/02/2024#), (5, 'Sofia Garcia', 'sofia@example.com', TRUE, #09/02/2024#)
+- \`Products\`: (1, 'Notebook', 'Stationery', 4.50, 80), (2, 'Pen Set', 'Stationery', 3.75, 120), (3, 'USB Cable', 'Electronics', 9.99, 35), (4, 'Headphones', 'Electronics', 24.99, 18), (5, 'Water Bottle', 'Accessories', 12.50, 45)
+- \`Orders\`: (1, 1, 1, #10/02/2024#, 9.00), (2, 2, 3, #11/02/2024#, 19.98), (3, 4, 4, #12/02/2024#, 24.99), (4, 5, 5, #13/02/2024#, 25.00), (5, 1, 2, #14/02/2024#, 7.50)
 
 This is your capstone challenge — demonstrate everything you have learned about SQL DDL and DML.`,
 ['Plan your tables first — what are the entities and their relationships?',
