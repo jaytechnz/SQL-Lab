@@ -593,18 +593,12 @@ function buildRelationshipSummary(schema) {
   );
 }
 
-function buildEROneMarker(x, y, direction) {
-  const barX = x + direction * 10;
-  return `<path class="er-cardinality er-cardinality-one" d="M ${barX} ${y - 9} V ${y + 9}" />`;
-}
-
-function buildERCrowsFootMarker(x, y, direction) {
-  const toeX = x - direction * 3;
-  const heelX = x - direction * 17;
+function buildERCrowsFootMarker(edgeX, y, direction) {
+  const heelX = edgeX - direction * 28;
   return `
-    <path class="er-cardinality er-cardinality-many" d="M ${toeX} ${y} L ${heelX} ${y - 10}" />
-    <path class="er-cardinality er-cardinality-many" d="M ${toeX} ${y} L ${heelX} ${y}" />
-    <path class="er-cardinality er-cardinality-many" d="M ${toeX} ${y} L ${heelX} ${y + 10}" />`;
+    <path class="er-cardinality er-cardinality-many" d="M ${heelX} ${y} L ${edgeX} ${y - 14}" />
+    <path class="er-cardinality er-cardinality-many" d="M ${heelX} ${y} L ${edgeX} ${y}" />
+    <path class="er-cardinality er-cardinality-many" d="M ${heelX} ${y} L ${edgeX} ${y + 14}" />`;
 }
 
 function buildERVisualDiagramSVG(schema) {
@@ -690,12 +684,12 @@ function buildERVisualDiagramSVG(schema) {
       const parentEdgeX = parentOnLeft ? to.x + to.width : to.x;
       const childEdgeX = parentOnLeft ? from.x : from.x + from.width;
       const childIsOne = Boolean(table.columns.find(column => column.name === fk.fromColumn)?.primaryKey);
+      const childConnectorX = childIsOne ? childEdgeX : childEdgeX - direction * 28;
 
       return `
-        <path class="er-link" d="M ${parentEdgeX} ${lineY} H ${childEdgeX}" />
-        ${buildEROneMarker(parentEdgeX, lineY, direction)}
+        <path class="er-link" d="M ${parentEdgeX} ${lineY} H ${childConnectorX}" />
         ${childIsOne
-          ? buildEROneMarker(childEdgeX, lineY, -direction)
+          ? ''
           : buildERCrowsFootMarker(childEdgeX, lineY, direction)}`;
     })
   ).join('');
