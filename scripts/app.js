@@ -249,7 +249,7 @@ function repairSplitKeywordIdentifiers(text) {
     const prefix = keywordPrefixes.find(keyword =>
       token.startsWith(keyword) &&
       token.length > keyword.length &&
-      /^[a-z][A-Za-z0-9_]*$/.test(token.slice(keyword.length))
+      /^[_a-z][A-Za-z0-9_]*$/.test(token.slice(keyword.length))
     );
     return prefix ? token.toLowerCase() : token;
   });
