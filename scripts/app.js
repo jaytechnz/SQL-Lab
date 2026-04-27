@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-10';
-import { ChallengeManager } from './challenges.js?v=20260427-10';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-10';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-10';
-import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-10';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-10';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-10';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-11';
+import { ChallengeManager } from './challenges.js?v=20260427-11';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-11';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-11';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-11';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-11';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-11';
 
 const $ = id => document.getElementById(id);
 
@@ -563,9 +563,24 @@ function buildERVisualDiagramSVG(schema) {
     schema.some(candidate => (candidate.foreignKeys || []).some(fk => fk.referencedTable === table.name))
   );
 
-  const specialChild = childTables.length === 1 && parentTables.length === 2 ? childTables[0] : null;
-  const orderedTables = specialChild
-    ? [parentTables[0], specialChild, parentTables[1]].filter(Boolean)
+  const junctionTable = childTables.find(table => {
+    const parentNames = new Set((table.foreignKeys || []).map(fk => fk.referencedTable));
+    return parentNames.size === 2;
+  });
+  const orderedTables = junctionTable
+      ? [
+          ...Array.from(new Set(junctionTable.foreignKeys.map(fk => fk.referencedTable)))
+            .map(name => linkedTables.find(table => table.name === name))
+            .slice(0, 1),
+          junctionTable,
+          ...Array.from(new Set(junctionTable.foreignKeys.map(fk => fk.referencedTable)))
+            .map(name => linkedTables.find(table => table.name === name))
+            .slice(1),
+          ...linkedTables.filter(table =>
+            table !== junctionTable &&
+            !junctionTable.foreignKeys.some(fk => fk.referencedTable === table.name)
+          )
+        ].filter(Boolean)
     : [
         ...parentTables.filter(table => !childTables.includes(table)),
         ...childTables,
@@ -595,18 +610,9 @@ function buildERVisualDiagramSVG(schema) {
       const parentOnLeft = to.x < from.x;
       const parentEdgeX = parentOnLeft ? to.x + to.width : to.x;
       const childEdgeX = parentOnLeft ? from.x : from.x + from.width;
-      const oneMarkerX = parentOnLeft ? parentEdgeX + 12 : parentEdgeX - 12;
-      const crowTipX = parentOnLeft ? childEdgeX - 14 : childEdgeX + 14;
-      const crowOuterX = childEdgeX;
-      const crowUpperY = lineY - 12;
-      const crowLowerY = lineY + 12;
-      const oneUpperY = lineY - 12;
-      const oneLowerY = lineY + 12;
 
       return `
-        <path class="er-link" d="M ${parentEdgeX} ${lineY} H ${crowTipX}" />
-        <path class="er-one" d="M ${oneMarkerX} ${oneUpperY} V ${oneLowerY}" />
-        <path class="er-crow" d="M ${crowTipX} ${lineY} L ${crowOuterX} ${crowUpperY} M ${crowTipX} ${lineY} L ${crowOuterX} ${lineY} M ${crowTipX} ${lineY} L ${crowOuterX} ${crowLowerY}" />`;
+        <path class="er-link" d="M ${parentEdgeX} ${lineY} H ${childEdgeX}" />`;
     })
   ).join('');
 
