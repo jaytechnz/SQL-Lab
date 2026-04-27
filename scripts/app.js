@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-7';
-import { ChallengeManager } from './challenges.js?v=20260427-7';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-7';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-7';
-import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-7';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-7';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-7';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-10';
+import { ChallengeManager } from './challenges.js?v=20260427-10';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-10';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-10';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-10';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-10';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-10';
 
 const $ = id => document.getElementById(id);
 
@@ -593,15 +593,19 @@ function buildERVisualDiagramSVG(schema) {
 
       const lineY = from.y + Math.round(from.height * 0.56);
       const parentOnLeft = to.x < from.x;
-      const startX = parentOnLeft ? to.x + to.width : to.x;
-      const edgeX = parentOnLeft ? from.x : from.x + from.width;
-      const crowTipX = parentOnLeft ? edgeX - 14 : edgeX + 14;
-      const crowOuterX = parentOnLeft ? edgeX : edgeX;
+      const parentEdgeX = parentOnLeft ? to.x + to.width : to.x;
+      const childEdgeX = parentOnLeft ? from.x : from.x + from.width;
+      const oneMarkerX = parentOnLeft ? parentEdgeX + 12 : parentEdgeX - 12;
+      const crowTipX = parentOnLeft ? childEdgeX - 14 : childEdgeX + 14;
+      const crowOuterX = childEdgeX;
       const crowUpperY = lineY - 12;
       const crowLowerY = lineY + 12;
+      const oneUpperY = lineY - 12;
+      const oneLowerY = lineY + 12;
 
       return `
-        <path class="er-link" d="M ${startX} ${lineY} H ${crowTipX}" />
+        <path class="er-link" d="M ${parentEdgeX} ${lineY} H ${crowTipX}" />
+        <path class="er-one" d="M ${oneMarkerX} ${oneUpperY} V ${oneLowerY}" />
         <path class="er-crow" d="M ${crowTipX} ${lineY} L ${crowOuterX} ${crowUpperY} M ${crowTipX} ${lineY} L ${crowOuterX} ${lineY} M ${crowTipX} ${lineY} L ${crowOuterX} ${crowLowerY}" />`;
     })
   ).join('');
