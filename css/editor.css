@@ -348,7 +348,8 @@ code { font-family: var(--font-mono); font-size: 11px; background: var(--gutter-
 /* ── Challenge panel (inline, above editor) ── */
 .challenge-panel {
   border-bottom: 1px solid var(--border); background: var(--bg-surface);
-  flex-shrink: 0; max-height: 260px; overflow-y: auto;
+  flex-shrink: 0; max-height: var(--challenge-panel-h, 260px); overflow-y: auto;
+  min-height: 64px;
 }
 .ch-panel-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -396,6 +397,19 @@ code { font-family: var(--font-mono); font-size: 11px; background: var(--gutter-
 .ch-done-badge { display: inline-block; font-size: 11px; font-weight: 700; color: var(--success); margin-top: 6px; }
 .ch-xp-reward  { font-size: 11px; color: var(--accent); margin-top: 4px; }
 .ch-test-results { padding: 8px 12px; }
+.challenge-resize-handle {
+  position: sticky;
+  bottom: 0;
+  height: 6px;
+  background: var(--border);
+  cursor: ns-resize;
+  transition: background var(--transition);
+}
+.challenge-resize-handle:hover { background: var(--accent); }
+body.is-resizing {
+  cursor: ns-resize;
+  user-select: none;
+}
 .test-result { display: flex; gap: 8px; padding: 8px 10px; border-radius: var(--radius); border: 1px solid; font-size: 12px; }
 .test-pass { border-color: var(--success); background: var(--success-bg); color: var(--success); }
 .test-fail { border-color: var(--error);   background: var(--error-bg);   color: var(--error); }
