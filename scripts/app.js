@@ -584,22 +584,27 @@ function renderSchemaResult(schema) {
 function buildRelationshipSummary(schema) {
   return schema.flatMap(table =>
     (table.foreignKeys || []).map(fk => {
-      const referencedTable = schema.find(candidate => candidate.name === fk.referencedTable);
-      const sourceColumn = table.columns.find(column => column.name === fk.fromColumn);
-      const targetColumn = referencedTable?.columns.find(column => column.name === fk.toColumn);
-      const sourceIsUnique = Boolean(sourceColumn?.primaryKey);
-      const targetIsUnique = Boolean(targetColumn?.primaryKey);
-      const relationship = sourceIsUnique && targetIsUnique
-        ? '1:1'
-        : `1:M`;
-
       return `
         <div class="er-relationship">
-          <strong>${esc(fk.referencedTable)}</strong> to <strong>${esc(table.name)}</strong>: ${relationship}
+          <strong>${esc(fk.referencedTable)}</strong> to <strong>${esc(table.name)}</strong>
           <span class="er-relationship-detail">(${esc(fk.toColumn)} to ${esc(fk.fromColumn)})</span>
         </div>`;
     })
   );
+}
+
+function buildEROneMarker(x, y, direction) {
+  const barX = x + direction * 10;
+  return `<path class="er-cardinality er-cardinality-one" d="M ${barX} ${y - 9} V ${y + 9}" />`;
+}
+
+function buildERCrowsFootMarker(x, y, direction) {
+  const toeX = x - direction * 3;
+  const heelX = x - direction * 17;
+  return `
+    <path class="er-cardinality er-cardinality-many" d="M ${toeX} ${y} L ${heelX} ${y - 10}" />
+    <path class="er-cardinality er-cardinality-many" d="M ${toeX} ${y} L ${heelX} ${y}" />
+    <path class="er-cardinality er-cardinality-many" d="M ${toeX} ${y} L ${heelX} ${y + 10}" />`;
 }
 
 function buildERVisualDiagramSVG(schema) {
@@ -681,15 +686,17 @@ function buildERVisualDiagramSVG(schema) {
 
       const lineY = from.y + Math.round(from.height * 0.56);
       const parentOnLeft = to.x < from.x;
+      const direction = parentOnLeft ? 1 : -1;
       const parentEdgeX = parentOnLeft ? to.x + to.width : to.x;
       const childEdgeX = parentOnLeft ? from.x : from.x + from.width;
-      const labelX = Math.round((parentEdgeX + childEdgeX) / 2);
-      const labelY = lineY - 6;
-      const label = table.columns.find(column => column.name === fk.fromColumn)?.primaryKey ? '1:1' : '1:M';
+      const childIsOne = Boolean(table.columns.find(column => column.name === fk.fromColumn)?.primaryKey);
 
       return `
         <path class="er-link" d="M ${parentEdgeX} ${lineY} H ${childEdgeX}" />
-        <text class="er-link-label" x="${labelX}" y="${labelY}" text-anchor="middle">${label}</text>`;
+        ${buildEROneMarker(parentEdgeX, lineY, direction)}
+        ${childIsOne
+          ? buildEROneMarker(childEdgeX, lineY, -direction)
+          : buildERCrowsFootMarker(childEdgeX, lineY, direction)}`;
     })
   ).join('');
 
