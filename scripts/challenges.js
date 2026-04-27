@@ -41,10 +41,6 @@ const SQL_TERMS = new Set([
   'table','text','then','time','true','union','unique','update','values','varchar','where'
 ]);
 
-function escapeRegExp(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 function identifierUsedAsTable(sql, identifier) {
   if (!identifier) return false;
   const quoted = escapeRegExp(identifier);
