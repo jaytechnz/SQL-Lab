@@ -1280,7 +1280,7 @@ const combo03 = ex('combo-03','combined','Temperature Records','easy',
 `First, create a database called \`TemperaturesDB\`.
 
 Then create a table called \`Temperatures\` with:
-- \`city\` VARCHAR(30) PRIMARY KEY NOT NULL
+- \`city\` VARCHAR(30) PRIMARY KEY
 - \`temp_c\` REAL
 - \`recorded\` DATE
 
