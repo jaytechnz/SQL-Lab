@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-20';
-import { ChallengeManager } from './challenges.js?v=20260427-20';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-20';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-20';
-import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-20';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-20';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-20';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-21';
+import { ChallengeManager } from './challenges.js?v=20260427-21';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-21';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-21';
+import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-21';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-21';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-21';
 
 const $ = id => document.getElementById(id);
 

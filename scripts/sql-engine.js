@@ -58,7 +58,8 @@ export function executeSQL(db, sql) {
 
 function stripUnsupportedStatements(sql) {
   return String(sql || '')
-    .replace(/^\s*CREATE\s+DATABASE\s+[A-Za-z_][A-Za-z0-9_]*\s*;?\s*/gim, '');
+    .replace(/^\s*CREATE\s+DATABASE\s+[A-Za-z_][A-Za-z0-9_]*\s*;?\s*/gim, '')
+    .replace(/CREATE\s+DATABASE\s+[A-Za-z_][A-Za-z0-9_]*\s*;?/gi, '');
 }
 
 function normalizeDateLiterals(sql) {

@@ -15,9 +15,13 @@
 const XP = { easy: 10, medium: 25, hard: 50 };
 
 function ex(id, cat, title, diff, desc, hints, starter, database, setupSQL, validate) {
+  const wrappedValidate = cat === 'combined'
+    ? (db, studentSQL) => requireInitialCreateDatabase(studentSQL) || validate(db, studentSQL)
+    : validate;
+
   return { id, category: cat, title, difficulty: diff, xp: XP[diff],
            description: desc, hints, starterCode: starter ?? '',
-           database: database ?? null, setupSQL: setupSQL ?? '', validate };
+           database: database ?? null, setupSQL: setupSQL ?? '', validate: wrappedValidate };
 }
 
 // Run SQL on a db and return first result set, or null on error.
@@ -101,6 +105,25 @@ function rowsEqOrdered(actual, expected) {
   if (actual.length !== expected.length) return false;
   return actual.every((row, i) =>
     row.length === expected[i].length && row.every((v, j) => norm(v) === norm(expected[i][j])));
+}
+
+function firstSqlStatement(sql) {
+  return String(sql || '')
+    .replace(/--.*$/gm, '')
+    .split(';')
+    .map(statement => statement.trim())
+    .filter(Boolean)
+    .at(0) || '';
+}
+
+function requireInitialCreateDatabase(sql) {
+  const firstStatement = firstSqlStatement(sql);
+  if (/^CREATE\s+DATABASE\s+[A-Za-z_][A-Za-z0-9_]*$/i.test(firstStatement)) return null;
+
+  return {
+    passed: false,
+    messages: ['Start this combined exercise with a CREATE DATABASE statement, e.g. CREATE DATABASE MyDatabase;']
+  };
 }
 
 // Check student SQL contains ALL given keywords (case-insensitive).
@@ -1185,7 +1208,9 @@ Group by product. Order by total_qty DESC.`,
 // ══════════════════════════════════════════════════════════════════════════════
 
 const combo01 = ex('combo-01','combined','Create, Insert and Select','easy',
-`Create a table called \`Colours\` with:
+`First, create a database called \`ColoursDB\`.
+
+Then create a table called \`Colours\` with:
 - \`colour_id\` INTEGER PRIMARY KEY
 - \`colour_name\` VARCHAR(20)
 
@@ -1221,7 +1246,9 @@ null, '',
 });
 
 const combo02 = ex('combo-02','combined','Animals Database','easy',
-`Create a table called \`Animals\` with:
+`First, create a database called \`AnimalsDB\`.
+
+Then create a table called \`Animals\` with:
 - \`animal_id\` INTEGER PRIMARY KEY
 - \`name\` VARCHAR(30)
 - \`species\` VARCHAR(30)
@@ -1250,7 +1277,9 @@ null, '',
 });
 
 const combo03 = ex('combo-03','combined','Temperature Records','easy',
-`Create a table called \`Temperatures\` with:
+`First, create a database called \`TemperaturesDB\`.
+
+Then create a table called \`Temperatures\` with:
 - \`city\` VARCHAR(30) PRIMARY KEY NOT NULL
 - \`temp_c\` REAL
 - \`recorded\` DATE
@@ -1284,7 +1313,9 @@ null, '',
 });
 
 const combo04 = ex('combo-04','combined','Student Clubs with UPDATE','medium',
-`Create a table called \`ClubMembers\` with:
+`First, create a database called \`ClubsDB\`.
+
+Then create a table called \`ClubMembers\` with:
 - \`member_id\` INTEGER PRIMARY KEY
 - \`student_name\` VARCHAR(50)
 - \`club_name\` VARCHAR(30)
@@ -1316,7 +1347,9 @@ null, '',
 });
 
 const combo05 = ex('combo-05','combined','Product Inventory Query','medium',
-`Create a table called \`Inventory\` with:
+`First, create a database called \`InventoryDB\`.
+
+Then create a table called \`Inventory\` with:
 - \`item_id\` INTEGER PRIMARY KEY
 - \`item_name\` VARCHAR(50)
 - \`quantity\` INTEGER
@@ -1349,7 +1382,9 @@ null, '',
 });
 
 const combo06 = ex('combo-06','combined','COUNT by Category','medium',
-`Create a table called \`Tasks\` with:
+`First, create a database called \`TasksDB\`.
+
+Then create a table called \`Tasks\` with:
 - \`task_id\` INTEGER PRIMARY KEY
 - \`title\` VARCHAR(100)
 - \`category\` VARCHAR(20)
@@ -1385,7 +1420,9 @@ null, '',
 });
 
 const combo07 = ex('combo-07','combined','ALTER TABLE then Query','medium',
-`A table called \`Staff\` has been created with: \`staff_id\`, \`name\`, \`salary\`.
+`First, create a database called \`StaffDB\`.
+
+A table called \`Staff\` has been created with: \`staff_id\`, \`name\`, \`salary\`.
 
 1. Use \`ALTER TABLE\` to add a \`department\` column (VARCHAR(30))
 2. Insert these tuples:
@@ -1418,7 +1455,9 @@ null,
 });
 
 const combo08 = ex('combo-08','combined','INSERT then DELETE','medium',
-`Create a table called \`EventLog\` with:
+`First, create a database called \`EventLogDB\`.
+
+Then create a table called \`EventLog\` with:
 - \`log_id\` INTEGER PRIMARY KEY
 - \`event_type\` VARCHAR(30)
 - \`event_date\` DATE
@@ -1452,7 +1491,9 @@ null, '',
 });
 
 const combo09 = ex('combo-09','combined','Relational Tables with INNER JOIN','hard',
-`Create two related tables:
+`First, create a database called \`FilmsDB\`.
+
+Then create two related tables:
 
 1. Create a table called \`Genres\`.
 - \`genre_id\` — INTEGER, PRIMARY KEY
@@ -1500,7 +1541,9 @@ null, '',
 });
 
 const combo10 = ex('combo-10','combined','Aggregate on Created Data','medium',
-`Create a table called \`Sales\` with:
+`First, create a database called \`SalesDB\`.
+
+Then create a table called \`Sales\` with:
 - \`sale_id\` INTEGER PK
 - \`product\` VARCHAR(50)
 - \`region\` VARCHAR(20)
@@ -1536,7 +1579,9 @@ null, '',
 });
 
 const combo11 = ex('combo-11','combined','School Report System','hard',
-`Design and populate a mini school report system:
+`First, create a database called \`ReportsDB\`.
+
+Then design and populate a mini school report system:
 
 1. Create a table called \`Pupils\`.
 - \`pupil_id\` — INTEGER, PRIMARY KEY
@@ -1588,7 +1633,9 @@ null, '',
 });
 
 const combo12 = ex('combo-12','combined','Full CRUD Sequence','hard',
-`Demonstrate a complete CRUD (Create, Read, Update, Delete) cycle:
+`First, create a database called \`ContactsDB\`.
+
+Then demonstrate a complete CRUD (Create, Read, Update, Delete) cycle:
 
 1. **CREATE** a table called \`Contacts\` — contact_id PK, name VARCHAR(50), phone VARCHAR(20), email VARCHAR(80), active BOOLEAN
 2. **INSERT** these tuples:
@@ -1616,7 +1663,9 @@ null, '',
 });
 
 const combo13 = ex('combo-13','combined','Flights Database','hard',
-`Create a 2-table flights database:
+`First, create a database called \`FlightsDB\`.
+
+Then create a 2-table flights database:
 
 1. Create a table called \`Airlines\`.
 - \`airline_id\` — INTEGER, PRIMARY KEY
@@ -1665,7 +1714,9 @@ null, '',
 });
 
 const combo14 = ex('combo-14','combined','Exam Results Tracker','hard',
-`Build an exam results tracker:
+`First, create a database called \`ExamResultsDB\`.
+
+Then build an exam results tracker:
 
 1. Create a table called \`Subjects\`.
 - \`subject_id\` — INTEGER, PRIMARY KEY
@@ -1714,7 +1765,9 @@ null, '',
 });
 
 const combo15 = ex('combo-15','combined','Library Catalogue','hard',
-`Create a mini library catalogue:
+`First, create a database called \`LibraryCatalogueDB\`.
+
+Then create a mini library catalogue:
 
 1. Create a table called \`LibAuthors\`.
 - \`author_id\` — INTEGER, PRIMARY KEY
@@ -1765,7 +1818,9 @@ null, '',
 });
 
 const combo16 = ex('combo-16','combined','Student Attendance','hard',
-`Create an attendance system:
+`First, create a database called \`AttendanceDB\`.
+
+Then create an attendance system:
 
 1. Create a table called \`Classes\`.
 - \`class_id\` — INTEGER, PRIMARY KEY
@@ -1815,7 +1870,9 @@ null, '',
 });
 
 const combo17 = ex('combo-17','combined','Music Playlist App','medium',
-`Create a \`Playlist\` table with:
+`First, create a database called \`PlaylistDB\`.
+
+Then create a \`Playlist\` table with:
 - \`track_id\` INTEGER PK
 - \`title\` VARCHAR(100)
 - \`artist\` VARCHAR(80)
@@ -1854,7 +1911,9 @@ null, '',
 });
 
 const combo18 = ex('combo-18','combined','Sports League','hard',
-`Design a sports league database:
+`First, create a database called \`SportsLeagueDB\`.
+
+Then design a sports league database:
 
 1. Create a table called \`Teams\`.
 - \`team_id\` — INTEGER, PRIMARY KEY
@@ -1906,7 +1965,9 @@ null, '',
 });
 
 const combo19 = ex('combo-19','combined','Hotel Booking System','hard',
-`Create a hotel booking system:
+`First, create a database called \`HotelBookingsDB\`.
+
+Then create a hotel booking system:
 
 1. Create a table called \`Rooms\`.
 - \`room_id\` — INTEGER, PRIMARY KEY
@@ -1960,9 +2021,12 @@ null, '',
 });
 
 const combo20 = ex('combo-20','combined','Complete Database Design','hard',
-`Design a **complete database** of your choice with:
+`First, create a database called \`CustomProjectDB\`.
+
+Then design a **complete database** of your choice with:
 
 Requirements:
+- Start with a \`CREATE DATABASE\` statement
 - At least **3 tables**
 - At least **2 FOREIGN KEY** relationships
 - Use at least **4 different data types** (INTEGER, VARCHAR, REAL, DATE or TIME or BOOLEAN or CHARACTER)
