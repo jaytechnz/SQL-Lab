@@ -2,12 +2,12 @@
 // SQL Lab — Cambridge AS Computer Science 9618
 
 import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260429-3';
-import { ChallengeManager } from './challenges.js?v=20260429-4';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260429-5';
+import { ChallengeManager } from './challenges.js?v=20260429-7';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260429-7';
 import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-25';
 import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-25';
 import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-28';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260429-3';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260429-7';
 
 const $ = id => document.getElementById(id);
 
@@ -20,6 +20,8 @@ let _challengeMgr  = null;
 let _activeDatabaseId = 'bookshop';  // currently selected built-in database
 let _sandboxDb     = null;           // persistent sandbox database instance
 let _queryHistory  = [];
+
+const PREF_PREFIX = 'sqllab-pref';
 
 // ── DOM refs ───────────────────────────────────────────────────────────────────
 
@@ -73,6 +75,7 @@ function switchAuthTab(tab) {
 async function showApp() {
   loginPage?.classList.add('hidden');
   appEl?.classList.remove('hidden');
+  restorePreferences();
 
   $('user-name-display').textContent  = _profile.displayName || _user.email;
   $('user-role-badge').textContent    = { superadmin: 'Superadmin', teacher: 'Teacher', student: 'Student' }[_profile.role] ?? 'Student';
@@ -1099,7 +1102,12 @@ document.addEventListener('challenge:close', () => {
 $('btn-dashboard')?.addEventListener('click', () => {
   const overlay = $('teacher-dashboard');
   overlay?.classList.remove('hidden');
-  renderDashboard($('dashboard-grid'));
+  renderDashboard($('dashboard-grid'), {
+    uid: _user?.uid || '',
+    email: _user?.email || '',
+    displayName: _profile?.displayName || _user?.email || '',
+    role: _profile?.role || ''
+  });
 });
 
 $('btn-close-dashboard')?.addEventListener('click', () => {
@@ -1118,29 +1126,65 @@ $('btn-close-leaderboard')?.addEventListener('click', () => $('leaderboard-modal
 // ══════════════════════════════════════════════════════════════════════════════
 
 $('btn-theme')?.addEventListener('click', () => {
-  const html  = document.documentElement;
-  const isDark = html.dataset.theme === 'dark';
-  html.dataset.theme = isDark ? 'light' : 'dark';
-  $('theme-label').textContent = isDark ? 'Dark' : 'Light';
-  $('theme-icon-dark')?.classList.toggle('hidden', isDark);
-  $('theme-icon-light')?.classList.toggle('hidden', !isDark);
-  localStorage.setItem('sql-theme', html.dataset.theme);
+  const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyThemePreference(nextTheme);
+  savePreference('theme', nextTheme);
 });
 
 $('btn-font')?.addEventListener('click', () => {
-  document.body.classList.toggle('dyslexic-font');
-  localStorage.setItem('sql-dyslexic', document.body.classList.contains('dyslexic-font') ? '1' : '0');
+  const nextFont = document.body.classList.contains('dyslexic-font') ? 'default' : 'opendyslexic';
+  applyFontPreference(nextFont);
+  savePreference('font', nextFont);
 });
 
-// Restore preferences
-const savedTheme = localStorage.getItem('sql-theme');
-if (savedTheme) {
-  document.documentElement.dataset.theme = savedTheme;
-  $('theme-label').textContent = savedTheme === 'dark' ? 'Light' : 'Dark';
-  $('theme-icon-dark')?.classList.toggle('hidden', savedTheme === 'dark');
-  $('theme-icon-light')?.classList.toggle('hidden', savedTheme === 'light');
+function preferenceKey(name) {
+  return _user?.uid ? `${PREF_PREFIX}:${_user.uid}:${name}` : `${PREF_PREFIX}:default:${name}`;
 }
-if (localStorage.getItem('sql-dyslexic') === '1') document.body.classList.add('dyslexic-font');
+
+function loadPreference(name, fallback) {
+  try {
+    return localStorage.getItem(preferenceKey(name)) ||
+      localStorage.getItem(`${PREF_PREFIX}:default:${name}`) ||
+      legacyPreference(name) ||
+      fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function legacyPreference(name) {
+  if (name === 'theme') return localStorage.getItem('sql-theme');
+  if (name === 'font') return localStorage.getItem('sql-dyslexic') === '1' ? 'opendyslexic' : null;
+  return null;
+}
+
+function savePreference(name, value) {
+  try {
+    localStorage.setItem(preferenceKey(name), value);
+    localStorage.setItem(`${PREF_PREFIX}:default:${name}`, value);
+  } catch {}
+}
+
+function applyThemePreference(theme) {
+  const activeTheme = theme === 'dark' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = activeTheme;
+  if ($('theme-label')) $('theme-label').textContent = activeTheme === 'dark' ? 'Dark' : 'Light';
+  $('theme-icon-dark')?.classList.toggle('hidden', activeTheme === 'dark');
+  $('theme-icon-light')?.classList.toggle('hidden', activeTheme !== 'dark');
+}
+
+function applyFontPreference(font) {
+  const useOpenDyslexic = font === 'opendyslexic';
+  document.body.classList.toggle('dyslexic-font', useOpenDyslexic);
+  if ($('font-label')) $('font-label').textContent = useOpenDyslexic ? 'OpenDyslexic' : 'Default';
+}
+
+function restorePreferences() {
+  applyThemePreference(loadPreference('theme', 'light'));
+  applyFontPreference(loadPreference('font', 'default'));
+}
+
+restorePreferences();
 
 // ══════════════════════════════════════════════════════════════════════════════
 // FEEDBACK / SUGGESTIONS
