@@ -420,10 +420,16 @@ html, body {
 }
 .ch-item-status { font-size: 11px; flex-shrink: 0; color: var(--sidebar-text-muted); }
 .ch-item-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ch-badge-diff { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 20px; flex-shrink: 0; }
-.badge-easy   { background: rgba(22,101,52,0.25);  color: #4ADE80; }
-.badge-medium { background: rgba(180,83,9,0.25);   color: #FBBF24; }
-.badge-hard   { background: rgba(185,28,28,0.25);  color: #FF6B6B; }
+.ch-badge-diff {
+  font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 20px;
+  flex-shrink: 0; border: 1px solid currentColor; text-transform: lowercase;
+}
+.badge-easy   { background: #DCFCE7; color: #14532D; }
+.badge-medium { background: #FEF3C7; color: #78350F; }
+.badge-hard   { background: #FEE2E2; color: #7F1D1D; }
+.sidebar .badge-easy   { background: rgba(22,101,52,0.25); color: #4ADE80; }
+.sidebar .badge-medium { background: rgba(180,83,9,0.25);  color: #FBBF24; }
+.sidebar .badge-hard   { background: rgba(185,28,28,0.25); color: #FF6B6B; }
 
 /* STATUS BAR */
 .status-bar {

@@ -362,7 +362,10 @@ code { font-family: var(--font-mono); font-size: 11px; background: var(--gutter-
 }
 .ch-panel-title-row { display: flex; align-items: center; gap: 8px; }
 .ch-panel-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-.ch-difficulty-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+.ch-difficulty-badge {
+  font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 20px;
+  border: 1px solid currentColor; text-transform: lowercase;
+}
 .ch-panel-body  { padding: 10px 12px; font-size: 12px; line-height: 1.7; color: var(--text-primary); }
 .ch-db-guide {
   margin-bottom: 8px;
