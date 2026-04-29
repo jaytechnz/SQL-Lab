@@ -11,8 +11,12 @@ import {
   saveLastSQL,
   updateLeaderboard,
   getClassLeaderboard,
+  getAllLeaderboardEntries,
+  getAllStudents,
+  getAllTeacherClasses,
+  getClassNames,
   logSession
-} from './storage.js?v=20260427-25';
+} from './storage.js?v=20260429-3';
 
 const $ = id => document.getElementById(id);
 
@@ -85,7 +89,9 @@ export class ChallengeManager {
 
     this.uid          = null;
     this.classCode    = '';
+    this.role         = 'student';
     this._displayName = '';
+    this._leaderboardClassCode = '';
     this.progress     = { completed: {}, totalXP: 0, badges: [], submissions: {} };
     this.currentEx    = null;
     this._SQL         = null;
@@ -106,9 +112,10 @@ export class ChallengeManager {
 
   // ── Init ──────────────────────────────────────────────────────────────────
 
-  async init(uid, classCode = '', displayName = '') {
+  async init(uid, classCode = '', displayName = '', role = 'student') {
     this.uid          = uid;
     this.classCode    = classCode;
+    this.role         = role;
     this._displayName = displayName;
 
     // Render immediately from localStorage — no async wait
@@ -439,22 +446,130 @@ export class ChallengeManager {
   // ── Leaderboard ────────────────────────────────────────────────────────────
 
   async showLeaderboard() {
-    const entries = await getClassLeaderboard(this.classCode);
     const modal = $('leaderboard-modal');
     const body  = $('leaderboard-body');
     if (!modal || !body) return;
 
-    if (!entries.length) {
-      body.innerHTML = '<p class="lb-empty">No entries yet. Complete challenges to appear on the leaderboard!</p>';
-    } else {
-      body.innerHTML = entries.map((e, i) => `
-        <div class="lb-row ${e.uid === this.uid ? 'lb-row--me' : ''}">
-          <span class="lb-rank">${i + 1}</span>
-          <span class="lb-name">${e.displayName || 'Anonymous'}</span>
-          <span class="lb-xp">${e.totalXP || 0} XP</span>
-        </div>`).join('');
-    }
     modal.classList.remove('hidden');
+    body.innerHTML = '<p class="lb-empty">Loading leaderboard...</p>';
+
+    try {
+      if (this._isStaff()) {
+        const classes = await this._getLeaderboardClasses();
+        if (!classes.length) {
+          body.innerHTML = '<p class="lb-empty">No classes found yet. Create a class code or add students to a class first.</p>';
+          return;
+        }
+
+        const selected = classes.some(c => c.code === this._leaderboardClassCode)
+          ? this._leaderboardClassCode
+          : classes[0].code;
+        this._leaderboardClassCode = selected;
+
+        body.innerHTML = `
+          <div class="lb-controls">
+            <label class="lb-label" for="leaderboard-class-select">Class</label>
+            <select id="leaderboard-class-select" class="lb-select">
+              ${classes.map(c => `<option value="${escAttr(c.code)}"${c.code === selected ? ' selected' : ''}>${esc(c.label)}</option>`).join('')}
+            </select>
+          </div>
+          <div id="leaderboard-list" class="lb-list">
+            <p class="lb-empty">Loading class...</p>
+          </div>`;
+
+        $('leaderboard-class-select')?.addEventListener('change', e => {
+          this._leaderboardClassCode = e.target.value;
+          this._renderLeaderboardList(e.target.value, true);
+        });
+
+        await this._renderLeaderboardList(selected, true);
+      } else {
+        await this._renderLeaderboardList(this.classCode, false);
+      }
+    } catch (ex) {
+      body.innerHTML = `<p class="lb-empty">Could not load leaderboard: ${esc(ex.message || ex)}</p>`;
+    }
+  }
+
+  _isStaff() {
+    return ['teacher', 'superadmin'].includes(this.role);
+  }
+
+  async _getLeaderboardClasses() {
+    const [codes, rawNames, allEntries] = await Promise.all([
+      getAllTeacherClasses(this.uid).catch(() => []),
+      getClassNames().catch(() => ({})),
+      getAllLeaderboardEntries().catch(() => [])
+    ]);
+    const names = normalizeClassNames(rawNames);
+
+    const classCodes = new Set([
+      ...codes.map(normalizeClassCode),
+      ...Object.keys(names).map(normalizeClassCode),
+      ...allEntries.map(entry => normalizeClassCode(entry.classCode)).filter(Boolean)
+    ]);
+
+    return [...classCodes].sort().map(code => ({
+      code,
+      label: names[code] ? `${names[code]} (${code})` : code
+    }));
+  }
+
+  async _renderLeaderboardList(classCode, includeRoster) {
+    const target = this._isStaff() ? $('leaderboard-list') : $('leaderboard-body');
+    if (!target) return;
+
+    if (!classCode) {
+      target.innerHTML = '<p class="lb-empty">No class selected.</p>';
+      return;
+    }
+
+    target.innerHTML = '<p class="lb-empty">Loading class...</p>';
+    const normalizedClassCode = normalizeClassCode(classCode);
+    const [rawEntries, rawStudents] = await Promise.all([
+      includeRoster ? getAllLeaderboardEntries() : getClassLeaderboard(normalizedClassCode),
+      includeRoster ? getAllStudents().catch(() => []) : Promise.resolve([])
+    ]);
+    const entries = includeRoster
+      ? rawEntries.filter(entry => normalizeClassCode(entry.classCode) === normalizedClassCode)
+      : rawEntries;
+    const students = includeRoster
+      ? rawStudents.filter(student => normalizeClassCode(student.classCode) === normalizedClassCode)
+      : rawStudents;
+
+    const byUid = new Map();
+    entries.forEach(entry => {
+      byUid.set(entry.uid, {
+        uid: entry.uid,
+        displayName: entry.displayName || 'Anonymous',
+        totalXP: entry.totalXP || 0
+      });
+    });
+    students.forEach(student => {
+      const existing = byUid.get(student.uid);
+      byUid.set(student.uid, {
+        uid: student.uid,
+        displayName: existing?.displayName || student.displayName || student.email || 'Anonymous',
+        totalXP: existing?.totalXP || 0
+      });
+    });
+
+    const rows = [...byUid.values()].sort((a, b) =>
+      (b.totalXP || 0) - (a.totalXP || 0) ||
+      String(a.displayName || '').localeCompare(String(b.displayName || ''))
+    );
+
+    if (!rows.length) {
+      target.innerHTML = '<p class="lb-empty">No students found for this class yet.</p>';
+      return;
+    }
+
+    target.innerHTML = rows.map((e, i) => `
+      <div class="lb-row ${e.uid === this.uid ? 'lb-row--me' : ''}">
+        <span class="lb-rank">${i + 1}</span>
+        <span class="lb-name">${esc(e.displayName || 'Anonymous')}</span>
+        <span class="lb-xp">${e.totalXP || 0} XP</span>
+      </div>`).join('');
   }
 }
 
@@ -650,6 +765,27 @@ function esc(value) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+function escAttr(value) {
+  return esc(value).replace(/"/g, '&quot;');
+}
+
+function normalizeClassCode(value) {
+  return String(value || '').replace(/\s+/g, '').toUpperCase();
+}
+
+function normalizeClassNames(classNames) {
+  const normalized = {};
+  Object.entries(classNames || {}).forEach(([rawCode, rawName]) => {
+    const code = normalizeClassCode(rawCode);
+    if (!code) return;
+    const name = String(rawName || '').trim();
+    if (!normalized[code] || name.replace(/\s+/g, '').toUpperCase() === code) {
+      normalized[code] = name || code;
+    }
+  });
+  return normalized;
 }
 
 function escapeRegExp(value) {
