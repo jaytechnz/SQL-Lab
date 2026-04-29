@@ -9,6 +9,7 @@ import {
   getLocalChallengeProgress,
   saveChallengeProgress,
   saveLastSQL,
+  getAllChallengeProgress,
   updateLeaderboard,
   getClassLeaderboard,
   getAllLeaderboardEntries,
@@ -526,9 +527,10 @@ export class ChallengeManager {
 
     target.innerHTML = '<p class="lb-empty">Loading class...</p>';
     const normalizedClassCode = normalizeClassCode(classCode);
-    const [rawEntries, rawStudents] = await Promise.all([
+    const [rawEntries, rawStudents, allProgress] = await Promise.all([
       includeRoster ? getAllLeaderboardEntries() : getClassLeaderboard(normalizedClassCode),
-      includeRoster ? getAllStudents().catch(() => []) : Promise.resolve([])
+      includeRoster ? getAllStudents().catch(() => []) : Promise.resolve([]),
+      includeRoster ? getAllChallengeProgress().catch(() => ({})) : Promise.resolve({})
     ]);
     const entries = includeRoster
       ? rawEntries.filter(entry => normalizeClassCode(entry.classCode) === normalizedClassCode)
@@ -547,10 +549,11 @@ export class ChallengeManager {
     });
     students.forEach(student => {
       const existing = byUid.get(student.uid);
+      const progressXP = allProgress[student.uid]?.totalXP || 0;
       byUid.set(student.uid, {
         uid: student.uid,
         displayName: existing?.displayName || student.displayName || student.email || 'Anonymous',
-        totalXP: existing?.totalXP || 0
+        totalXP: Math.max(existing?.totalXP || 0, progressXP)
       });
     });
 
