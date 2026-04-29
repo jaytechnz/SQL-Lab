@@ -1,13 +1,13 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260427-25';
-import { ChallengeManager } from './challenges.js?v=20260427-28';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260427-25';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260429-2';
+import { ChallengeManager } from './challenges.js?v=20260429-1';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260429-2';
 import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-25';
 import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-25';
 import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-28';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260427-25';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260429-2';
 
 const $ = id => document.getElementById(id);
 
@@ -95,7 +95,7 @@ async function showApp() {
     onSchema:  (schema) => renderSchemaResult(schema),
     onError:   (err)    => showError(err)
   });
-  await _challengeMgr.init(_user.uid, _profile.classCode || '', _profile.displayName || '');
+  await _challengeMgr.init(_user.uid, _profile.classCode || '', _profile.displayName || '', _profile.role || 'student');
 
   // SQL engine is now cached by init(); grab the reference for sandbox/schema use
   _SQL = await initSQLEngine();
@@ -1020,19 +1020,6 @@ function renderDBViewerContent(dbId, body) {
     ${previewHtml}`;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// SIDEBAR TABS
-// ══════════════════════════════════════════════════════════════════════════════
-
-document.querySelectorAll('.sidebar-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const view = btn.dataset.view;
-    document.querySelectorAll('.sidebar-tab').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-    $('sidebar-challenges-view')?.classList.toggle('hidden', view !== 'challenges');
-    $('sidebar-ref-view')?.classList.toggle('hidden', view !== 'reference');
-  });
-});
-
 // Explorer / Reference panel toggles
 $('btn-close-explorer')?.addEventListener('click', () => {
   $('sidebar')?.classList.add('sidebar--collapsed');
@@ -1092,10 +1079,6 @@ document.addEventListener('challenge:open', e => {
 
   clearResults();
   $('messages-panel').innerHTML = '';
-
-  // Switch sidebar to challenges view
-  const chTab = document.querySelector('.sidebar-tab[data-view="challenges"]');
-  chTab?.click();
 });
 
 document.addEventListener('challenge:close', () => {
