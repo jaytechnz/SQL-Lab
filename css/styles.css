@@ -300,18 +300,7 @@ html, body {
 .sidebar-title { font-size: 11px; font-weight: 700; color: var(--sidebar-text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
 .sidebar-header-actions { display: flex; gap: 4px; align-items: center; }
 
-.sidebar-tabs {
-  display: flex; border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-.sidebar-tab {
-  flex: 1; padding: 7px 4px; font-size: 11px; font-weight: 600;
-  background: none; border: none; cursor: pointer;
-  color: var(--sidebar-text-muted); border-bottom: 2px solid transparent;
-  transition: all var(--transition);
-}
-.sidebar-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-#sidebar-challenges-view, #sidebar-ref-view {
+#sidebar-challenges-view {
   flex: 1; overflow-y: auto; overflow-x: hidden;
 }
 
@@ -436,9 +425,6 @@ html, body {
 .badge-medium { background: rgba(180,83,9,0.25);   color: #FBBF24; }
 .badge-hard   { background: rgba(185,28,28,0.25);  color: #FF6B6B; }
 
-/* Sidebar reference view */
-#sidebar-ref-view { padding: 8px 0; }
-
 /* STATUS BAR */
 .status-bar {
   height: var(--statusbar-h);
@@ -501,6 +487,10 @@ html, body {
 .lb-modal-title { font-size: 14px; font-weight: 700; color: var(--accent); }
 .lb-close-btn { background: none; border: none; cursor: pointer; color: var(--sidebar-text); font-size: 16px; }
 .lb-body { padding: 12px 16px; max-height: 400px; overflow-y: auto; }
+.lb-controls { display: grid; gap: 4px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border-light); }
+.lb-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.lb-select { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 12px; background: var(--bg-surface); color: var(--text-primary); outline: none; }
+.lb-list { display: grid; gap: 0; }
 .lb-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-light); font-size: 13px; }
 .lb-row--me { background: rgba(254,189,20,0.08); border-radius: var(--radius); padding: 8px 6px; }
 .lb-rank  { width: 24px; font-weight: 700; color: var(--accent); text-align: center; }
