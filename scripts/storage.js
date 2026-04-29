@@ -17,7 +17,7 @@ import {
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
-import { db } from './firebase-config.js?v=20260427-20';
+import { db } from './firebase-config.js?v=20260427-25';
 
 // ── localStorage helpers ───────────────────────────────────────────────────────
 // LMS iframes can block Firestore's streaming channel (CSP/CORS).
@@ -102,11 +102,12 @@ export async function getAllChallengeProgress() {
 // ── Leaderboard ───────────────────────────────────────────────────────────────
 
 export async function updateLeaderboard(uid, classCode, displayName, totalXP) {
-  if (!classCode) return;
-  const key = `${classCode}_${uid}`;
+  const normalizedClassCode = normalizeClassCode(classCode);
+  if (!normalizedClassCode) return;
+  const key = `${normalizedClassCode}_${uid}`;
   try {
     await setDoc(doc(db, 'sql_leaderboard', key), {
-      uid, classCode, displayName, totalXP,
+      uid, classCode: normalizedClassCode, displayName, totalXP,
       updatedAt: serverTimestamp()
     }, { merge: true });
   } catch (e) {
@@ -182,7 +183,7 @@ export async function getAllTeacherClasses(teacherUid) {
 
 export async function assignStudentToClass(uid, classCode) {
   await updateDoc(doc(db, 'users', uid), {
-    classCode: classCode.trim().toUpperCase()
+    classCode: normalizeClassCode(classCode)
   });
 }
 
@@ -223,5 +224,9 @@ export async function getClassNames() {
 }
 
 export async function saveClassName(classCode, name) {
-  await setDoc(doc(db, 'sql_class_names', classCode), { name });
+  await setDoc(doc(db, 'sql_class_names', normalizeClassCode(classCode)), { name });
+}
+
+function normalizeClassCode(value) {
+  return String(value || '').replace(/\s+/g, '').toUpperCase();
 }

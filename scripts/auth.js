@@ -21,7 +21,7 @@ import {
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
-import { auth, db } from './firebase-config.js?v=20260427-20';
+import { auth, db } from './firebase-config.js?v=20260427-25';
 
 const AUTH_NETWORK_MESSAGE =
   'SQL Lab cannot reach Firebase Authentication from this browser. Try refreshing, disabling content blockers/VPNs for this site, or using a different browser or network.';
@@ -125,7 +125,7 @@ export function authErrorMessage(ex) {
 export async function registerUser(email, password, displayName, classCode = '') {
   validateDomain(email);
   const role = roleForEmail(email);
-  const normalizedClassCode = role === 'student' ? (classCode.trim().toUpperCase() || '') : '';
+  const normalizedClassCode = role === 'student' ? normalizeClassCode(classCode) : '';
 
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(cred.user, { displayName });
@@ -156,7 +156,7 @@ export async function registerUser(email, password, displayName, classCode = '')
 }
 
 export async function updateUserClassCode(uid, classCode) {
-  const normalizedClassCode = classCode.trim().toUpperCase();
+  const normalizedClassCode = normalizeClassCode(classCode);
   const cached = loadLocalProfile(uid);
   if (cached) saveLocalProfile(uid, { ...cached, classCode: normalizedClassCode });
 
@@ -227,4 +227,8 @@ export function onAuth(callback) {
     saveLocalProfile(user.uid, profile);
     callback(user, profile);
   });
+}
+
+function normalizeClassCode(value) {
+  return String(value || '').replace(/\s+/g, '').toUpperCase();
 }

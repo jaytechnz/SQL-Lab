@@ -6,8 +6,8 @@ import {
   saveClassName,
   assignStudentToClass,
   removeStudentFromClass
-} from './storage.js?v=20260427-20';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-20';
+} from './storage.js?v=20260429-3';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-25';
 
 const TOTAL_CHALLENGES = EXERCISES.length;
 
@@ -33,7 +33,7 @@ export async function renderDashboard(containerEl) {
       getSessions(),
       getAllChallengeProgress()
     ]);
-    _classNames = await getClassNames().catch(() => ({}));
+    _classNames = _normalizeClassNames(await getClassNames().catch(() => ({})));
   } catch (e) {
     containerEl.innerHTML = `<p class="dash-error">Failed to load dashboard: ${e.message}</p>`;
     return;
@@ -47,7 +47,7 @@ function _render(container) {
   if (_classFilter && !classes.includes(_classFilter)) _classFilter = '';
 
   const students = _classFilter
-    ? _students.filter(student => student.classCode === _classFilter)
+    ? _students.filter(student => _studentClassCode(student) === _classFilter)
     : _students;
 
   container.innerHTML = `
@@ -56,7 +56,7 @@ function _render(container) {
         <label class="dash-filter-label" for="dash-class-filter">Class</label>
         <select id="dash-class-filter" class="dash-select">
           <option value="">All Classes</option>
-          ${classes.map(code => `<option value="${code}" ${_classFilter === code ? 'selected' : ''}>${esc(_classNames[code] || code)}</option>`).join('')}
+          ${classes.map(code => `<option value="${escAttr(code)}" ${_classFilter === code ? 'selected' : ''}>${esc(_classNames[code] || code)}</option>`).join('')}
         </select>
         <span class="dash-filter-summary">${students.length} student${students.length === 1 ? '' : 's'} shown</span>
       </div>
@@ -74,7 +74,7 @@ function _render(container) {
   `;
 
   container.querySelector('#dash-class-filter')?.addEventListener('change', e => {
-    _classFilter = e.target.value;
+    _classFilter = _normalizeClassCode(e.target.value);
     _status = { tone: '', text: '' };
     _render(container);
   });
@@ -91,12 +91,12 @@ function _renderClassManagement(classes) {
   const selectedCode = _classFilter || '';
   const roster = selectedCode
     ? _students
-        .filter(student => student.classCode === selectedCode)
+        .filter(student => _studentClassCode(student) === selectedCode)
         .sort((a, b) => _studentLabel(a).localeCompare(_studentLabel(b)))
     : [];
   const availableStudents = selectedCode
     ? _students
-        .filter(student => student.classCode !== selectedCode)
+        .filter(student => _studentClassCode(student) !== selectedCode)
         .sort((a, b) => _studentLabel(a).localeCompare(_studentLabel(b)))
     : [];
   const classLabel = selectedCode ? (_classNames[selectedCode] || selectedCode) : '';
@@ -138,7 +138,7 @@ function _renderClassManagement(classes) {
             <div class="dash-inline-form">
               <select id="dash-student-select" class="dash-select">
                 <option value="">Choose a student</option>
-                ${availableStudents.map(student => `<option value="${student.uid}">${esc(_studentLabel(student))}${student.classCode ? ` (${esc(student.classCode)})` : ' (no class)'}</option>`).join('')}
+                ${availableStudents.map(student => `<option value="${escAttr(student.uid)}">${esc(_studentLabel(student))}${_studentClassCode(student) ? ` (${esc(_studentClassCode(student))})` : ' (no class)'}</option>`).join('')}
               </select>
               <button id="dash-add-student" class="btn-primary btn-sm" ${availableStudents.length ? '' : 'disabled'}>Add Student</button>
             </div>
@@ -230,7 +230,7 @@ function _renderTeachingInsights(students) {
   const emerging = students.filter(student => _completionPct(student) < 30).length;
 
   const classSessions = _classFilter
-    ? _sessions.filter(session => session.classCode === _classFilter)
+    ? _sessions.filter(session => _normalizeClassCode(session.classCode) === _classFilter)
     : _sessions;
   const failedSessions = classSessions.filter(session => session.passed === false);
   const failedByCategory = CATEGORIES.map(category => ({
@@ -389,7 +389,7 @@ function _renderChallengeHeatmap(students) {
 function _renderSQLConcepts(students) {
   const studentIds = new Set(students.map(student => student.uid));
   const sessions = (_classFilter
-    ? _sessions.filter(session => session.classCode === _classFilter)
+    ? _sessions.filter(session => _normalizeClassCode(session.classCode) === _classFilter)
     : _sessions.filter(session => studentIds.has(session.uid)));
 
   const concepts = [
@@ -601,10 +601,31 @@ async function _handleRemoveStudent(studentUid, studentName) {
 
 function _getClasses() {
   const codes = new Set([
-    ...Object.keys(_classNames),
-    ..._students.map(student => student.classCode).filter(Boolean)
+    ...Object.keys(_classNames).map(_normalizeClassCode),
+    ..._students.map(_studentClassCode).filter(Boolean)
   ]);
-  return [...codes].sort();
+  return [...codes].filter(Boolean).sort();
+}
+
+function _normalizeClassNames(classNames) {
+  const normalized = {};
+  Object.entries(classNames || {}).forEach(([rawCode, rawName]) => {
+    const code = _normalizeClassCode(rawCode);
+    if (!code) return;
+    const name = String(rawName || '').trim();
+    if (!normalized[code] || name.replace(/\s+/g, '').toUpperCase() === code) {
+      normalized[code] = name || code;
+    }
+  });
+  return normalized;
+}
+
+function _studentClassCode(student) {
+  return _normalizeClassCode(student?.classCode);
+}
+
+function _normalizeClassCode(value) {
+  return String(value || '').replace(/\s+/g, '').toUpperCase();
 }
 
 function _studentLabel(student) {
