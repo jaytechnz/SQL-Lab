@@ -39,7 +39,11 @@ export async function renderDashboard(containerEl) {
     return;
   }
 
-  _render(containerEl);
+  try {
+    _render(containerEl);
+  } catch (e) {
+    containerEl.innerHTML = `<p class="dash-error">Failed to render dashboard: ${esc(e.message)}</p>`;
+  }
 }
 
 function _render(container) {
@@ -661,4 +665,8 @@ function esc(value) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function escAttr(value) {
+  return esc(value);
 }
