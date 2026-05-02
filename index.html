@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/editor.css">
   <link rel="stylesheet" href="css/challenges.css">
   <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/quiz.css">
   <!-- sql.js WebAssembly SQLite -->
   <script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js"></script>
 </head>
@@ -98,6 +99,10 @@
       <button id="btn-db-viewer" class="btn-ghost btn-sm" title="View databases and schemas">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         Databases
+      </button>
+      <button id="btn-quiz" class="btn-ghost btn-sm" title="Open SQL quiz">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Quiz
       </button>
       <button id="btn-dashboard" class="btn-ghost btn-sm teacher-only hidden" title="Teacher Dashboard">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
@@ -538,6 +543,34 @@ WHERE col IS NOT NULL
   </div>
 </div>
 
+<!-- SQL Quiz -->
+<div id="quiz-overlay" class="quiz-overlay hidden">
+  <div class="quiz-shell">
+    <div class="quiz-header">
+      <div>
+        <div class="quiz-kicker">Cambridge AS 9618 SQL Practice</div>
+        <h2 class="quiz-title">SQL Quiz Bank</h2>
+      </div>
+      <div class="quiz-header-actions">
+        <button id="quiz-reset" class="btn-ghost btn-sm">Reset Progress</button>
+        <button id="quiz-close" class="btn-ghost btn-sm quiz-close" title="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="quiz-layout">
+      <aside class="quiz-nav">
+        <div id="quiz-stats" class="quiz-stats"></div>
+        <div id="quiz-section-tabs" class="quiz-section-tabs"></div>
+        <div id="quiz-question-list" class="quiz-question-list"></div>
+      </aside>
+      <main class="quiz-main">
+        <div id="quiz-card" class="quiz-card"></div>
+      </main>
+    </div>
+  </div>
+</div>
+
 <!-- Leaderboard -->
 <div id="leaderboard-modal" class="modal-overlay hidden">
   <div class="modal-card lb-modal-card">
@@ -641,7 +674,7 @@ WHERE col IS NOT NULL
 </div>
 
 <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
-<script type="module" src="scripts/app.js?v=20260429-8"></script>
+<script type="module" src="scripts/app.js?v=20260502-1"></script>
 
 </body>
 </html>
