@@ -2,6 +2,7 @@
 // Collections:
 //   users/{uid}                  — profile
 //   sql_progress/{uid}           — challenge progress per student
+//   sql_quiz_progress/{uid}      — quiz progress and attempt analytics
 //   sql_sessions/{sessionId}     — per-execution analytics
 
 import {
@@ -94,6 +95,69 @@ export async function saveChallengeProgress(uid, progress) {
 
 export async function getAllChallengeProgress() {
   const snap = await getDocs(collection(db, 'sql_progress'));
+  const result = {};
+  snap.forEach(d => { result[d.id] = d.data(); });
+  return result;
+}
+
+// ── Quiz Progress ─────────────────────────────────────────────────────────────
+
+export async function getQuizProgress(uid) {
+  if (!uid) return { completed: {}, attempts: {} };
+  try {
+    const snap = await getDoc(doc(db, 'sql_quiz_progress', uid));
+    if (snap.exists()) return snap.data();
+  } catch (e) {
+    console.warn('Firestore quiz read blocked:', e.message);
+  }
+  return { completed: {}, attempts: {} };
+}
+
+export async function saveQuizProgress(uid, classCode, displayName, progress) {
+  if (!uid) return;
+  try {
+    await setDoc(doc(db, 'sql_quiz_progress', uid), {
+      uid,
+      classCode: normalizeClassCode(classCode),
+      displayName: displayName || '',
+      completed: progress.completed || {},
+      attempts: progress.attempts || {},
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (e) {
+    console.warn('Firestore quiz progress save blocked:', e.message);
+  }
+}
+
+export async function recordQuizAttempt(uid, classCode, displayName, questionId, type, correct) {
+  if (!uid || !questionId) return;
+  try {
+    const existing = await getQuizProgress(uid);
+    const attempts = { ...(existing.attempts || {}) };
+    const current = attempts[questionId] || { type, correct: 0, incorrect: 0, total: 0 };
+    attempts[questionId] = {
+      type,
+      correct: (current.correct || 0) + (correct ? 1 : 0),
+      incorrect: (current.incorrect || 0) + (correct ? 0 : 1),
+      total: (current.total || 0) + 1,
+      lastCorrect: !!correct,
+      updatedAt: Date.now()
+    };
+
+    await setDoc(doc(db, 'sql_quiz_progress', uid), {
+      uid,
+      classCode: normalizeClassCode(classCode),
+      displayName: displayName || '',
+      attempts,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (e) {
+    console.warn('Firestore quiz attempt save blocked:', e.message);
+  }
+}
+
+export async function getAllQuizProgress() {
+  const snap = await getDocs(collection(db, 'sql_quiz_progress'));
   const result = {};
   snap.forEach(d => { result[d.id] = d.data(); });
   return result;
@@ -212,6 +276,28 @@ export async function getAllFeedback() {
 export async function getMyFeedback(uid) {
   const snap = await getDocs(
     query(collection(db, 'sql_feedback'), where('uid', '==', uid))
+  );
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export async function submitTeacherSQLFeedback(studentUid, studentName, classCode, exerciseId, text, teacher = {}) {
+  await addDoc(collection(db, 'sql_feedback'), {
+    uid: studentUid,
+    displayName: studentName || '',
+    classCode: normalizeClassCode(classCode),
+    type: 'teacher_sql_comment',
+    text,
+    exerciseId: exerciseId || null,
+    teacherUid: teacher.uid || '',
+    teacherName: teacher.displayName || teacher.email || 'Teacher',
+    status: 'shared',
+    createdAt: serverTimestamp()
+  });
+}
+
+export async function getTeacherSQLFeedback() {
+  const snap = await getDocs(
+    query(collection(db, 'sql_feedback'), where('type', '==', 'teacher_sql_comment'))
   );
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }

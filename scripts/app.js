@@ -3,11 +3,12 @@
 
 import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260429-3';
 import { ChallengeManager } from './challenges.js?v=20260429-7';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260429-7';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260502-1';
 import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-25';
 import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-25';
 import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-28';
-import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260429-7';
+import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260502-1';
+import { initQuiz, setQuizContext } from './quiz.js?v=20260502-2';
 
 const $ = id => document.getElementById(id);
 
@@ -20,6 +21,7 @@ let _challengeMgr  = null;
 let _activeDatabaseId = 'bookshop';  // currently selected built-in database
 let _sandboxDb     = null;           // persistent sandbox database instance
 let _queryHistory  = [];
+let _quizReady      = false;
 
 const PREF_PREFIX = 'sqllab-pref';
 
@@ -106,6 +108,15 @@ async function showApp() {
   // Load initial database and create persistent sandbox
   setActiveDatabase('bookshop');
   resetSandboxDB();
+
+  if (!_quizReady) {
+    initQuiz({
+      uid: _user.uid,
+      classCode: _profile.classCode || '',
+      displayName: _profile.displayName || _user.email || ''
+    });
+    _quizReady = true;
+  }
 }
 
 // ── Login form handlers ────────────────────────────────────────────────────────
@@ -209,6 +220,7 @@ $('class-confirm')?.addEventListener('click', async () => {
   const code = $('class-input').value.trim().toUpperCase();
   await updateUserClassCode(_user.uid, code);
   _profile.classCode = code;
+  setQuizContext({ classCode: code });
   $('status-class-code').textContent = code || '—';
   $('class-modal')?.classList.add('hidden');
 });

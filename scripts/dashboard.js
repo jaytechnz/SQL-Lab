@@ -2,36 +2,48 @@ import {
   getAllStudents,
   getSessions,
   getAllChallengeProgress,
+  getAllQuizProgress,
   getClassNames,
   saveClassName,
   assignStudentToClass,
-  removeStudentFromClass
-} from './storage.js?v=20260429-3';
+  removeStudentFromClass,
+  submitTeacherSQLFeedback,
+  getTeacherSQLFeedback
+} from './storage.js?v=20260502-1';
 import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-25';
+import { QUIZ_QUESTIONS, QUIZ_SECTIONS } from './quiz.js?v=20260502-2';
 
 const TOTAL_CHALLENGES = EXERCISES.length;
+const TOTAL_QUIZ_QUESTIONS = QUIZ_QUESTIONS.length;
+const QUIZ_TYPES = QUIZ_SECTIONS.filter(section => section.id !== 'all');
 
 let _students = [];
 let _sessions = [];
 let _allProgress = {};
+let _allQuizProgress = {};
+let _sqlFeedback = [];
 let _classNames = {};
 let _container = null;
 let _classFilter = '';
+let _viewer = {};
 let _status = { tone: '', text: '' };
 
 export function refreshDashboard() {
   if (_container && _students) _render(_container);
 }
 
-export async function renderDashboard(containerEl) {
+export async function renderDashboard(containerEl, viewer = {}) {
   _container = containerEl;
+  _viewer = viewer || {};
   containerEl.innerHTML = '<p class="dash-loading">Loading dashboard…</p>';
 
   try {
-    [_students, _sessions, _allProgress] = await Promise.all([
+    [_students, _sessions, _allProgress, _allQuizProgress, _sqlFeedback] = await Promise.all([
       getAllStudents(),
       getSessions(),
-      getAllChallengeProgress()
+      getAllChallengeProgress(),
+      getAllQuizProgress().catch(() => ({})),
+      getTeacherSQLFeedback().catch(() => [])
     ]);
     _classNames = _normalizeClassNames(await getClassNames().catch(() => ({})));
   } catch (e) {
@@ -70,7 +82,10 @@ function _render(container) {
     ${_renderOverview(students)}
     ${_renderTeachingInsights(students)}
     ${_renderStudentTable(students)}
+    ${_renderQuizInsights(students)}
+    ${_renderQuizStudentTable(students)}
     ${_renderCategoryProgress(students)}
+    ${_renderQuizSectionProgress(students)}
     ${_renderChallengeHeatmap(students)}
     ${_renderSQLConcepts(students)}
     ${_renderAtRisk(students)}
@@ -88,6 +103,9 @@ function _render(container) {
   container.querySelector('#dash-add-student')?.addEventListener('click', _handleAddStudent);
   container.querySelectorAll('[data-remove-student]').forEach(btn => {
     btn.addEventListener('click', () => _handleRemoveStudent(btn.dataset.removeStudent, btn.dataset.studentName));
+  });
+  container.querySelectorAll('[data-sql-feedback-submit]').forEach(btn => {
+    btn.addEventListener('click', () => _handleSQLFeedback(btn));
   });
 }
 
@@ -191,6 +209,11 @@ function _renderOverview(students) {
         return sum + Object.keys(_allProgress[student.uid]?.completed || {}).length;
       }, 0) / total)
     : 0;
+  const avgQuizDone = total
+    ? Math.round(students.reduce((sum, student) => {
+        return sum + Object.keys(_quizProgressFor(student).completed || {}).length;
+      }, 0) / total)
+    : 0;
   const activeToday = students.filter(student => {
     const progress = _allProgress[student.uid];
     const ts = _timestamp(progress?.updatedAt);
@@ -205,6 +228,7 @@ function _renderOverview(students) {
         <div class="dash-stat"><div class="dash-stat-val">${total}</div><div class="dash-stat-label">Students</div></div>
         <div class="dash-stat"><div class="dash-stat-val">${avgXP}</div><div class="dash-stat-label">Average XP</div></div>
         <div class="dash-stat"><div class="dash-stat-val">${avgDone}/${TOTAL_CHALLENGES}</div><div class="dash-stat-label">Average Challenges</div></div>
+        <div class="dash-stat"><div class="dash-stat-val">${avgQuizDone}/${TOTAL_QUIZ_QUESTIONS}</div><div class="dash-stat-label">Average Quiz</div></div>
         <div class="dash-stat"><div class="dash-stat-val">${activeToday}</div><div class="dash-stat-label">Active Today</div></div>
         <div class="dash-stat"><div class="dash-stat-val">${secure}</div><div class="dash-stat-label">On Track</div></div>
       </div>
@@ -330,6 +354,110 @@ function _renderStudentTable(students) {
   `;
 }
 
+function _renderQuizInsights(students) {
+  const typeStats = _quizTypeStats(students);
+  const attemptedTypes = typeStats.filter(item => item.attempts > 0 || item.done > 0);
+  const strongest = [...attemptedTypes].sort((a, b) => b.mastery - a.mastery)[0];
+  const weakest = [...attemptedTypes].sort((a, b) => a.mastery - b.mastery)[0];
+  const questionGaps = _quizQuestionGaps(students).slice(0, 5);
+  const notStarted = students.filter(student => Object.keys(_quizProgressFor(student).completed || {}).length === 0).length;
+  const quizSecure = students.filter(student => _quizCompletionPct(student) >= 70).length;
+
+  const lines = [];
+  if (!students.length) {
+    lines.push('No student data yet. Quiz strengths and weaknesses will appear after students answer questions.');
+  } else if (!attemptedTypes.length) {
+    lines.push('No quiz attempts have been synced yet. Students need to check answers or mark written questions complete before quiz insights appear.');
+  } else {
+    lines.push(`Strongest quiz area: ${strongest.label} at ${strongest.mastery}% mastery.`);
+    lines.push(`Weakest quiz area: ${weakest.label} at ${weakest.mastery}% mastery.`);
+    lines.push(`${quizSecure} students are secure on the quiz bank; ${notStarted} have not started it yet.`);
+    if (questionGaps.length) {
+      lines.push(`Most useful reteach: Q${questionGaps[0].question.id}, ${questionGaps[0].question.title}`);
+    }
+  }
+
+  return `
+    <div class="dash-card span-4">
+      <div class="dash-card-title">Quiz Strengths And Weaknesses</div>
+      <div class="dash-insights dash-insights--quiz">
+        ${lines.map(line => `<div class="dash-insight">${esc(line)}</div>`).join('')}
+      </div>
+      ${questionGaps.length ? `
+        <div class="quiz-gap-list">
+          ${questionGaps.map(item => `
+            <div class="quiz-gap-row">
+              <span class="quiz-gap-id">Q${item.question.id}</span>
+              <span class="quiz-gap-title">${esc(item.question.title)}</span>
+              <span class="quiz-gap-type">${esc(_quizTypeLabel(item.question.type))}</span>
+              <span class="quiz-gap-score">${item.correct}/${item.attempts} correct</span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function _renderQuizStudentTable(students) {
+  if (!students.length) {
+    return '<div class="dash-card span-4"><div class="dash-card-title">Quiz Progress</div><p class="dash-empty">No students found for this view.</p></div>';
+  }
+
+  const rows = students
+    .slice()
+    .sort((a, b) => _studentLabel(a).localeCompare(_studentLabel(b)))
+    .map(student => {
+      const quiz = _quizProgressFor(student);
+      const completed = Object.keys(quiz.completed || {});
+      const attempts = Object.values(quiz.attempts || {});
+      const correct = attempts.reduce((sum, item) => sum + (item.correct || 0), 0);
+      const total = attempts.reduce((sum, item) => sum + (item.total || 0), 0);
+      const accuracy = total ? Math.round(correct / total * 100) : 0;
+      const pct = Math.round(completed.length / TOTAL_QUIZ_QUESTIONS * 100);
+      const weakness = _studentQuizWeakness(student);
+      const strength = _studentQuizStrength(student);
+      const lastTs = _timestamp(quiz.updatedAt) || _latestQuizAttemptTs(quiz);
+
+      return `
+        <tr>
+          <td>${esc(_studentLabel(student))}</td>
+          <td>
+            <div class="mini-bar-wrap"><div class="mini-bar mini-bar--quiz" style="width:${pct}%"></div></div>
+            <span class="mini-pct">${pct}%</span>
+          </td>
+          <td class="td-center">${completed.length}/${TOTAL_QUIZ_QUESTIONS}</td>
+          <td class="td-center">${total ? `${accuracy}%` : '—'}</td>
+          <td>${esc(strength || 'Not enough data')}</td>
+          <td>${esc(weakness || 'Not enough data')}</td>
+          <td class="td-muted">${lastTs ? _timeAgo(lastTs) : 'Never'}</td>
+        </tr>
+      `;
+    }).join('');
+
+  return `
+    <div class="dash-card span-4">
+      <div class="dash-card-title">Quiz Progress</div>
+      <div class="dash-table-wrap">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Quiz Completion</th>
+              <th class="td-center">Questions</th>
+              <th class="td-center">Checked Accuracy</th>
+              <th>Strength</th>
+              <th>Weakness</th>
+              <th>Last Quiz Activity</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
 function _renderCategoryProgress(students) {
   const categoryStats = CATEGORIES.map(category => {
     const categoryExercises = EXERCISES.filter(exercise => exercise.category === category.id);
@@ -356,6 +484,28 @@ function _renderCategoryProgress(students) {
           </div>
         `).join('')}
       </div>
+    </div>
+  `;
+}
+
+function _renderQuizSectionProgress(students) {
+  const typeStats = _quizTypeStats(students);
+
+  return `
+    <div class="dash-card span-2">
+      <div class="dash-card-title">Quiz Section Mastery</div>
+      <div class="cat-bars">
+        ${typeStats.map(item => `
+          <div class="cat-bar-row">
+            <span class="cat-bar-label">${esc(item.label)}</span>
+            <div class="cat-bar-wrap">
+              <div class="cat-bar-fill cat-bar-fill--quiz" style="width:${item.mastery}%"></div>
+            </div>
+            <span class="cat-bar-pct">${item.mastery}%</span>
+          </div>
+        `).join('')}
+      </div>
+      <p class="dash-panel-text dash-quiz-note">Mastery combines checked accuracy with completion for written quiz questions.</p>
     </div>
   `;
 }
@@ -513,6 +663,7 @@ function _renderStudentSQL(students) {
                 ${entries.map(([id, sql]) => {
                   const exercise = exerciseMap[id];
                   const completed = !!progress.completed?.[id];
+                  const comments = _feedbackForSQL(student.uid, id);
                   return `
                     <div class="sql-entry">
                       <div class="sql-entry-header">
@@ -522,6 +673,30 @@ function _renderStudentSQL(students) {
                         <span class="ch-badge-diff badge-${exercise.difficulty}">${exercise.difficulty}</span>
                       </div>
                       <pre class="sql-entry-code">${esc(sql)}</pre>
+                      <div class="sql-feedback">
+                        ${comments.length ? `
+                          <div class="sql-feedback-thread">
+                            ${comments.map(comment => `
+                              <div class="sql-feedback-comment">
+                                <div class="sql-feedback-meta">
+                                  <strong>${esc(comment.teacherName || 'Teacher')}</strong>
+                                  <span>${esc(_formatDate(comment.createdAt))}</span>
+                                </div>
+                                <p>${esc(comment.text)}</p>
+                              </div>
+                            `).join('')}
+                          </div>
+                        ` : '<p class="sql-feedback-empty">No teacher feedback yet.</p>'}
+                        <div class="sql-feedback-form">
+                          <textarea class="dash-textarea sql-feedback-input" rows="2" placeholder="Add feedback for this SQL attempt"></textarea>
+                          <button
+                            class="btn-primary btn-sm"
+                            data-sql-feedback-submit
+                            data-student-uid="${escAttr(student.uid)}"
+                            data-exercise-id="${escAttr(id)}"
+                          >Add Feedback</button>
+                        </div>
+                      </div>
                     </div>
                   `;
                 }).join('')}
@@ -603,6 +778,51 @@ async function _handleRemoveStudent(studentUid, studentName) {
   }
 }
 
+async function _handleSQLFeedback(button) {
+  const form = button.closest('.sql-feedback-form');
+  const input = form?.querySelector('.sql-feedback-input');
+  const text = input?.value.trim() || '';
+  const studentUid = button.dataset.studentUid || '';
+  const exerciseId = button.dataset.exerciseId || '';
+  const student = _students.find(item => item.uid === studentUid);
+
+  if (!studentUid || !exerciseId || !text) {
+    _status = { tone: 'error', text: 'Write a feedback comment before submitting.' };
+    _render(_container);
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Saving...';
+
+  try {
+    await submitTeacherSQLFeedback(
+      studentUid,
+      _studentLabel(student),
+      _studentClassCode(student),
+      exerciseId,
+      text,
+      _viewer
+    );
+    _sqlFeedback.push({
+      uid: studentUid,
+      displayName: _studentLabel(student),
+      classCode: _studentClassCode(student),
+      type: 'teacher_sql_comment',
+      text,
+      exerciseId,
+      teacherUid: _viewer.uid || '',
+      teacherName: _viewer.displayName || _viewer.email || 'Teacher',
+      createdAt: Date.now()
+    });
+    _status = { tone: 'success', text: `Feedback added for ${_studentLabel(student)}.` };
+    _render(_container);
+  } catch (e) {
+    _status = { tone: 'error', text: `Could not save feedback: ${e.message}` };
+    _render(_container);
+  }
+}
+
 function _getClasses() {
   const codes = new Set([
     ...Object.keys(_classNames).map(_normalizeClassCode),
@@ -632,6 +852,124 @@ function _normalizeClassCode(value) {
   return String(value || '').replace(/\s+/g, '').toUpperCase();
 }
 
+function _feedbackForSQL(studentUid, exerciseId) {
+  return _sqlFeedback
+    .filter(item => item.uid === studentUid && item.exerciseId === exerciseId)
+    .sort((a, b) => _timestamp(a.createdAt) - _timestamp(b.createdAt));
+}
+
+function _quizProgressFor(student) {
+  return _normalizeQuizProgress(_allQuizProgress[student.uid] || {});
+}
+
+function _normalizeQuizProgress(progress) {
+  if (!progress || typeof progress !== 'object') return { completed: {}, attempts: {} };
+  if (progress.completed || progress.attempts) {
+    return {
+      ...progress,
+      completed: progress.completed || {},
+      attempts: progress.attempts || {}
+    };
+  }
+  return { completed: progress, attempts: {} };
+}
+
+function _quizCompletionPct(student) {
+  const completed = Object.keys(_quizProgressFor(student).completed || {}).length;
+  return Math.round(completed / TOTAL_QUIZ_QUESTIONS * 100);
+}
+
+function _quizTypeStats(students) {
+  return QUIZ_TYPES.map(type => {
+    const questions = QUIZ_QUESTIONS.filter(question => question.type === type.id);
+    const totalQuestions = students.length * questions.length || 1;
+    let done = 0;
+    let correct = 0;
+    let attempts = 0;
+
+    students.forEach(student => {
+      const progress = _quizProgressFor(student);
+      questions.forEach(question => {
+        if (progress.completed?.[question.id]) done++;
+        const attempt = progress.attempts?.[question.id];
+        if (attempt) {
+          correct += attempt.correct || 0;
+          attempts += attempt.total || 0;
+        }
+      });
+    });
+
+    const completion = Math.round(done / totalQuestions * 100);
+    const accuracy = attempts ? Math.round(correct / attempts * 100) : completion;
+    const mastery = Math.round((completion + accuracy) / 2);
+    return { id: type.id, label: type.label, completion, accuracy, mastery, done, attempts };
+  });
+}
+
+function _quizQuestionGaps(students) {
+  return QUIZ_QUESTIONS.map(question => {
+    let correct = 0;
+    let attempts = 0;
+    let completed = 0;
+
+    students.forEach(student => {
+      const progress = _quizProgressFor(student);
+      if (progress.completed?.[question.id]) completed++;
+      const attempt = progress.attempts?.[question.id];
+      if (attempt) {
+        correct += attempt.correct || 0;
+        attempts += attempt.total || 0;
+      }
+    });
+
+    const accuracy = attempts ? correct / attempts : 1;
+    const completion = students.length ? completed / students.length : 1;
+    return { question, correct, attempts, completed, score: (accuracy + completion) / 2 };
+  })
+    .filter(item => item.attempts > 0 || item.completed > 0)
+    .sort((a, b) => a.score - b.score || b.attempts - a.attempts);
+}
+
+function _studentQuizStrength(student) {
+  const stats = _studentQuizTypeStats(student).filter(item => item.evidence > 0);
+  return stats.sort((a, b) => b.mastery - a.mastery)[0]?.label || '';
+}
+
+function _studentQuizWeakness(student) {
+  const stats = _studentQuizTypeStats(student).filter(item => item.evidence > 0);
+  return stats.sort((a, b) => a.mastery - b.mastery)[0]?.label || '';
+}
+
+function _studentQuizTypeStats(student) {
+  const progress = _quizProgressFor(student);
+  return QUIZ_TYPES.map(type => {
+    const questions = QUIZ_QUESTIONS.filter(question => question.type === type.id);
+    const done = questions.filter(question => progress.completed?.[question.id]).length;
+    const typeAttempts = questions
+      .map(question => progress.attempts?.[question.id])
+      .filter(Boolean);
+    const correct = typeAttempts.reduce((sum, item) => sum + (item.correct || 0), 0);
+    const total = typeAttempts.reduce((sum, item) => sum + (item.total || 0), 0);
+    const completion = Math.round(done / questions.length * 100);
+    const accuracy = total ? Math.round(correct / total * 100) : completion;
+    return {
+      label: type.label,
+      mastery: Math.round((completion + accuracy) / 2),
+      evidence: done + total
+    };
+  });
+}
+
+function _latestQuizAttemptTs(progress) {
+  return Object.values(progress.attempts || {}).reduce((latest, attempt) => {
+    return Math.max(latest, _timestamp(attempt.updatedAt));
+  }, 0);
+}
+
+function _quizTypeLabel(type) {
+  return QUIZ_TYPES.find(item => item.id === type)?.label || type;
+}
+
 function _studentLabel(student) {
   return student?.displayName || student?.email || 'Unnamed student';
 }
@@ -657,6 +995,17 @@ function _timeAgo(ts) {
   if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
   if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
   return `${Math.floor(secs / 86400)}d ago`;
+}
+
+function _formatDate(value) {
+  const ts = _timestamp(value);
+  if (!ts) return 'Just now';
+  return new Date(ts).toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 function esc(value) {
