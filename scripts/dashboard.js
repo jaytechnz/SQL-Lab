@@ -11,7 +11,7 @@ import {
   getTeacherSQLFeedback
 } from './storage.js?v=20260502-1';
 import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-25';
-import { QUIZ_QUESTIONS, QUIZ_SECTIONS } from './quiz.js?v=20260502-2';
+import { QUIZ_QUESTIONS, QUIZ_SECTIONS } from './quiz.js?v=20260502-3';
 
 const TOTAL_CHALLENGES = EXERCISES.length;
 const TOTAL_QUIZ_QUESTIONS = QUIZ_QUESTIONS.length;

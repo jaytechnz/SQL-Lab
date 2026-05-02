@@ -127,13 +127,12 @@ let selectedOption = null;
 let answerVisible = false;
 let context = { uid: '', classCode: '', displayName: '' };
 let progress = normalizeProgress(loadProgress());
+let listenersReady = false;
 
 export function initQuiz(userContext = {}) {
   setQuizContext(userContext);
   progress = normalizeProgress(loadProgress());
-  $('btn-quiz')?.addEventListener('click', openQuiz);
-  $('quiz-close')?.addEventListener('click', closeQuiz);
-  $('quiz-reset')?.addEventListener('click', resetProgress);
+  ensureQuizListeners();
   renderSectionTabs();
   renderQuestionList();
   renderQuestion();
@@ -146,6 +145,14 @@ export function setQuizContext(userContext = {}) {
     classCode: userContext.classCode || context.classCode || '',
     displayName: userContext.displayName || context.displayName || ''
   };
+}
+
+function ensureQuizListeners() {
+  if (listenersReady) return;
+  $('btn-quiz')?.addEventListener('click', openQuiz);
+  $('quiz-close')?.addEventListener('click', closeQuiz);
+  $('quiz-reset')?.addEventListener('click', resetProgress);
+  listenersReady = true;
 }
 
 function openQuiz() {
@@ -465,3 +472,5 @@ function table(name, headings, rows) {
   const body = rows.map(row => row.map(cell => cell === null ? 'NULL' : cell).join(' | ')).join('\n');
   return `${name}\n${headings.join(' | ')}\n${body}`;
 }
+
+ensureQuizListeners();
