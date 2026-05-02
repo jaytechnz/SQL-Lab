@@ -1,7 +1,5 @@
 // SQL Quiz Bank — Cambridge AS Computer Science 9618 style practice
 
-import { getQuizProgress, saveQuizProgress } from './storage.js?v=20260502-1';
-
 const $ = id => document.getElementById(id);
 const STORE_KEY = 'sqllab-quiz-progress-v1';
 
@@ -136,7 +134,7 @@ export function initQuiz(userContext = {}) {
   renderSectionTabs();
   renderQuestionList();
   renderQuestion();
-  hydrateRemoteProgress();
+  hydrateRemoteProgress().catch(() => {});
 }
 
 export function setQuizContext(userContext = {}) {
@@ -148,6 +146,7 @@ export function setQuizContext(userContext = {}) {
 }
 
 function ensureQuizListeners() {
+  window.SQLLabQuizOpen = openQuiz;
   if (listenersReady) return;
   $('btn-quiz')?.addEventListener('click', openQuiz);
   $('quiz-close')?.addEventListener('click', closeQuiz);
@@ -156,12 +155,18 @@ function ensureQuizListeners() {
 }
 
 function openQuiz() {
-  $('quiz-overlay')?.classList.remove('hidden');
+  const overlay = $('quiz-overlay');
+  overlay?.classList.remove('hidden');
+  overlay?.style.setProperty('display', 'flex', 'important');
+  overlay?.style.setProperty('z-index', '5000', 'important');
   renderAll();
 }
 
 function closeQuiz() {
-  $('quiz-overlay')?.classList.add('hidden');
+  const overlay = $('quiz-overlay');
+  overlay?.classList.add('hidden');
+  overlay?.style.removeProperty('display');
+  overlay?.style.removeProperty('z-index');
 }
 
 function resetProgress() {
@@ -350,15 +355,22 @@ function loadProgress() {
 
 function saveProgress() {
   localStorage.setItem(storeKey(), JSON.stringify(progress));
-  saveQuizProgress(context.uid, context.classCode, context.displayName, progress).catch(() => {});
+  getQuizStorage()
+    .then(storage => storage.saveQuizProgress(context.uid, context.classCode, context.displayName, progress))
+    .catch(() => {});
 }
 
 async function hydrateRemoteProgress() {
   if (!context.uid) return;
-  const remote = normalizeProgress(await getQuizProgress(context.uid));
+  const storage = await getQuizStorage();
+  const remote = normalizeProgress(await storage.getQuizProgress(context.uid));
   progress = mergeProgress(progress, remote);
   localStorage.setItem(storeKey(), JSON.stringify(progress));
   renderAll();
+}
+
+async function getQuizStorage() {
+  return import('./storage.js?v=20260502-1');
 }
 
 function storeKey() {

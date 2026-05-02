@@ -8,7 +8,7 @@ import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } fr
 import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-25';
 import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-28';
 import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260502-1';
-import { initQuiz, setQuizContext } from './quiz.js?v=20260502-3';
+import { initQuiz, setQuizContext } from './quiz.js?v=20260502-6';
 
 const $ = id => document.getElementById(id);
 
