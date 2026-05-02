@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/editor.css">
   <link rel="stylesheet" href="css/challenges.css">
   <link rel="stylesheet" href="css/dashboard.css">
-  <link rel="stylesheet" href="css/quiz.css">
+  <link rel="stylesheet" href="css/quiz.css?v=20260502-1">
   <!-- sql.js WebAssembly SQLite -->
   <script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js"></script>
 </head>
@@ -100,7 +100,7 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         Databases
       </button>
-      <button id="btn-quiz" class="btn-ghost btn-sm" title="Open SQL quiz">
+      <button id="btn-quiz" class="btn-ghost btn-sm" title="Open SQL quiz" onclick="window.SQLLabQuizOpen ? window.SQLLabQuizOpen() : document.getElementById('quiz-overlay')?.classList.remove('hidden')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         Quiz
       </button>
@@ -553,7 +553,7 @@ WHERE col IS NOT NULL
       </div>
       <div class="quiz-header-actions">
         <button id="quiz-reset" class="btn-ghost btn-sm">Reset Progress</button>
-        <button id="quiz-close" class="btn-ghost btn-sm quiz-close" title="Close">
+        <button id="quiz-close" class="btn-ghost btn-sm quiz-close" title="Close" onclick="document.getElementById('quiz-overlay')?.classList.add('hidden')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -674,7 +674,19 @@ WHERE col IS NOT NULL
 </div>
 
 <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
-<script type="module" src="scripts/app.js?v=20260502-2"></script>
+<script>
+  window.SQLLabQuizOpen = window.SQLLabQuizOpen || function () {
+    const overlay = document.getElementById('quiz-overlay');
+    const card = document.getElementById('quiz-card');
+    overlay?.classList.remove('hidden');
+    if (card && !card.innerHTML.trim()) {
+      card.innerHTML = '<div class="quiz-card-body"><p class="quiz-prompt">Loading quiz...</p></div>';
+    }
+  };
+</script>
+<script src="scripts/quiz-button.js?v=20260502-2"></script>
+<script type="module" src="scripts/quiz.js?v=20260502-6"></script>
+<script type="module" src="scripts/app.js?v=20260502-5"></script>
 
 </body>
 </html>
