@@ -17,7 +17,7 @@ import {
   getAllTeacherClasses,
   getClassNames,
   logSession
-} from './storage.js?v=20260429-3';
+} from './storage.js?v=20260429-7';
 
 const $ = id => document.getElementById(id);
 
@@ -331,6 +331,25 @@ export class ChallengeManager {
 
     const { passed, messages } = validation;
 
+    const sessionData = {
+      exerciseId: ex.id,
+      category: ex.category,
+      difficulty: ex.difficulty,
+      passed,
+      executionError: error || '',
+      sqlLength: studentSQL.length,
+      hasJoin: /\bJOIN\b/i.test(studentSQL),
+      hasWhere: /\bWHERE\b/i.test(studentSQL),
+      hasGroupBy: /\bGROUP\s+BY\b/i.test(studentSQL),
+      hasAggregate: /\b(SUM|AVG|COUNT|MAX|MIN)\b/i.test(studentSQL),
+      hasDDL: /\b(CREATE|ALTER|DROP)\b/i.test(studentSQL),
+      hasDML: /\b(INSERT|UPDATE|DELETE|SELECT)\b/i.test(studentSQL),
+    };
+
+    // Log every attempt, including syntax/runtime errors, so teachers can see
+    // effort and misconceptions even before a student has a successful run.
+    logSession(this.uid, this.classCode, sessionData).catch(() => {});
+
     // If execution errored and validation also failed, surface the SQL error
     if (error && !passed) {
       const databaseNameMessage = databaseNameTableMessage(ex, studentSQL, error);
@@ -349,21 +368,6 @@ export class ChallengeManager {
     if (passed && !this.progress.completed?.[ex.id]) {
       await this._awardXP(ex);
     }
-
-    // Log session
-    logSession(this.uid, this.classCode, {
-      exerciseId: ex.id,
-      category: ex.category,
-      difficulty: ex.difficulty,
-      passed,
-      sqlLength: studentSQL.length,
-      hasJoin: /\bJOIN\b/i.test(studentSQL),
-      hasWhere: /\bWHERE\b/i.test(studentSQL),
-      hasGroupBy: /\bGROUP\s+BY\b/i.test(studentSQL),
-      hasAggregate: /\b(SUM|AVG|COUNT|MAX|MIN)\b/i.test(studentSQL),
-      hasDDL: /\b(CREATE|ALTER|DROP)\b/i.test(studentSQL),
-      hasDML: /\b(INSERT|UPDATE|DELETE|SELECT)\b/i.test(studentSQL),
-    }).catch(() => {});
   }
 
   _showTestResults(passed, messages) {

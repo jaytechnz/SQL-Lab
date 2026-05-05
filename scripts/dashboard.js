@@ -216,7 +216,7 @@ function _renderOverview(students) {
     : 0;
   const activeToday = students.filter(student => {
     const progress = _allProgress[student.uid];
-    const ts = _timestamp(progress?.updatedAt);
+    const ts = Math.max(_timestamp(progress?.updatedAt), _latestChallengeSessionTs(student));
     return ts && Date.now() - ts < 86400000;
   }).length;
   const secure = students.filter(student => _completionPct(student) >= 70).length;
@@ -308,7 +308,9 @@ function _renderStudentTable(students) {
       const dmlDone = completed.filter(id => id.startsWith('dml')).length;
       const comboDone = completed.filter(id => id.startsWith('combo')).length;
       const xp = progress.totalXP || 0;
-      const lastTs = _timestamp(progress.updatedAt);
+      const attempts = _challengeSessionsForStudent(student);
+      const failedAttempts = attempts.filter(session => session.passed === false).length;
+      const lastTs = Math.max(_timestamp(progress.updatedAt), _latestChallengeSessionTs(student));
       const lastStr = lastTs ? _timeAgo(lastTs) : 'Never';
       const pct = Math.round(completed.length / TOTAL_CHALLENGES * 100);
       const status = pct >= 70 ? 'Secure' : pct >= 30 ? 'Developing' : 'Needs Support';
@@ -320,6 +322,8 @@ function _renderStudentTable(students) {
           <td class="td-center">${dmlDone}/20</td>
           <td class="td-center">${comboDone}/20</td>
           <td class="td-center">${xp}</td>
+          <td class="td-center">${attempts.length}</td>
+          <td class="td-center">${failedAttempts}</td>
           <td>
             <div class="mini-bar-wrap"><div class="mini-bar" style="width:${pct}%"></div></div>
             <span class="mini-pct">${pct}%</span>
@@ -342,6 +346,8 @@ function _renderStudentTable(students) {
               <th class="td-center">DML</th>
               <th class="td-center">Combined</th>
               <th class="td-center">XP</th>
+              <th class="td-center">Runs</th>
+              <th class="td-center">Unsuccessful</th>
               <th>Overall</th>
               <th>Stage</th>
               <th>Last Active</th>
@@ -581,7 +587,7 @@ function _renderAtRisk(students) {
   const atRisk = students.filter(student => {
     const progress = _allProgress[student.uid] || {};
     const done = Object.keys(progress.completed || {}).length;
-    const lastTs = _timestamp(progress.updatedAt);
+    const lastTs = Math.max(_timestamp(progress.updatedAt), _latestChallengeSessionTs(student));
     const daysSince = lastTs ? (Date.now() - lastTs) / 86400000 : Infinity;
     return done < 5 || daysSince > 7;
   });
@@ -605,7 +611,7 @@ function _renderAtRisk(students) {
             ${atRisk.map(student => {
               const progress = _allProgress[student.uid] || {};
               const done = Object.keys(progress.completed || {}).length;
-              const lastTs = _timestamp(progress.updatedAt);
+              const lastTs = Math.max(_timestamp(progress.updatedAt), _latestChallengeSessionTs(student));
               const flags = [];
               if (done < 5) flags.push('Low completion');
               if (!lastTs || (Date.now() - lastTs) > 7 * 86400000) flags.push('Inactive');
@@ -963,6 +969,17 @@ function _studentQuizTypeStats(student) {
 function _latestQuizAttemptTs(progress) {
   return Object.values(progress.attempts || {}).reduce((latest, attempt) => {
     return Math.max(latest, _timestamp(attempt.updatedAt));
+  }, 0);
+}
+
+function _challengeSessionsForStudent(student) {
+  if (!student?.uid) return [];
+  return _sessions.filter(session => session.uid === student.uid);
+}
+
+function _latestChallengeSessionTs(student) {
+  return _challengeSessionsForStudent(student).reduce((latest, session) => {
+    return Math.max(latest, _timestamp(session.createdAt));
   }, 0);
 }
 
