@@ -82,6 +82,7 @@ function _render(container) {
     ${_renderOverview(students)}
     ${_renderTeachingInsights(students)}
     ${_renderStudentTable(students)}
+    ${_renderDailyCompletions(students)}
     ${_renderQuizInsights(students)}
     ${_renderQuizStudentTable(students)}
     ${_renderCategoryProgress(students)}
@@ -356,6 +357,67 @@ function _renderStudentTable(students) {
           <tbody>${rows}</tbody>
         </table>
       </div>
+    </div>
+  `;
+}
+
+function _renderDailyCompletions(students) {
+  if (!students.length) {
+    return '<div class="dash-card span-4"><div class="dash-card-title">Daily Exercise Completions</div><p class="dash-empty">No students found for this view.</p></div>';
+  }
+
+  const days = _completionDays(students).slice(0, 10);
+  if (!days.length) {
+    return `
+      <div class="dash-card span-4">
+        <div class="dash-card-title">Daily Exercise Completions</div>
+        <p class="dash-empty">No completed exercises yet.</p>
+      </div>
+    `;
+  }
+
+  const rows = students
+    .slice()
+    .sort((a, b) => _studentLabel(a).localeCompare(_studentLabel(b)))
+    .map(student => {
+      const counts = _completionCountsByDay(student);
+      const total = days.reduce((sum, day) => sum + (counts[day] || 0), 0);
+      return `
+        <tr>
+          <td>${esc(_studentLabel(student))}</td>
+          ${days.map(day => `<td class="td-center">${counts[day] || '—'}</td>`).join('')}
+          <td class="td-center">${total}</td>
+        </tr>
+      `;
+    }).join('');
+
+  const totals = days.map(day => {
+    return students.reduce((sum, student) => sum + (_completionCountsByDay(student)[day] || 0), 0);
+  });
+
+  return `
+    <div class="dash-card span-4">
+      <div class="dash-card-title">Daily Exercise Completions</div>
+      <div class="dash-table-wrap">
+        <table class="dash-table dash-table--compact">
+          <thead>
+            <tr>
+              <th>Student</th>
+              ${days.map(day => `<th class="td-center">${esc(_formatDayLabel(day))}</th>`).join('')}
+              <th class="td-center">Total</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr>
+              <th>Class Total</th>
+              ${totals.map(total => `<th class="td-center">${total || '—'}</th>`).join('')}
+              <th class="td-center">${totals.reduce((sum, total) => sum + total, 0)}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p class="dash-panel-text dash-activity-note">Showing the 10 most recent days with completed exercises.</p>
     </div>
   `;
 }
@@ -658,6 +720,7 @@ function _renderStudentSQL(students) {
           const entries = Object.entries(lastSQL)
             .filter(([id]) => exerciseMap[id])
             .sort(([a], [b]) => a.localeCompare(b));
+          const grouped = _groupSQLEntriesByDifficulty(entries, exerciseMap);
 
           return `
             <details class="sql-student">
@@ -665,45 +728,21 @@ function _renderStudentSQL(students) {
                 <span class="sql-student-name">${esc(_studentLabel(student))}</span>
                 <span class="sql-student-count">${entries.length} exercise${entries.length === 1 ? '' : 's'}</span>
               </summary>
-              <div class="sql-entries">
-                ${entries.map(([id, sql]) => {
-                  const exercise = exerciseMap[id];
-                  const completed = !!progress.completed?.[id];
-                  const comments = _feedbackForSQL(student.uid, id);
+              <div class="sql-difficulty-list">
+                ${['easy', 'medium', 'hard'].map(difficulty => {
+                  const group = grouped[difficulty] || [];
+                  const completedCount = group.filter(([id]) => !!progress.completed?.[id]).length;
+                  const open = difficulty === 'hard' && group.length ? 'open' : '';
                   return `
-                    <div class="sql-entry">
-                      <div class="sql-entry-header">
-                        <span class="sql-status ${completed ? 'sql-status--done' : ''}">${completed ? '✓' : '○'}</span>
-                        <span class="sql-entry-id">${id}</span>
-                        <span class="sql-entry-title">${esc(exercise.title)}</span>
-                        <span class="ch-badge-diff badge-${exercise.difficulty}">${exercise.difficulty}</span>
+                    <details class="sql-difficulty" ${open}>
+                      <summary class="sql-difficulty-summary">
+                        <span class="sql-difficulty-name">${esc(_difficultyLabel(difficulty))}</span>
+                        <span class="sql-difficulty-count">${completedCount}/${group.length} complete</span>
+                      </summary>
+                      <div class="sql-entries">
+                        ${group.length ? group.map(([id, sql]) => _renderSQLEntry(student, progress, exerciseMap[id], id, sql)).join('') : '<p class="dash-empty sql-empty-group">No saved SQL in this difficulty.</p>'}
                       </div>
-                      <pre class="sql-entry-code">${esc(sql)}</pre>
-                      <div class="sql-feedback">
-                        ${comments.length ? `
-                          <div class="sql-feedback-thread">
-                            ${comments.map(comment => `
-                              <div class="sql-feedback-comment">
-                                <div class="sql-feedback-meta">
-                                  <strong>${esc(comment.teacherName || 'Teacher')}</strong>
-                                  <span>${esc(_formatDate(comment.createdAt))}</span>
-                                </div>
-                                <p>${esc(comment.text)}</p>
-                              </div>
-                            `).join('')}
-                          </div>
-                        ` : '<p class="sql-feedback-empty">No teacher feedback yet.</p>'}
-                        <div class="sql-feedback-form">
-                          <textarea class="dash-textarea sql-feedback-input" rows="2" placeholder="Add feedback for this SQL attempt"></textarea>
-                          <button
-                            class="btn-primary btn-sm"
-                            data-sql-feedback-submit
-                            data-student-uid="${escAttr(student.uid)}"
-                            data-exercise-id="${escAttr(id)}"
-                          >Add Feedback</button>
-                        </div>
-                      </div>
-                    </div>
+                    </details>
                   `;
                 }).join('')}
               </div>
@@ -713,6 +752,54 @@ function _renderStudentSQL(students) {
       </div>
     </div>
   `;
+}
+
+function _renderSQLEntry(student, progress, exercise, id, sql) {
+  const completed = !!progress.completed?.[id];
+  const comments = _feedbackForSQL(student.uid, id);
+  return `
+    <div class="sql-entry">
+      <div class="sql-entry-header">
+        <span class="sql-status ${completed ? 'sql-status--done' : ''}">${completed ? '✓' : '○'}</span>
+        <span class="sql-entry-id">${id}</span>
+        <span class="sql-entry-title">${esc(exercise.title)}</span>
+      </div>
+      <pre class="sql-entry-code">${esc(sql)}</pre>
+      <div class="sql-feedback">
+        ${comments.length ? `
+          <div class="sql-feedback-thread">
+            ${comments.map(comment => `
+              <div class="sql-feedback-comment">
+                <div class="sql-feedback-meta">
+                  <strong>${esc(comment.teacherName || 'Teacher')}</strong>
+                  <span>${esc(_formatDate(comment.createdAt))}</span>
+                </div>
+                <p>${esc(comment.text)}</p>
+              </div>
+            `).join('')}
+          </div>
+        ` : '<p class="sql-feedback-empty">No teacher feedback yet.</p>'}
+        <div class="sql-feedback-form">
+          <textarea class="dash-textarea sql-feedback-input" rows="2" placeholder="Add feedback for this SQL attempt"></textarea>
+          <button
+            class="btn-primary btn-sm"
+            data-sql-feedback-submit
+            data-student-uid="${escAttr(student.uid)}"
+            data-exercise-id="${escAttr(id)}"
+          >Add Feedback</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function _groupSQLEntriesByDifficulty(entries, exerciseMap) {
+  const grouped = { easy: [], medium: [], hard: [] };
+  entries.forEach(entry => {
+    const difficulty = exerciseMap[entry[0]]?.difficulty;
+    if (grouped[difficulty]) grouped[difficulty].push(entry);
+  });
+  return grouped;
 }
 
 async function _handleGenerateClass() {
@@ -981,6 +1068,50 @@ function _latestChallengeSessionTs(student) {
   return _challengeSessionsForStudent(student).reduce((latest, session) => {
     return Math.max(latest, _timestamp(session.createdAt));
   }, 0);
+}
+
+function _completionDays(students) {
+  const days = new Set();
+  students.forEach(student => {
+    Object.values(_allProgress[student.uid]?.completed || {}).forEach(item => {
+      const day = _dayKey(_completionTimestamp(item));
+      if (day) days.add(day);
+    });
+  });
+  return [...days].sort((a, b) => b.localeCompare(a));
+}
+
+function _completionCountsByDay(student) {
+  const counts = {};
+  Object.values(_allProgress[student.uid]?.completed || {}).forEach(item => {
+    const day = _dayKey(_completionTimestamp(item));
+    if (day) counts[day] = (counts[day] || 0) + 1;
+  });
+  return counts;
+}
+
+function _completionTimestamp(item) {
+  if (!item || typeof item !== 'object') return 0;
+  return _timestamp(item.completedAt);
+}
+
+function _dayKey(ts) {
+  if (!ts) return '';
+  const date = new Date(ts);
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function _formatDayLabel(day) {
+  const date = new Date(`${day}T00:00:00`);
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function _difficultyLabel(difficulty) {
+  return { easy: 'Easy', medium: 'Medium', hard: 'Hard' }[difficulty] || difficulty;
 }
 
 function _quizTypeLabel(type) {
