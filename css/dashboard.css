@@ -257,6 +257,18 @@
 }
 
 .dash-table tr:last-child td { border-bottom: none; }
+.dash-table tfoot th {
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 11px;
+}
+.dash-table--compact th,
+.dash-table--compact td {
+  padding: 7px 8px;
+  white-space: nowrap;
+}
 .td-center { text-align: center; }
 .td-muted { color: var(--text-muted) !important; font-size: 11px; }
 
@@ -458,6 +470,10 @@
   margin: 10px 0 0;
 }
 
+.dash-activity-note {
+  margin: 10px 0 0;
+}
+
 .sql-student-list {
   display: flex;
   flex-direction: column;
@@ -504,10 +520,62 @@
   color: var(--text-muted);
 }
 
+.sql-difficulty-list {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.sql-difficulty {
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.sql-difficulty-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 12px;
+}
+
+.sql-difficulty-summary::-webkit-details-marker { display: none; }
+
+.sql-difficulty-summary::before {
+  content: '▶';
+  font-size: 9px;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sql-difficulty[open] > .sql-difficulty-summary::before { transform: rotate(90deg); }
+
+.sql-difficulty-name {
+  font-weight: 800;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.sql-difficulty-count {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 .sql-entries {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-light);
+}
+
+.sql-empty-group {
+  margin: 0;
+  padding: 10px 12px;
 }
 
 .sql-entry {
