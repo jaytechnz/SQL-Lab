@@ -2,11 +2,11 @@
 // SQL Lab — Cambridge AS Computer Science 9618
 
 import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260429-3';
-import { ChallengeManager } from './challenges.js?v=20260505-1';
+import { ChallengeManager } from './challenges.js?v=20260506-1';
 import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260505-2';
 import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-25';
 import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-25';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-28';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260506-1';
 import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260502-1';
 import { initQuiz, setQuizContext } from './quiz.js?v=20260502-6';
 

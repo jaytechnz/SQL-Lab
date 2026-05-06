@@ -1946,12 +1946,11 @@ Then design a sports league database:
 2. Create a table called \`Matches\`.
 - \`match_id\` — INTEGER, PRIMARY KEY
 - \`match_date\` — DATE
-- \`home_score\` — INTEGER
-- \`away_score\` — INTEGER
-- \`home_team_id\` — INTEGER
-- \`away_team_id\` — INTEGER
-- Foreign key: \`home_team_id\` references \`Teams(team_id)\`
-- Foreign key: \`away_team_id\` references \`Teams(team_id)\`
+- \`opponent_name\` — VARCHAR(50)
+- \`team_score\` — INTEGER
+- \`opponent_score\` — INTEGER
+- \`team_id\` — INTEGER
+- Foreign key: \`team_id\` references \`Teams(team_id)\`
 
 Insert these \`Teams\` tuples:
 - (1, 'Auckland Aces', 'Auckland', 1997)
@@ -1960,17 +1959,17 @@ Insert these \`Teams\` tuples:
 - (4, 'Dunedin Dynamos', 'Dunedin', 2004)
 
 Insert these \`Matches\` tuples:
-- (1, #01/04/2024#, 3, 1, 1, 2)
-- (2, #03/04/2024#, 2, 2, 3, 4)
-- (3, #05/04/2024#, 0, 1, 2, 3)
-- (4, #07/04/2024#, 4, 2, 4, 1)
-- (5, #09/04/2024#, 1, 3, 1, 3)
-- (6, #11/04/2024#, 2, 0, 2, 4)
+- (1, #01/04/2024#, 'Wellington Waves', 3, 1, 1)
+- (2, #03/04/2024#, 'Dunedin Dynamos', 2, 2, 3)
+- (3, #05/04/2024#, 'Christchurch Comets', 0, 1, 2)
+- (4, #07/04/2024#, 'Auckland Aces', 4, 2, 4)
+- (5, #09/04/2024#, 'Christchurch Comets', 1, 3, 1)
+- (6, #11/04/2024#, 'Dunedin Dynamos', 2, 0, 2)
 
-Write a query to show all matches with the home team name and away team name (two JOINs to the same table using aliases).`,
-['Use the teams table twice, once for the home team and once for the away team',
- 'Give each copy of the teams table a short alias',
- 'Show the two team names beside the match scores'],
+Write a query to show all matches with the team name, opponent name, and scores. Use one INNER JOIN to connect \`Matches\` to \`Teams\`.`,
+['Join Matches to Teams using team_id',
+ 'Use one INNER JOIN',
+ 'Show the team name beside the opponent name and scores'],
 '',
 null, '',
 (db, sql) => {
@@ -1979,11 +1978,11 @@ null, '',
   const m = query(db, 'SELECT COUNT(*) FROM Matches');
   if (!m || Number(m.rows[0][0]) < 6) return { passed: false, messages: ['Insert at least 6 matches.'] };
   const fks = foreignKeys(db,'Matches');
-  if (fks.length < 2)
-    return { passed: false, messages: ['Matches should have two foreign keys (home_team_id and away_team_id).'] };
+  if (!fks.find(f => f.from.toLowerCase() === 'team_id'))
+    return { passed: false, messages: ['Matches should have a foreign key on team_id.'] };
   if (!hasKeyword(sql,'JOIN'))
-    return { passed: false, messages: ['Use JOIN(s) to get team names for each match.'] };
-  return { passed: true, messages: ['Sports league with self-join to Teams!'] };
+    return { passed: false, messages: ['Use an INNER JOIN to get the team name for each match.'] };
+  return { passed: true, messages: ['Sports league with one INNER JOIN!'] };
 });
 
 const combo19 = ex('combo-19','combined','Hotel Booking System','hard',

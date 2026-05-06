@@ -10,7 +10,7 @@ import {
   submitTeacherSQLFeedback,
   getTeacherSQLFeedback
 } from './storage.js?v=20260502-1';
-import { EXERCISES, CATEGORIES } from './exercises.js?v=20260427-25';
+import { EXERCISES, CATEGORIES } from './exercises.js?v=20260506-1';
 import { QUIZ_QUESTIONS, QUIZ_SECTIONS } from './quiz.js?v=20260502-6';
 
 const TOTAL_CHALLENGES = EXERCISES.length;
