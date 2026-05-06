@@ -3,7 +3,7 @@
 
 import { EXERCISES, CATEGORIES } from './exercises.js?v=20260506-1';
 import { getDatabaseById } from './databases.js?v=20260427-25';
-import { initSQLEngine, createDatabase, executeSQL, getSchema } from './sql-engine.js?v=20260427-25';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable, getDMLTargetTables } from './sql-engine.js?v=20260507-1';
 import {
   getChallengeProgress,
   getLocalChallengeProgress,
@@ -81,10 +81,11 @@ function databaseNameTableMessage(ex, studentSQL, error) {
 // ══════════════════════════════════════════════════════════════════════════════
 
 export class ChallengeManager {
-  constructor({ onXpChange, onMessage, onResults, onSchema, onError }) {
+  constructor({ onXpChange, onMessage, onResults, onTablePreviews, onSchema, onError }) {
     this.onXpChange  = onXpChange;  // (totalXP, level) => void
     this.onMessage   = onMessage;   // (msgs, passed) => void
     this.onResults   = onResults;   // ({columns, rows}) => void
+    this.onTablePreviews = onTablePreviews; // ({tableName, columns, rows, rowCount}[]) => void
     this.onSchema    = onSchema;    // (schema[]) => void — called for DDL with no SELECT output
     this.onError     = onError;     // (errMsg) => void
 
@@ -322,8 +323,15 @@ export class ChallengeManager {
       };
     }
 
-    // If no SELECT results (DDL/combined), show the schema the student created
-    if (!lastResult) {
+    const dmlPreviews = getDMLTargetTables(studentSQL)
+      .map(tableName => ({ tableName, ...previewTable(db, tableName, 50) }))
+      .filter(preview => preview.columns.length || preview.error);
+
+    // If DML changed a table and there is no SELECT result, show the table state.
+    // Otherwise DDL/combined work falls back to showing the schema.
+    if (!lastResult && dmlPreviews.length) {
+      this.onTablePreviews?.(dmlPreviews);
+    } else if (!lastResult) {
       this.onSchema?.(getSchema(db));
     }
 

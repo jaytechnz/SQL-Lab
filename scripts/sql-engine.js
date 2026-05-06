@@ -129,6 +129,31 @@ export function previewTable(db, tableName, limit = 20) {
   }
 }
 
+export function getDMLTargetTables(sql) {
+  const cleaned = String(sql || '')
+    .replace(/'([^']|'')*'/g, "''")
+    .replace(/--[^\n]*/g, '');
+  const tableName = String.raw`(?:"([^"]+)"|\[([^\]]+)\]|` + '`([^`]+)`' + String.raw`|([A-Za-z_][A-Za-z0-9_]*))`;
+  const patterns = [
+    new RegExp(String.raw`\bINSERT\s+INTO\s+${tableName}`, 'gi'),
+    new RegExp(String.raw`\bUPDATE\s+${tableName}`, 'gi'),
+    new RegExp(String.raw`\bDELETE\s+FROM\s+${tableName}`, 'gi')
+  ];
+  const tables = [];
+
+  patterns.forEach(pattern => {
+    let match;
+    while ((match = pattern.exec(cleaned))) {
+      const name = match.slice(1).find(Boolean);
+      if (name && !tables.some(existing => existing.toLowerCase() === name.toLowerCase())) {
+        tables.push(name);
+      }
+    }
+  });
+
+  return tables;
+}
+
 export function tableRowCount(db, tableName) {
   try {
     const res = db.exec(`SELECT COUNT(*) FROM "${tableName}"`);

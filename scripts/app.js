@@ -2,9 +2,9 @@
 // SQL Lab — Cambridge AS Computer Science 9618
 
 import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260506-1';
-import { ChallengeManager } from './challenges.js?v=20260506-1';
+import { ChallengeManager } from './challenges.js?v=20260507-1';
 import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260505-2';
-import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-25';
+import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable, getDMLTargetTables } from './sql-engine.js?v=20260507-1';
 import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-25';
 import { EXERCISES, CATEGORIES } from './exercises.js?v=20260506-1';
 import { submitFeedback, getMyFeedback, getAllFeedback } from './storage.js?v=20260502-1';
@@ -97,6 +97,7 @@ async function showApp() {
     },
     onMessage: (msgs, passed) => showMessages(msgs, passed),
     onResults: (result) => renderResultTable(result.columns, result.rows),
+    onTablePreviews: (previews) => renderDMLTablePreviews(previews),
     onSchema:  (schema) => renderSchemaResult(schema),
     onError:   (err)    => showError(err)
   });
@@ -536,7 +537,11 @@ async function executeQuery() {
       if (selectResults.length) {
         selectResults.forEach(r => renderResultTable(r.columns, r.rows));
       } else {
+        const previews = getDMLTargetTables(sql)
+          .map(tableName => ({ tableName, ...previewTable(_sandboxDb, tableName, 50) }))
+          .filter(preview => preview.columns.length || preview.error);
         showMessages([`OK — ${rowsAffected ?? 0} row${rowsAffected === 1 ? '' : 's'} affected.`], true);
+        if (previews.length) renderDMLTablePreviews(previews);
       }
     }
     addToHistory(sql, !error);
@@ -585,6 +590,41 @@ function renderResultTable(columns, rows) {
   wrap.appendChild(table);
 
   // Switch to results tab
+  switchOutputTab('results');
+  revealOutputFeedback();
+}
+
+function renderDMLTablePreviews(previews) {
+  const wrap = $('results-table-wrap');
+  if (!wrap) return;
+  wrap.classList.remove('hidden');
+  $('results-placeholder')?.classList.add('hidden');
+
+  wrap.innerHTML = previews.map(preview => {
+    if (preview.error) {
+      return `
+        <div class="dml-preview-section">
+          <div class="result-info">Could not preview ${esc(preview.tableName)}: ${esc(preview.error)}</div>
+        </div>
+      `;
+    }
+
+    const rows = preview.rows || [];
+    return `
+      <div class="dml-preview-section">
+        <div class="result-info">${esc(preview.tableName)} after your statement (${rows.length} row${rows.length === 1 ? '' : 's'} shown)</div>
+        ${rows.length ? `
+          <table class="result-table">
+            <thead><tr>${preview.columns.map(c => `<th>${esc(String(c))}</th>`).join('')}</tr></thead>
+            <tbody>${rows.map(row =>
+              `<tr>${row.map(cell => `<td>${cell === null ? '<em>NULL</em>' : esc(formatDisplayValue(cell))}</td>`).join('')}</tr>`
+            ).join('')}</tbody>
+          </table>
+        ` : '<p class="output-empty">This table is currently empty.</p>'}
+      </div>
+    `;
+  }).join('');
+
   switchOutputTab('results');
   revealOutputFeedback();
 }
