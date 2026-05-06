@@ -1,7 +1,7 @@
 // ─── Main Application ─────────────────────────────────────────────────────────
 // SQL Lab — Cambridge AS Computer Science 9618
 
-import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260429-3';
+import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260506-1';
 import { ChallengeManager } from './challenges.js?v=20260506-1';
 import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260505-2';
 import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable } from './sql-engine.js?v=20260427-25';
@@ -296,6 +296,26 @@ function repairEditorSplitKeywordIdentifiers() {
   }
 }
 
+function currentLineIndentAt(pos) {
+  if (!editor) return '';
+  const text = editor.value;
+  const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+  const beforeCursor = text.slice(lineStart, pos);
+  return beforeCursor.match(/^(\s*)/)?.[1] || '';
+}
+
+function indentPastedSql(text, indent) {
+  const pasted = String(text || '').replace(/\r\n?/g, '\n');
+  if (!indent || !pasted.includes('\n')) return pasted;
+
+  const lines = pasted.split('\n');
+  return lines.map((line, index) => {
+    if (index === 0) return line;
+    if (!line.trim()) return line;
+    return /^\s/.test(line) ? line : indent + line;
+  }).join('\n');
+}
+
 // SQL keyword syntax highlighting (simple overlay approach)
 function highlightSQL(code) {
   const numbers  = /\b\d+(\.\d+)?\b/g;
@@ -364,6 +384,21 @@ function splitSqlText(code) {
 }
 
 editor?.addEventListener('input', e => {
+  autoUppercaseKeywords();
+  _challengeMgr?.updateDraft(editor.value);
+  updateHighlight();
+  updateLineNumbers();
+});
+
+editor?.addEventListener('paste', e => {
+  const raw = e.clipboardData?.getData('text/plain');
+  if (!raw || !raw.includes('\n')) return;
+
+  e.preventDefault();
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const pasted = indentPastedSql(raw, currentLineIndentAt(start));
+  editor.setRangeText(pasted, start, end, 'end');
   autoUppercaseKeywords();
   _challengeMgr?.updateDraft(editor.value);
   updateHighlight();
