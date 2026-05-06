@@ -155,6 +155,8 @@
 }
 .result-table tr:nth-child(even) td { background: var(--result-stripe); }
 .result-table td em { color: var(--text-muted); font-style: italic; }
+.dml-preview-section { margin-bottom: 16px; }
+.dml-preview-section:last-child { margin-bottom: 0; }
 
 /* ── Schema in Results (DDL feedback) ── */
 .schema-result-section { margin-bottom: 16px; }
