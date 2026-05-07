@@ -292,7 +292,7 @@
           <summary class="ref-section-title">CREATE TABLE</summary>
           <div class="ref-section-body">
             <pre class="ref-code">CREATE TABLE TableName (
-  col1  INTEGER PRIMARY KEY,
+  col1  INTEGER NOT NULL PRIMARY KEY,
   col2  VARCHAR(50),
   col3  REAL,
   col4  BOOLEAN,
@@ -334,10 +334,10 @@ ALTER TABLE Students
           <summary class="ref-section-title">PRIMARY KEY</summary>
           <div class="ref-section-body">
             <p class="ref-label">Inline syntax:</p>
-            <pre class="ref-code">id INTEGER PRIMARY KEY</pre>
+            <pre class="ref-code">id INTEGER NOT NULL PRIMARY KEY</pre>
             <p class="ref-label">Constraint syntax (end of field list):</p>
             <pre class="ref-code">PRIMARY KEY (id)</pre>
-            <p class="ref-note">Uniquely identifies each row. Cannot be NULL. Each table has at most one primary key.</p>
+            <p class="ref-note">Uniquely identifies each row. Must be declared NOT NULL. Each table has at most one primary key.</p>
           </div>
         </details>
 
