@@ -336,7 +336,8 @@ ALTER TABLE Students
             <p class="ref-label">Inline syntax:</p>
             <pre class="ref-code">id INTEGER NOT NULL PRIMARY KEY</pre>
             <p class="ref-label">Constraint syntax (end of field list):</p>
-            <pre class="ref-code">PRIMARY KEY (id)</pre>
+            <pre class="ref-code">id INTEGER NOT NULL,
+PRIMARY KEY (id)</pre>
             <p class="ref-note">Uniquely identifies each row. Must be declared NOT NULL. Each table has at most one primary key.</p>
           </div>
         </details>
@@ -349,7 +350,7 @@ ALTER TABLE Students
   REFERENCES Table (Field)</pre>
             <p class="ref-label">Example:</p>
             <pre class="ref-code">CREATE TABLE Loans (
-  loan_id   INTEGER PRIMARY KEY,
+  loan_id   INTEGER NOT NULL PRIMARY KEY,
   member_id INTEGER,
   FOREIGN KEY (member_id)
     REFERENCES Members(member_id)
