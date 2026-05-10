@@ -14,7 +14,7 @@ export const DATABASES = {
     tables: ['books'],
     setupSQL: `
 CREATE TABLE books (
-  book_id   INTEGER PRIMARY KEY,
+  book_id   INTEGER NOT NULL PRIMARY KEY,
   title     VARCHAR(100),
   author    VARCHAR(80),
   genre     VARCHAR(30),
@@ -44,7 +44,7 @@ INSERT INTO books VALUES
     tables: ['employees'],
     setupSQL: `
 CREATE TABLE employees (
-  employee_id INTEGER PRIMARY KEY,
+  employee_id INTEGER NOT NULL PRIMARY KEY,
   name        VARCHAR(50),
   department  VARCHAR(30),
   salary      REAL,
@@ -71,18 +71,18 @@ INSERT INTO employees VALUES
     tables: ['students', 'subjects', 'enrolments'],
     setupSQL: `
 CREATE TABLE students (
-  student_id  INTEGER PRIMARY KEY,
+  student_id  INTEGER NOT NULL PRIMARY KEY,
   name        VARCHAR(50),
   year_group  INTEGER,
   form_class  VARCHAR(5)
 );
 CREATE TABLE subjects (
-  subject_id   INTEGER PRIMARY KEY,
+  subject_id   INTEGER NOT NULL PRIMARY KEY,
   subject_name VARCHAR(50),
   teacher      VARCHAR(50)
 );
 CREATE TABLE enrolments (
-  enrol_id   INTEGER PRIMARY KEY,
+  enrol_id   INTEGER NOT NULL PRIMARY KEY,
   student_id INTEGER,
   subject_id INTEGER,
   grade      VARCHAR(2),
@@ -125,20 +125,20 @@ INSERT INTO enrolments VALUES
     tables: ['members', 'lib_books', 'loans'],
     setupSQL: `
 CREATE TABLE members (
-  member_id  INTEGER PRIMARY KEY,
+  member_id  INTEGER NOT NULL PRIMARY KEY,
   name       VARCHAR(50),
   email      VARCHAR(80),
   join_date  DATE
 );
 CREATE TABLE lib_books (
-  book_id    INTEGER PRIMARY KEY,
+  book_id    INTEGER NOT NULL PRIMARY KEY,
   title      VARCHAR(100),
   author     VARCHAR(80),
   genre      VARCHAR(30),
   pub_year   INTEGER
 );
 CREATE TABLE loans (
-  loan_id     INTEGER PRIMARY KEY,
+  loan_id     INTEGER NOT NULL PRIMARY KEY,
   member_id   INTEGER,
   book_id     INTEGER,
   loan_date   DATE,
@@ -181,25 +181,25 @@ INSERT INTO loans VALUES
     tables: ['customers', 'products', 'orders', 'orders_products'],
     setupSQL: `
 CREATE TABLE customers (
-  customer_id INTEGER PRIMARY KEY,
+  customer_id INTEGER NOT NULL PRIMARY KEY,
   name        VARCHAR(50),
   email       VARCHAR(80),
   country     VARCHAR(30)
 );
 CREATE TABLE products (
-  product_id  INTEGER PRIMARY KEY,
+  product_id  INTEGER NOT NULL PRIMARY KEY,
   name        VARCHAR(80),
   category    VARCHAR(30),
   price       REAL
 );
 CREATE TABLE orders (
-  order_id    INTEGER PRIMARY KEY,
+  order_id    INTEGER NOT NULL PRIMARY KEY,
   customer_id INTEGER,
   order_date  DATE,
   FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
 );
 CREATE TABLE orders_products (
-  item_id    INTEGER PRIMARY KEY,
+  item_id    INTEGER NOT NULL PRIMARY KEY,
   order_id   INTEGER,
   product_id INTEGER,
   quantity   INTEGER,

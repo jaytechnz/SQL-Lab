@@ -77,7 +77,7 @@ export const QUIZ_QUESTIONS = [
   output(60, 'State the output of this query.', table('Parcel', ['parcel_id', 'weight'], [[1, 2.5], [2, 1.0], [3, 4.0]]) + '\n\nSELECT parcel_id FROM Parcel WHERE weight = (SELECT MAX(weight) FROM Parcel);', '3'),
 
   sql(61, 'Write an SQL statement to create a database called SchoolTrips.', 'CREATE DATABASE SchoolTrips;'),
-  sql(62, 'Write an SQL statement to create a table Student with fields student_id INTEGER primary key, name VARCHAR(40), and year_group INTEGER.', 'CREATE TABLE Student (\n  student_id INTEGER PRIMARY KEY,\n  name VARCHAR(40),\n  year_group INTEGER\n);'),
+  sql(62, 'Write an SQL statement to create a table Student with fields student_id INTEGER NOT NULL primary key, name VARCHAR(40), and year_group INTEGER.', 'CREATE TABLE Student (\n  student_id INTEGER NOT NULL PRIMARY KEY,\n  name VARCHAR(40),\n  year_group INTEGER\n);'),
   sql(63, 'Write an SQL statement to add an email field of type VARCHAR(80) to the Student table.', 'ALTER TABLE Student\nADD email VARCHAR(80);'),
   sql(64, 'Write an SQL statement to insert student_id 12, name Rina Patel, and year_group 12 into Student.', "INSERT INTO Student (student_id, name, year_group)\nVALUES (12, 'Rina Patel', 12);"),
   sql(65, 'Write an SQL statement to select all fields from the Book table.', 'SELECT * FROM Book;'),
@@ -92,8 +92,8 @@ export const QUIZ_QUESTIONS = [
   sql(74, 'Write an SQL statement to display customer names without duplicates.', 'SELECT DISTINCT name\nFROM Customer;'),
   sql(75, 'Write an SQL statement to display books where the title starts with The.', "SELECT *\nFROM Book\nWHERE title LIKE 'The%';"),
   sql(76, 'Write an SQL statement to display loans that have not been returned. The field return_date stores NULL if the loan is still open.', 'SELECT *\nFROM Loan\nWHERE return_date IS NULL;'),
-  sql(77, 'Write an SQL statement to create table Class with class_id INTEGER primary key and class_name VARCHAR(20).', 'CREATE TABLE Class (\n  class_id INTEGER PRIMARY KEY,\n  class_name VARCHAR(20)\n);'),
-  sql(78, 'Write an SQL statement to create table Student with student_id INTEGER primary key, name VARCHAR(40), class_id INTEGER, and class_id as a foreign key referencing Class(class_id).', 'CREATE TABLE Student (\n  student_id INTEGER PRIMARY KEY,\n  name VARCHAR(40),\n  class_id INTEGER,\n  FOREIGN KEY (class_id) REFERENCES Class(class_id)\n);'),
+  sql(77, 'Write an SQL statement to create table Class with class_id INTEGER NOT NULL primary key and class_name VARCHAR(20).', 'CREATE TABLE Class (\n  class_id INTEGER NOT NULL PRIMARY KEY,\n  class_name VARCHAR(20)\n);'),
+  sql(78, 'Write an SQL statement to create table Student with student_id INTEGER NOT NULL primary key, name VARCHAR(40), class_id INTEGER, and class_id as a foreign key referencing Class(class_id).', 'CREATE TABLE Student (\n  student_id INTEGER NOT NULL PRIMARY KEY,\n  name VARCHAR(40),\n  class_id INTEGER,\n  FOREIGN KEY (class_id) REFERENCES Class(class_id)\n);'),
   sql(79, 'Write an SQL statement to display student names and their class names using Student and Class.', 'SELECT Student.name, Class.class_name\nFROM Student\nINNER JOIN Class ON Student.class_id = Class.class_id;'),
   sql(80, 'Write an SQL statement to display orders placed by customer_id 8, sorted by order_date ascending.', 'SELECT *\nFROM Orders\nWHERE customer_id = 8\nORDER BY order_date ASC;'),
   sql(81, 'Write an SQL statement to display the total quantity ordered for each product_id from OrderItem.', 'SELECT product_id, SUM(quantity)\nFROM OrderItem\nGROUP BY product_id;'),
@@ -103,7 +103,7 @@ export const QUIZ_QUESTIONS = [
   sql(85, 'Write an SQL statement to find the largest mark in the Result table.', 'SELECT MAX(mark)\nFROM Result;'),
   sql(86, 'Write an SQL statement to display the names of customers who live in Auckland or Hamilton.', "SELECT name\nFROM Customer\nWHERE city = 'Auckland' OR city = 'Hamilton';"),
   sql(87, 'Write an SQL statement to display all fields from Product where price is at least 10 and less than 50.', 'SELECT *\nFROM Product\nWHERE price >= 10 AND price < 50;'),
-  sql(88, 'Write an SQL statement to create table Appointment with appointment_id INTEGER primary key, appointment_date DATE, appointment_time TIME, and attended BOOLEAN.', 'CREATE TABLE Appointment (\n  appointment_id INTEGER PRIMARY KEY,\n  appointment_date DATE,\n  appointment_time TIME,\n  attended BOOLEAN\n);'),
+  sql(88, 'Write an SQL statement to create table Appointment with appointment_id INTEGER NOT NULL primary key, appointment_date DATE, appointment_time TIME, and attended BOOLEAN.', 'CREATE TABLE Appointment (\n  appointment_id INTEGER NOT NULL PRIMARY KEY,\n  appointment_date DATE,\n  appointment_time TIME,\n  attended BOOLEAN\n);'),
   sql(89, 'Write an SQL statement to change every order with status Pending to status Dispatched.', "UPDATE Orders\nSET status = 'Dispatched'\nWHERE status = 'Pending';"),
   sql(90, 'Write an SQL statement to display each genre and the average price of books in that genre.', 'SELECT genre, AVG(price)\nFROM Book\nGROUP BY genre;'),
 

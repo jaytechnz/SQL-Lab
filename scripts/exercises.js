@@ -312,11 +312,11 @@ null, '',
 
 const ddl08 = ex('ddl-08','ddl','CREATE TABLE — PRIMARY KEY Inline Syntax','easy',
 `Create a table called \`Countries\` with:
-- \`country_id\` — INTEGER, and make it the **PRIMARY KEY** field
+- \`country_id\` — INTEGER, and make it **NOT NULL PRIMARY KEY**
 - \`country_name\` — VARCHAR(50), and make it **NOT NULL**
 - \`population\` — INTEGER
 
-A primary key uniquely identifies each row in a table. A non-key field can also be required by marking it NOT NULL.`,
+A primary key uniquely identifies each row in a table and must be declared NOT NULL. A non-key field can also be required by marking it NOT NULL.`,
 ['Mark country_id as the key field', 'Use NOT NULL on country_name'],
 '',
 null, '',
@@ -337,13 +337,13 @@ null, '',
 
 const ddl09 = ex('ddl-09','ddl','CREATE TABLE — PRIMARY KEY Constraint Syntax','easy',
 `Create a table called \`Teachers\` with:
-- \`teacher_code\` — VARCHAR(10), and make it the **PRIMARY KEY** field
+- \`teacher_code\` — VARCHAR(10), and make it **NOT NULL** and the **PRIMARY KEY** field
 - \`name\` — VARCHAR(50), and make it **NOT NULL**
 - \`subject\` — VARCHAR(30)
 
-Add the primary key using the **constraint syntax** at the end of the field list:
+Declare \`teacher_code\` as NOT NULL in the field list, then add the primary key using the **constraint syntax** at the end:
 \`PRIMARY KEY (teacher_code)\``,
-['Use the table-level primary key constraint for teacher_code',
+['Use NOT NULL on teacher_code, then use the table-level primary key constraint',
  'Use NOT NULL on name'],
 '',
 null, '',
@@ -369,7 +369,7 @@ null, '',
 
 const ddl10 = ex('ddl-10','ddl','All Cambridge Data Types','medium',
 `Create a table called \`Products\` that uses **all six Cambridge AS data types**:
-- \`product_id\` — INTEGER, PRIMARY KEY
+- \`product_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`name\` — VARCHAR(100)
 - \`size_code\` — CHARACTER
 - \`in_stock\` — BOOLEAN
@@ -387,7 +387,7 @@ null, '',
   const cols = tableInfo(db, 'Products');
   const msgs = [];
   const pkCol = cols.find(c => c.name.toLowerCase() === 'product_id');
-  if (!pkCol) msgs.push('Field product_id (INTEGER PRIMARY KEY) is missing.');
+  if (!pkCol) msgs.push('Field product_id (INTEGER NOT NULL PRIMARY KEY) is missing.');
   else if (!pkCol.pk) msgs.push('product_id should be the PRIMARY KEY.');
   if (!hasColumn(cols,'name','VARCHAR(100)'))        msgs.push('Field name (VARCHAR(100)) is missing.');
   const sizeCodeCol = cols.find(c => c.name.toLowerCase() === 'size_code');
@@ -411,7 +411,7 @@ Use \`ALTER TABLE\` to **add** a new field:
 '',
 null,
 `CREATE TABLE Students (
-  student_id INTEGER PRIMARY KEY,
+  student_id INTEGER NOT NULL PRIMARY KEY,
   name       VARCHAR(50),
   year_group INTEGER
 );`,
@@ -438,7 +438,7 @@ Add **two** new fields using ALTER TABLE:
 '',
 null,
 `CREATE TABLE Books (
-  book_id INTEGER PRIMARY KEY,
+  book_id INTEGER NOT NULL PRIMARY KEY,
   title   VARCHAR(100),
   author  VARCHAR(80)
 );`,
@@ -460,7 +460,7 @@ const ddl13 = ex('ddl-13','ddl','FOREIGN KEY Reference','medium',
 `Two tables exist: \`Departments\` and \`Staff\`.
 
 Departments has been created for you. Create the \`Staff\` table with:
-- \`staff_id\` — INTEGER, PRIMARY KEY
+- \`staff_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`name\` — VARCHAR(50)
 - \`dept_id\` — INTEGER
 - A **FOREIGN KEY** on \`dept_id\` that references \`Departments(dept_id)\`
@@ -471,7 +471,7 @@ Syntax: \`FOREIGN KEY (field) REFERENCES Table (Field)\``,
 '',
 null,
 `CREATE TABLE Departments (
-  dept_id   INTEGER PRIMARY KEY,
+  dept_id   INTEGER NOT NULL PRIMARY KEY,
   dept_name VARCHAR(30)
 );`,
 (db, sql) => {
@@ -497,11 +497,11 @@ const ddl14 = ex('ddl-14','ddl','Relational Schema — Authors and Books','mediu
 `Design a small relational database by creating **two linked tables**:
 
 1. Create a table called \`Authors\`.
-- \`author_id\` — INTEGER, PRIMARY KEY
+- \`author_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`name\` — VARCHAR(80)
 
 2. Create a table called \`Books\`.
-- \`book_id\` — INTEGER, PRIMARY KEY
+- \`book_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`title\` — VARCHAR(100)
 - \`genre\` — VARCHAR(30)
 - \`price\` — REAL
@@ -535,7 +535,7 @@ null, '',
 
 const ddl15 = ex('ddl-15','ddl','Table with TIME Column','easy',
 `Create a table called \`Appointments\` with:
-- \`appt_id\` — INTEGER, PRIMARY KEY
+- \`appt_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`patient_name\` — VARCHAR(50)
 - \`appt_date\` — DATE
 - \`appt_time\` — TIME
@@ -550,7 +550,7 @@ null, '',
   const cols = tableInfo(db, 'Appointments');
   const msgs = [];
   if (!cols.find(c => c.name.toLowerCase() === 'appt_id' && c.pk))
-    msgs.push('appt_id should be INTEGER PRIMARY KEY.');
+    msgs.push('appt_id should be INTEGER NOT NULL PRIMARY KEY.');
   if (!hasColumn(cols,'patient_name','VARCHAR(50)')) msgs.push('patient_name should be type VARCHAR(50).');
   const dateC = cols.find(c => c.name.toLowerCase() === 'appt_date');
   const timeC = cols.find(c => c.name.toLowerCase() === 'appt_time');
@@ -575,7 +575,7 @@ Extend it using ALTER TABLE to add:
 '',
 null,
 `CREATE TABLE Vehicles (
-  vehicle_id INTEGER PRIMARY KEY,
+  vehicle_id INTEGER NOT NULL PRIMARY KEY,
   make       VARCHAR(30)
 );`,
 (db, sql) => {
@@ -596,15 +596,15 @@ const ddl17 = ex('ddl-17','ddl','Three-Table Hospital Schema','hard',
 Then create these three linked tables for that hospital database:
 
 1. Create a table called \`Doctors\`.
-\`doctor_id\` is the primary key field and must use INTEGER.
+\`doctor_id\` is the primary key field, must use INTEGER, and must be declared NOT NULL.
 Also include \`name\` as VARCHAR(50) and \`speciality\` as VARCHAR(50).
 
 2. Create a table called \`Patients\`.
-\`patient_id\` is the primary key field and must use INTEGER.
+\`patient_id\` is the primary key field, must use INTEGER, and must be declared NOT NULL.
 Also include \`name\` as VARCHAR(50), \`dob\` as DATE, and \`blood_type\` as CHARACTER.
 
 3. Create a table called \`Appointments\`.
-\`appt_id\` is the primary key field and must use INTEGER.
+\`appt_id\` is the primary key field, must use INTEGER, and must be declared NOT NULL.
 Also include \`doctor_id\` as INTEGER, \`patient_id\` as INTEGER, \`appt_date\` as DATE, and \`appt_time\` as TIME.
 
 In \`Appointments\`, add a foreign key from \`doctor_id\` to \`Doctors.doctor_id\`, and a foreign key from \`patient_id\` to \`Patients.patient_id\`.`,
@@ -654,13 +654,13 @@ const ddl18 = ex('ddl-18','ddl','E-commerce — Products and Orders','hard',
 `Create a 2-table e-commerce schema:
 
 1. Create a table called \`Customers\`.
-- \`customer_id\` — INTEGER, PRIMARY KEY
+- \`customer_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`name\` — VARCHAR(50)
 - \`email\` — VARCHAR(80)
 - \`country\` — VARCHAR(30)
 
 2. Create a table called \`Orders\`.
-- \`order_id\` — INTEGER, PRIMARY KEY
+- \`order_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`order_date\` — DATE
 - \`total_amount\` — REAL
 - \`customer_id\` — INTEGER
@@ -695,12 +695,12 @@ const ddl19 = ex('ddl-19','ddl','Content Management System','hard',
 `Create a 3-table CMS schema:
 
 Table 1: Create a table called \`Authors\`.
-- \`author_id\` — INTEGER, PRIMARY KEY
+- \`author_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`pen_name\` — VARCHAR(50)
 - \`join_date\` — DATE
 
 Table 2: Create a table called \`Articles\`.
-- \`article_id\` — INTEGER, PRIMARY KEY
+- \`article_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`title\` — VARCHAR(200)
 - \`published\` — DATE
 - \`is_published\` — BOOLEAN
@@ -708,7 +708,7 @@ Table 2: Create a table called \`Articles\`.
 - Foreign key: \`author_id\` references \`Authors(author_id)\`
 
 Table 3: Create a table called \`Comments\`.
-- \`comment_id\` — INTEGER, PRIMARY KEY
+- \`comment_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`commenter_name\` — VARCHAR(50)
 - \`posted_at\` — DATE
 - \`content\` — VARCHAR(500)
@@ -756,17 +756,17 @@ const ddl20 = ex('ddl-20','ddl','School Timetable Schema','hard',
 `Design a complete school timetable database with 3 tables:
 
 Table 1: Create a table called \`Teachers\`.
-- \`teacher_id\` — INTEGER, PRIMARY KEY
+- \`teacher_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`name\` — VARCHAR(50)
 - \`subject\` — VARCHAR(40)
 
 Table 2: Create a table called \`Classrooms\`.
-- \`room_id\` — INTEGER, PRIMARY KEY
+- \`room_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`room_name\` — VARCHAR(10)
 - \`capacity\` — INTEGER
 
 Table 3: Create a table called \`Timetable\`.
-- \`lesson_id\` — INTEGER, PRIMARY KEY
+- \`lesson_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`day\` — VARCHAR(10)
 - \`period\` — INTEGER
 - \`start_time\` — TIME
@@ -1211,7 +1211,7 @@ const combo01 = ex('combo-01','combined','Create, Insert and Select','easy',
 `First, create a database called \`ColoursDB\`.
 
 Then create a table called \`Colours\` with:
-- \`colour_id\` INTEGER PRIMARY KEY
+- \`colour_id\` INTEGER NOT NULL PRIMARY KEY
 - \`colour_name\` VARCHAR(20)
 
 Then insert these tuples:
@@ -1249,7 +1249,7 @@ const combo02 = ex('combo-02','combined','Animals Database','easy',
 `First, create a database called \`AnimalsDB\`.
 
 Then create a table called \`Animals\` with:
-- \`animal_id\` INTEGER PRIMARY KEY
+- \`animal_id\` INTEGER NOT NULL PRIMARY KEY
 - \`name\` VARCHAR(30)
 - \`species\` VARCHAR(30)
 - \`age\` INTEGER
@@ -1280,7 +1280,7 @@ const combo03 = ex('combo-03','combined','Temperature Records','easy',
 `First, create a database called \`TemperaturesDB\`.
 
 Then create a table called \`Temperatures\` with:
-- \`city\` VARCHAR(30) PRIMARY KEY
+- \`city\` VARCHAR(30) NOT NULL PRIMARY KEY
 - \`temp_c\` REAL
 - \`recorded\` DATE
 
@@ -1316,7 +1316,7 @@ const combo04 = ex('combo-04','combined','Student Clubs with UPDATE','medium',
 `First, create a database called \`ClubsDB\`.
 
 Then create a table called \`ClubMembers\` with:
-- \`member_id\` INTEGER PRIMARY KEY
+- \`member_id\` INTEGER NOT NULL PRIMARY KEY
 - \`student_name\` VARCHAR(50)
 - \`club_name\` VARCHAR(30)
 - \`joined_date\` DATE
@@ -1350,7 +1350,7 @@ const combo05 = ex('combo-05','combined','Product Inventory Query','medium',
 `First, create a database called \`InventoryDB\`.
 
 Then create a table called \`Inventory\` with:
-- \`item_id\` INTEGER PRIMARY KEY
+- \`item_id\` INTEGER NOT NULL PRIMARY KEY
 - \`item_name\` VARCHAR(50)
 - \`quantity\` INTEGER
 - \`unit_price\` REAL
@@ -1385,7 +1385,7 @@ const combo06 = ex('combo-06','combined','COUNT by Category','medium',
 `First, create a database called \`TasksDB\`.
 
 Then create a table called \`Tasks\` with:
-- \`task_id\` INTEGER PRIMARY KEY
+- \`task_id\` INTEGER NOT NULL PRIMARY KEY
 - \`title\` VARCHAR(100)
 - \`category\` VARCHAR(20)
 - \`completed\` BOOLEAN
@@ -1464,7 +1464,7 @@ const combo08 = ex('combo-08','combined','INSERT then DELETE','medium',
 `First, create a database called \`EventLogDB\`.
 
 Then create a table called \`EventLog\` with:
-- \`log_id\` INTEGER PRIMARY KEY
+- \`log_id\` INTEGER NOT NULL PRIMARY KEY
 - \`event_type\` VARCHAR(30)
 - \`event_date\` DATE
 - \`severity\` INTEGER
@@ -1502,11 +1502,11 @@ const combo09 = ex('combo-09','combined','Relational Tables with INNER JOIN','ha
 Then create two related tables:
 
 1. Create a table called \`Genres\`.
-- \`genre_id\` — INTEGER, PRIMARY KEY
+- \`genre_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`genre_name\` — VARCHAR(30)
 
 2. Create a table called \`Films\`.
-- \`film_id\` — INTEGER, PRIMARY KEY
+- \`film_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`title\` — VARCHAR(100)
 - \`year\` — INTEGER
 - \`rating\` — REAL
@@ -1606,12 +1606,12 @@ const combo11 = ex('combo-11','combined','School Report System','hard',
 Then design and populate a mini school report system:
 
 1. Create a table called \`Pupils\`.
-- \`pupil_id\` — INTEGER, PRIMARY KEY
+- \`pupil_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`name\` — VARCHAR(50)
 - \`year_group\` — INTEGER
 
 2. Create a table called \`Reports\`.
-- \`report_id\` — INTEGER, PRIMARY KEY
+- \`report_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`subject\` — VARCHAR(40)
 - \`score\` — INTEGER
 - \`report_date\` — DATE
@@ -1690,12 +1690,12 @@ const combo13 = ex('combo-13','combined','Flights Database','hard',
 Then create a 2-table flights database:
 
 1. Create a table called \`Airlines\`.
-- \`airline_id\` — INTEGER, PRIMARY KEY
+- \`airline_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`airline_name\` — VARCHAR(50)
 - \`country\` — VARCHAR(30)
 
 2. Create a table called \`Flights\`.
-- \`flight_id\` — INTEGER, PRIMARY KEY
+- \`flight_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`destination\` — VARCHAR(50)
 - \`departure_date\` — DATE
 - \`price\` — REAL
@@ -1741,12 +1741,12 @@ const combo14 = ex('combo-14','combined','Exam Results Tracker','hard',
 Then build an exam results tracker:
 
 1. Create a table called \`Subjects\`.
-- \`subject_id\` — INTEGER, PRIMARY KEY
+- \`subject_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`subject_name\` — VARCHAR(40)
 - \`max_marks\` — INTEGER
 
 2. Create a table called \`Results\`.
-- \`result_id\` — INTEGER, PRIMARY KEY
+- \`result_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`student_name\` — VARCHAR(50)
 - \`marks\` — INTEGER
 - \`exam_date\` — DATE
@@ -1792,12 +1792,12 @@ const combo15 = ex('combo-15','combined','Library Catalogue','hard',
 Then create a mini library catalogue:
 
 1. Create a table called \`LibAuthors\`.
-- \`author_id\` — INTEGER, PRIMARY KEY
+- \`author_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`author_name\` — VARCHAR(80)
 - \`nationality\` — VARCHAR(30)
 
 2. Create a table called \`LibCatalogue\`.
-- \`catalogue_id\` — INTEGER, PRIMARY KEY
+- \`catalogue_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`book_title\` — VARCHAR(150)
 - \`genre\` — VARCHAR(30)
 - \`year\` — INTEGER
@@ -1845,12 +1845,12 @@ const combo16 = ex('combo-16','combined','Student Attendance','hard',
 Then create an attendance system:
 
 1. Create a table called \`Classes\`.
-- \`class_id\` — INTEGER, PRIMARY KEY
+- \`class_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`class_name\` — VARCHAR(30)
 - \`teacher\` — VARCHAR(50)
 
 2. Create a table called \`Attendance\`.
-- \`att_id\` — INTEGER, PRIMARY KEY
+- \`att_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`student_name\` — VARCHAR(50)
 - \`att_date\` — DATE
 - \`present\` — BOOLEAN
@@ -1938,13 +1938,13 @@ const combo18 = ex('combo-18','combined','Sports League','hard',
 Then design a sports league database:
 
 1. Create a table called \`Teams\`.
-- \`team_id\` — INTEGER, PRIMARY KEY
+- \`team_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`team_name\` — VARCHAR(50)
 - \`home_city\` — VARCHAR(30)
 - \`founded_year\` — INTEGER
 
 2. Create a table called \`Matches\`.
-- \`match_id\` — INTEGER, PRIMARY KEY
+- \`match_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`match_date\` — DATE
 - \`opponent_name\` — VARCHAR(50)
 - \`team_score\` — INTEGER
@@ -1991,13 +1991,13 @@ const combo19 = ex('combo-19','combined','Hotel Booking System','hard',
 Then create a hotel booking system:
 
 1. Create a table called \`Rooms\`.
-- \`room_id\` — INTEGER, PRIMARY KEY
+- \`room_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`room_number\` — VARCHAR(5)
 - \`room_type\` — VARCHAR(20)
 - \`price_per_night\` — REAL
 
 2. Create a table called \`Bookings\`.
-- \`booking_id\` — INTEGER, PRIMARY KEY
+- \`booking_id\` — INTEGER, NOT NULL, PRIMARY KEY
 - \`guest_name\` — VARCHAR(50)
 - \`check_in\` — DATE
 - \`check_out\` — DATE
