@@ -3,7 +3,7 @@
 
 import { onAuth, signIn, registerUser, signOutUser, resetPassword, updateUserClassCode, authErrorMessage } from './auth.js?v=20260506-1';
 import { ChallengeManager } from './challenges.js?v=20260507-1';
-import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260505-2';
+import { renderDashboard, refreshDashboard } from './dashboard.js?v=20260513-1';
 import { initSQLEngine, createDatabase, executeSQL, getSchema, previewTable, getDMLTargetTables } from './sql-engine.js?v=20260507-1';
 import { DATABASES, DATABASE_LIST, getDatabaseById } from './databases.js?v=20260427-25';
 import { EXERCISES, CATEGORIES } from './exercises.js?v=20260506-1';

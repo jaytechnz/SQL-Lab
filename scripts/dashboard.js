@@ -94,6 +94,8 @@ function _render(container) {
   `;
 
   container.querySelector('#dash-class-filter')?.addEventListener('change', e => {
+    e.preventDefault();
+    e.stopPropagation();
     _classFilter = _normalizeClassCode(e.target.value);
     _status = { tone: '', text: '' };
     _render(container);
@@ -103,10 +105,10 @@ function _render(container) {
   container.querySelector('#dash-save-class-name')?.addEventListener('click', _handleSaveClassName);
   container.querySelector('#dash-add-student')?.addEventListener('click', _handleAddStudent);
   container.querySelectorAll('[data-remove-student]').forEach(btn => {
-    btn.addEventListener('click', () => _handleRemoveStudent(btn.dataset.removeStudent, btn.dataset.studentName));
+    btn.addEventListener('click', e => _handleRemoveStudent(btn.dataset.removeStudent, btn.dataset.studentName, e));
   });
   container.querySelectorAll('[data-sql-feedback-submit]').forEach(btn => {
-    btn.addEventListener('click', () => _handleSQLFeedback(btn));
+    btn.addEventListener('click', e => _handleSQLFeedback(btn, e));
   });
 }
 
@@ -133,7 +135,7 @@ function _renderClassManagement(classes) {
           <p class="dash-panel-text">Generate a new class code for your Cambridge AS SQL group, then share it with students when they register.</p>
           <div class="dash-inline-form">
             <input id="dash-new-class-name" class="dash-input" type="text" placeholder="Optional class name, e.g. AS SQL Period 3">
-            <button id="dash-generate-class" class="btn-primary btn-sm">Generate Code</button>
+            <button id="dash-generate-class" type="button" class="btn-primary btn-sm">Generate Code</button>
           </div>
         </section>
         <section class="dash-panel">
@@ -145,7 +147,7 @@ function _renderClassManagement(classes) {
             </div>
             <div class="dash-inline-form">
               <input id="dash-class-name" class="dash-input" type="text" value="${esc(classLabel)}" placeholder="Class display name">
-              <button id="dash-save-class-name" class="btn-ghost btn-sm">Save Name</button>
+              <button id="dash-save-class-name" type="button" class="btn-ghost btn-sm">Save Name</button>
             </div>
             <p class="dash-panel-text">Students can join with this code. You can also reassign registered students below.</p>
           ` : `
@@ -163,7 +165,7 @@ function _renderClassManagement(classes) {
                 <option value="">Choose a student</option>
                 ${availableStudents.map(student => `<option value="${escAttr(student.uid)}">${esc(_studentLabel(student))}${_studentClassCode(student) ? ` (${esc(_studentClassCode(student))})` : ' (no class)'}</option>`).join('')}
               </select>
-              <button id="dash-add-student" class="btn-primary btn-sm" ${availableStudents.length ? '' : 'disabled'}>Add Student</button>
+              <button id="dash-add-student" type="button" class="btn-primary btn-sm" ${availableStudents.length ? '' : 'disabled'}>Add Student</button>
             </div>
           ` : `
             <p class="dash-empty">Choose a class first so we know where to place the student.</p>
@@ -190,6 +192,7 @@ function _renderRoster(roster) {
             <div class="dash-roster-meta">${esc(student.email || '')}</div>
           </div>
           <button
+            type="button"
             class="btn-ghost btn-sm dash-remove-btn"
             data-remove-student="${student.uid}"
             data-student-name="${esc(_studentLabel(student))}"
@@ -782,6 +785,7 @@ function _renderSQLEntry(student, progress, exercise, id, sql) {
         <div class="sql-feedback-form">
           <textarea class="dash-textarea sql-feedback-input" rows="2" placeholder="Add feedback for this SQL attempt"></textarea>
           <button
+            type="button"
             class="btn-primary btn-sm"
             data-sql-feedback-submit
             data-student-uid="${escAttr(student.uid)}"
@@ -802,7 +806,9 @@ function _groupSQLEntriesByDifficulty(entries, exerciseMap) {
   return grouped;
 }
 
-async function _handleGenerateClass() {
+async function _handleGenerateClass(event) {
+  event?.preventDefault();
+  event?.stopPropagation();
   const name = _container.querySelector('#dash-new-class-name')?.value.trim() || '';
   const code = _generateClassCode();
 
@@ -818,7 +824,9 @@ async function _handleGenerateClass() {
   }
 }
 
-async function _handleSaveClassName() {
+async function _handleSaveClassName(event) {
+  event?.preventDefault();
+  event?.stopPropagation();
   if (!_classFilter) return;
 
   const input = _container.querySelector('#dash-class-name');
@@ -835,7 +843,9 @@ async function _handleSaveClassName() {
   }
 }
 
-async function _handleAddStudent() {
+async function _handleAddStudent(event) {
+  event?.preventDefault();
+  event?.stopPropagation();
   const select = _container.querySelector('#dash-student-select');
   const studentUid = select?.value || '';
 
@@ -858,7 +868,9 @@ async function _handleAddStudent() {
   }
 }
 
-async function _handleRemoveStudent(studentUid, studentName) {
+async function _handleRemoveStudent(studentUid, studentName, event) {
+  event?.preventDefault();
+  event?.stopPropagation();
   try {
     await removeStudentFromClass(studentUid);
     const student = _students.find(item => item.uid === studentUid);
@@ -871,7 +883,9 @@ async function _handleRemoveStudent(studentUid, studentName) {
   }
 }
 
-async function _handleSQLFeedback(button) {
+async function _handleSQLFeedback(button, event) {
+  event?.preventDefault();
+  event?.stopPropagation();
   const form = button.closest('.sql-feedback-form');
   const input = form?.querySelector('.sql-feedback-input');
   const text = input?.value.trim() || '';
